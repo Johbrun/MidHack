@@ -1,12 +1,12 @@
 export default function Instructions() {
   const challenges = [
-    { name: 'Sensitive Data Exposure', difficulty: 'facile', hint: 'Tout n\'est pas caché aux yeux du public...' },
-    { name: 'IDOR', difficulty: 'facile', hint: 'Êtes-vous vraiment limité à votre propre profil ?' },
-    { name: 'Reflected XSS', difficulty: 'moyen', hint: 'Que se passe-t-il quand on cherche quelque chose d\'inhabituel ?' },
-    { name: 'SQL Injection', difficulty: 'moyen', hint: 'Le formulaire de connexion accepte peut-être plus que des noms d\'utilisateur...' },
-    { name: 'Business Logic Flaw', difficulty: 'moyen', hint: 'Les nombres peuvent circuler dans les deux sens.' },
-    { name: 'JWT Forging', difficulty: 'difficile', hint: 'Les secrets doivent rester secrets. Celui-ci l\'est-il ?' },
-    { name: 'Stored XSS', difficulty: 'difficile', hint: 'Les avis sont affichés tels quels. Que pourriez-vous injecter ?' },
+    { name: 'Sensitive Data Exposure', difficulty: 'facile', hint: 'Certaines portes n\'ont jamais été fermées.' },
+    { name: 'IDOR', difficulty: 'facile', hint: 'L\'identité est une question de perspective... et de chiffres.' },
+    { name: 'Reflected XSS', difficulty: 'moyen', hint: 'Le miroir renvoie tout ce qu\'on lui donne.' },
+    { name: 'SQL Injection', difficulty: 'moyen', hint: 'La porte d\'entrée parle une langue que peu maîtrisent.' },
+    { name: 'Business Logic Flaw', difficulty: 'moyen', hint: 'Quand le négatif devient positif, les règles s\'inversent.' },
+    { name: 'JWT Forging', difficulty: 'difficile', hint: 'Un sceau facile à reproduire ne protège rien.' },
+    { name: 'Stored XSS', difficulty: 'difficile', hint: 'Les mots déposés ici vivent plus longtemps qu\'on ne le croit.' },
   ];
 
   const diffBadge = (d) => {
