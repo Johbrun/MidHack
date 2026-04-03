@@ -31,9 +31,9 @@ const FLAG_POINTS = {
   [FLAGS.SQLI]: { points: 15, difficulty: 'Moyen' },
   [FLAGS.SQLI_UNION]: { points: 20, difficulty: 'Difficile' },
   [FLAGS.BUSINESS_LOGIC]: { points: 15, difficulty: 'Moyen' },
-  [FLAGS.JWT_FORGING]: { points: 20, difficulty: 'Difficile' },
+  [FLAGS.JWT_FORGING]: { points: 15, difficulty: 'Moyen' },
   [FLAGS.STORED_XSS]: { points: 20, difficulty: 'Difficile' },
-  [FLAGS.ZERO_RATING]: { points: 15, difficulty: 'Moyen' },
+  [FLAGS.ZERO_RATING]: { points: 10, difficulty: 'Facile' },
   [FLAGS.MASS_ASSIGNMENT]: { points: 15, difficulty: 'Moyen' },
 };
 
