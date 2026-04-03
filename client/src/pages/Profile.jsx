@@ -5,7 +5,7 @@ import api from '../api';
 
 export default function Profile() {
   const { id } = useParams();
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const [profile, setProfile] = useState(null);
   const [editing, setEditing] = useState(false);
   const [username, setUsername] = useState('');
@@ -26,6 +26,7 @@ export default function Profile() {
     try {
       const { data } = await api.put(`/users/${id}`, { username, email, bio });
       setProfile(data);
+      updateUser({ username: data.username, role: data.role });
       setEditing(false);
       setMessage('Profil mis à jour');
       setTimeout(() => setMessage(''), 3000);
