@@ -7,6 +7,7 @@ export default function Instructions() {
     { name: 'Business Logic Flaw', difficulty: 'moyen', hint: 'Quand le négatif devient positif, les règles s\'inversent.' },
     { name: 'JWT Forging', difficulty: 'difficile', hint: 'Un sceau facile à reproduire ne protège rien.' },
     { name: 'Stored XSS', difficulty: 'difficile', hint: 'Les mots déposés ici vivent plus longtemps qu\'on ne le croit.' },
+    { name: 'Zero Rating', difficulty: 'facile', hint: 'L\'interface dit 1 à 5... mais l\'API a-t-elle les mêmes limites ?' },
   ];
 
   const diffBadge = (d) => {
@@ -54,7 +55,7 @@ export default function Instructions() {
       {/* Challenges */}
       <div className="card p-8 mb-8">
         <h2 className="font-heading font-bold text-xl mb-6 text-accent">Défis</h2>
-        <p className="text-white/40 text-sm mb-6">7 vulnérabilités à trouver. Chacune révèle un flag unique.</p>
+        <p className="text-white/40 text-sm mb-6">8 vulnérabilités à trouver. Chacune révèle un flag unique.</p>
 
         <div className="space-y-3">
           {challenges.map((c, i) => (

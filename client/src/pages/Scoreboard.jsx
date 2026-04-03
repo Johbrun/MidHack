@@ -47,6 +47,7 @@ export default function Scoreboard() {
     'Business Logic',
     'JWT Forging',
     'Stored XSS',
+    'Zero Rating',
   ];
 
   return (

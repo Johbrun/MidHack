@@ -1,6 +1,7 @@
 const express = require('express');
 const db = require('../db');
 const { authenticate } = require('../middleware/auth');
+const { FLAGS } = require('../flags');
 
 const router = express.Router();
 
@@ -32,21 +33,32 @@ router.post('/:productId/reviews', authenticate, (req, res) => {
     return res.status(404).json({ error: 'Product not found' });
   }
 
-  const ratingValue = Math.min(5, Math.max(1, parseInt(rating) || 5));
+  // VULNERABLE: no server-side validation on rating range
+  // The frontend select only shows 1-5, but the API accepts any integer including 0
+  const ratingValue = parseInt(rating);
+  const safeRating = isNaN(ratingValue) ? 5 : ratingValue;
 
   // VULNERABLE: content is stored as-is, no sanitization
   const result = db.prepare(
     'INSERT INTO reviews (product_id, user_id, content, rating) VALUES (?, ?, ?, ?)'
-  ).run(productId, req.user.id, content, ratingValue);
+  ).run(productId, req.user.id, content, safeRating);
 
-  res.json({
+  const response = {
     id: result.lastInsertRowid,
     product_id: parseInt(productId),
     user_id: req.user.id,
     username: req.user.username,
     content,
-    rating: ratingValue,
-  });
+    rating: safeRating,
+  };
+
+  // Flag revealed when a review with rating 0 is submitted via API
+  if (safeRating === 0) {
+    response.flag = FLAGS.ZERO_RATING;
+    response.message = 'Une note de 0 ? Vous avez trouvé une faille de validation !';
+  }
+
+  res.json(response);
 });
 
 module.exports = router;

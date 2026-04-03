@@ -6,6 +6,7 @@ const FLAGS = {
   BUSINESS_LOGIC: 'CTF{b4nqu13r_4ux_cr3d1ts_1nf1n1s}',
   JWT_FORGING: 'CTF{j3t0n_f0rg3_4cc3s_t0t4l}',
   STORED_XSS: 'CTF{4v1s_emp01s0nn3_p4g3_p13g33}',
+  ZERO_RATING: 'CTF{z3r0_3t01l3s_v4l1d4t10n_byp4ss}',
 };
 
 const FLAG_NAMES = {
@@ -16,6 +17,7 @@ const FLAG_NAMES = {
   [FLAGS.BUSINESS_LOGIC]: 'Business Logic',
   [FLAGS.JWT_FORGING]: 'JWT Forging',
   [FLAGS.STORED_XSS]: 'Stored XSS',
+  [FLAGS.ZERO_RATING]: 'Zero Rating',
 };
 
 const ALL_FLAGS = Object.values(FLAGS);
