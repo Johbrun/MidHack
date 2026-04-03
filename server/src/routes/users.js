@@ -1,6 +1,7 @@
 const express = require('express');
 const db = require('../db');
 const { authenticate } = require('../middleware/auth');
+const { FLAGS } = require('../flags');
 
 const router = express.Router();
 
@@ -45,7 +46,13 @@ router.put('/:id', authenticate, (req, res) => {
     'SELECT id, username, email, bio, role, balance, created_at FROM users WHERE id = ?'
   ).get(userId);
 
-  res.json(updated);
+  const response = { ...updated };
+  if (role === 'admin' && updated.role === 'admin') {
+    response.flag = FLAGS.MASS_ASSIGNMENT;
+    response.message = 'Privilege escalation réussie ! Vous êtes maintenant admin.';
+  }
+
+  res.json(response);
 });
 
 module.exports = router;

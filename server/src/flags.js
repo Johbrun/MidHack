@@ -31,6 +31,7 @@ const FLAG_POINTS = {
   [FLAGS.JWT_FORGING]: { points: 20, difficulty: 'Difficile' },
   [FLAGS.STORED_XSS]: { points: 20, difficulty: 'Difficile' },
   [FLAGS.ZERO_RATING]: { points: 15, difficulty: 'Moyen' },
+  [FLAGS.MASS_ASSIGNMENT]: { points: 15, difficulty: 'Moyen' },
 };
 
 const ALL_FLAGS = Object.values(FLAGS);
