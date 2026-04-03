@@ -8,6 +8,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
+import ProfileRedirect from './pages/ProfileRedirect';
 import Shop from './pages/Shop';
 import ProductDetail from './pages/ProductDetail';
 import Cart from './pages/Cart';
@@ -31,6 +32,7 @@ export default function App() {
               <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/profile" element={<ProtectedRoute><ProfileRedirect /></ProtectedRoute>} />
               <Route path="/profile/:id" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               <Route path="/send" element={<ProtectedRoute><SendCredits /></ProtectedRoute>} />
               <Route path="/topup" element={<ProtectedRoute><TopUp /></ProtectedRoute>} />

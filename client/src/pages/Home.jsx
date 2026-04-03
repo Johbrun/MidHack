@@ -52,16 +52,16 @@ export default function Home() {
       <section className="max-w-6xl mx-auto px-6 pb-24">
         <div className="flex items-end justify-between mb-10">
           <div>
-            <h2 className="text-3xl font-heading font-extrabold tracking-tight mb-1">Notre Collection</h2>
-            <p className="text-white/30 text-sm">Bananes premium triées sur le volet</p>
+            <h2 className="text-3xl font-heading font-extrabold tracking-tight mb-1">Nos articles phares</h2>
+            <p className="text-white/30 text-sm">Nos bananes les plus populaires</p>
           </div>
           <Link to="/shop" className="text-cyan text-sm hover:text-cyan/80 transition-colors">
-            Voir tout &rarr;
+            Voir toute la boutique &rarr;
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {products.map(product => (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {products.slice(0, 2).map(product => (
             <Link
               key={product.id}
               to={`/product/${product.id}`}

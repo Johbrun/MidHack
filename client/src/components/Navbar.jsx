@@ -33,7 +33,7 @@ export default function Navbar() {
           {user ? (
             <>
               <Link
-                to="/dashboard"
+                to="/profile"
                 className="px-4 py-2 text-sm text-white/60 hover:text-cyan transition-colors font-body"
               >
                 Voir mon profil
