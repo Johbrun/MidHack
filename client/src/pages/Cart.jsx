@@ -22,7 +22,7 @@ export default function Cart() {
           const { data } = await api.post(`/products/${item.id}/buy`);
           outcomes.push({ product: item.name, success: true, message: data.message, balance: data.balance });
         } catch (err) {
-          outcomes.push({ product: item.name, success: false, message: err.response?.data?.error || 'Purchase failed' });
+          outcomes.push({ product: item.name, success: false, message: err.response?.data?.error || 'Échec de l\'achat' });
           break;
         }
       }
@@ -37,16 +37,16 @@ export default function Cart() {
 
   return (
     <div className="page-container max-w-3xl">
-      <h1 className="section-title mb-2">Your Cart</h1>
+      <h1 className="section-title mb-2">Votre panier</h1>
       <p className="text-white/40 text-sm mb-8">
-        {items.length === 0 ? 'Your cart is empty' : `${items.reduce((s, i) => s + i.qty, 0)} item(s)`}
+        {items.length === 0 ? 'Votre panier est vide' : `${items.reduce((s, i) => s + i.qty, 0)} article(s)`}
       </p>
 
       {items.length === 0 ? (
         <div className="card p-12 text-center">
           <div className="text-5xl mb-4">🛒</div>
-          <p className="text-white/30 mb-6">Nothing here yet</p>
-          <Link to="/shop" className="btn-primary inline-flex">Browse Shop</Link>
+          <p className="text-white/30 mb-6">Rien ici pour le moment</p>
+          <Link to="/shop" className="btn-primary inline-flex">Parcourir la boutique</Link>
         </div>
       ) : (
         <>
@@ -93,14 +93,14 @@ export default function Cart() {
             <div className="flex items-center justify-between mb-6">
               <span className="text-white/40 uppercase tracking-wider text-sm font-heading">Total</span>
               <span className="text-3xl font-heading font-extrabold text-accent">
-                {totalPrice.toFixed(0)} <span className="text-sm text-white/30">credits</span>
+                {totalPrice.toFixed(0)} <span className="text-sm text-white/30">crédits</span>
               </span>
             </div>
 
             {!user ? (
               <div className="text-center">
-                <p className="text-white/40 text-sm mb-4">You need an account to checkout</p>
-                <Link to="/login" className="btn-primary inline-flex">Sign In</Link>
+                <p className="text-white/40 text-sm mb-4">Vous devez avoir un compte pour payer</p>
+                <Link to="/login" className="btn-primary inline-flex">Se connecter</Link>
               </div>
             ) : (
               <button
@@ -108,7 +108,7 @@ export default function Cart() {
                 disabled={purchasing}
                 className="btn-primary w-full disabled:opacity-50"
               >
-                {purchasing ? 'Processing...' : 'Checkout'}
+                {purchasing ? 'Traitement en cours...' : 'Payer'}
               </button>
             )}
           </div>
@@ -127,7 +127,7 @@ export default function Cart() {
                 >
                   {r.product}: {r.message}
                   {r.balance !== undefined && (
-                    <span className="ml-2 font-mono text-white/30">Balance: {r.balance.toFixed(2)}</span>
+                    <span className="ml-2 font-mono text-white/30">Solde : {r.balance.toFixed(2)}</span>
                   )}
                 </div>
               ))}

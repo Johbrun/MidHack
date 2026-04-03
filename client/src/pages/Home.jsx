@@ -28,21 +28,21 @@ export default function Home() {
         <div className="relative max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.05] border border-white/[0.08] text-xs text-white/40 font-mono mb-8">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-            Premium banana marketplace
+            Marketplace de bananes premium
           </div>
           <h1 className="text-6xl md:text-7xl font-heading font-extrabold tracking-tight mb-6 leading-[1.1]">
-            The finest bananas,<br />
-            <span className="gradient-text">delivered in credits.</span>
+            Les meilleures bananes,<br />
+            <span className="gradient-text">livrées en crédits.</span>
           </h1>
           <p className="text-white/40 text-lg max-w-2xl mx-auto mb-10 leading-relaxed">
-            From organic to diamond-tier, BananaShop offers the most exclusive banana collection on the market. Top up your credits and start shopping.
+            Du bio au diamant, BananaShop propose la collection de bananes la plus exclusive du marché. Rechargez vos crédits et commencez vos achats.
           </p>
           <div className="flex items-center justify-center gap-4">
             <Link to="/shop" className="btn-primary !px-10">
-              Browse Shop
+              Parcourir la boutique
             </Link>
             <Link to="/register" className="btn-secondary !px-10">
-              Create Account
+              Créer un compte
             </Link>
           </div>
         </div>
@@ -52,11 +52,11 @@ export default function Home() {
       <section className="max-w-6xl mx-auto px-6 pb-24">
         <div className="flex items-end justify-between mb-10">
           <div>
-            <h2 className="text-3xl font-heading font-extrabold tracking-tight mb-1">Our Collection</h2>
-            <p className="text-white/30 text-sm">Handpicked premium bananas</p>
+            <h2 className="text-3xl font-heading font-extrabold tracking-tight mb-1">Notre Collection</h2>
+            <p className="text-white/30 text-sm">Bananes premium triées sur le volet</p>
           </div>
           <Link to="/shop" className="text-cyan text-sm hover:text-cyan/80 transition-colors">
-            View all &rarr;
+            Voir tout &rarr;
           </Link>
         </div>
 
@@ -79,7 +79,7 @@ export default function Home() {
                     {product.price} <span className="text-xs text-white/30">cr</span>
                   </span>
                   <span className="text-xs text-white/20 font-mono">
-                    {product.stock} in stock
+                    {product.stock} en stock
                   </span>
                 </div>
               </div>
@@ -94,12 +94,12 @@ export default function Home() {
           <div className="absolute top-0 right-0 w-72 h-72 rounded-full bg-accent/5 -translate-y-1/2 translate-x-1/3" />
           <div className="absolute bottom-0 left-0 w-56 h-56 rounded-full bg-cyan/5 translate-y-1/2 -translate-x-1/3" />
           <div className="relative">
-            <h2 className="text-2xl font-heading font-extrabold mb-3">Ready to start?</h2>
+            <h2 className="text-2xl font-heading font-extrabold mb-3">Prêt à commencer ?</h2>
             <p className="text-white/40 mb-8 max-w-md mx-auto">
-              Create your account, get 100 free credits, and start building your banana collection.
+              Créez votre compte, recevez 100 crédits gratuits et commencez votre collection de bananes.
             </p>
             <Link to="/register" className="btn-primary inline-flex !px-10">
-              Get Started
+              Commencer
             </Link>
           </div>
         </div>

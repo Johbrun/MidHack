@@ -53,19 +53,19 @@ export default function Scoreboard() {
     <div className="page-container">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="section-title mb-1">Scoreboard</h1>
-          <p className="text-white/40 text-sm">Live CTF rankings</p>
+          <h1 className="section-title mb-1">Classement</h1>
+          <p className="text-white/40 text-sm">Classement CTF en direct</p>
         </div>
         <div className="flex items-center gap-2">
           <div className={`w-2 h-2 rounded-full ${connected ? 'bg-emerald-400' : 'bg-red-400'}`} />
-          <span className="text-xs text-white/30 font-mono">{connected ? 'Live' : 'Offline'}</span>
+          <span className="text-xs text-white/30 font-mono">{connected ? 'En direct' : 'Hors ligne'}</span>
         </div>
       </div>
 
       {teams.length === 0 ? (
         <div className="card p-12 text-center">
           <p className="text-4xl mb-4">🏆</p>
-          <p className="text-white/30">No teams registered yet. Start hacking!</p>
+          <p className="text-white/30">Aucune équipe inscrite pour le moment. Commencez à hacker !</p>
         </div>
       ) : (
         <div className="card overflow-hidden">
@@ -74,7 +74,7 @@ export default function Scoreboard() {
               <thead>
                 <tr className="border-b border-white/[0.08]">
                   <th className="text-left p-4 font-heading font-bold text-white/40 uppercase tracking-wider text-xs">#</th>
-                  <th className="text-left p-4 font-heading font-bold text-white/40 uppercase tracking-wider text-xs">Team</th>
+                  <th className="text-left p-4 font-heading font-bold text-white/40 uppercase tracking-wider text-xs">Équipe</th>
                   <th className="text-center p-4 font-heading font-bold text-white/40 uppercase tracking-wider text-xs">Score</th>
                   {allFlags.map(f => (
                     <th key={f} className="text-center p-4 font-heading font-bold text-white/40 uppercase tracking-wider text-xs whitespace-nowrap">

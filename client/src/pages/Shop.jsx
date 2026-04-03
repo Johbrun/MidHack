@@ -40,8 +40,8 @@ export default function Shop() {
     <div className="page-container">
       <div className="flex items-end justify-between mb-10">
         <div>
-          <h1 className="section-title mb-1">Banana Shop</h1>
-          <p className="text-white/40 text-sm">Premium bananas, priced in credits</p>
+          <h1 className="section-title mb-1">Boutique Banana</h1>
+          <p className="text-white/40 text-sm">Bananes premium, prix en crédits</p>
         </div>
       </div>
 
@@ -53,16 +53,16 @@ export default function Shop() {
             className="input flex-1"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search bananas..."
+            placeholder="Rechercher des bananes..."
           />
-          <button type="submit" className="btn-secondary !px-8">Search</button>
+          <button type="submit" className="btn-secondary !px-8">Rechercher</button>
         </div>
       </form>
 
       {/* VULNERABLE: Reflected XSS — renders search term as HTML */}
       {displaySearch && (
         <div className="mb-6 p-4 card">
-          <span className="text-white/40 text-sm">Results for: </span>
+          <span className="text-white/40 text-sm">Résultats pour : </span>
           <span
             className="text-white text-sm font-semibold"
             dangerouslySetInnerHTML={{ __html: displaySearch }}
@@ -90,14 +90,14 @@ export default function Shop() {
                   {product.price} <span className="text-xs text-white/30">cr</span>
                 </span>
                 <span className="text-xs text-white/20 font-mono">
-                  {product.stock} in stock
+                  {product.stock} en stock
                 </span>
               </div>
               <button
                 onClick={(e) => { e.preventDefault(); addToCart(product); }}
                 className="w-full py-2.5 rounded-md bg-white/[0.06] border border-white/[0.08] text-sm text-white/60 font-heading font-semibold hover:bg-accent/20 hover:text-accent hover:border-accent/30 transition-all"
               >
-                Add to Cart
+                Ajouter au panier
               </button>
             </div>
           </Link>
@@ -107,7 +107,7 @@ export default function Shop() {
       {products.length === 0 && (
         <div className="text-center py-20 text-white/30">
           <p className="text-4xl mb-4">🍌</p>
-          <p>No bananas found</p>
+          <p>Aucune banane trouvée</p>
         </div>
       )}
     </div>

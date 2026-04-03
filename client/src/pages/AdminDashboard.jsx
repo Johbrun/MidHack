@@ -21,31 +21,31 @@ export default function AdminDashboard() {
       <div className="page-container">
         <div className="card p-8 max-w-md mx-auto text-center">
           <div className="text-4xl mb-4">🔒</div>
-          <h1 className="font-heading font-bold text-xl mb-2">Access Denied</h1>
+          <h1 className="font-heading font-bold text-xl mb-2">Accès refusé</h1>
           <p className="text-red-400 text-sm">{error}</p>
         </div>
       </div>
     );
   }
 
-  if (!data) return <div className="page-container">Loading...</div>;
+  if (!data) return <div className="page-container">Chargement...</div>;
 
   return (
     <div className="page-container">
-      <h1 className="section-title mb-2">Admin Dashboard</h1>
-      <p className="text-white/40 text-sm mb-8">System overview</p>
+      <h1 className="section-title mb-2">Tableau de bord Admin</h1>
+      <p className="text-white/40 text-sm mb-8">Vue d'ensemble du système</p>
 
       {/* Flags */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
         {sqliFlag && (
           <div className="card p-6 border-accent/30">
-            <h3 className="font-heading font-bold text-sm text-accent mb-2">SQL Injection Flag</h3>
+            <h3 className="font-heading font-bold text-sm text-accent mb-2">Flag SQL Injection</h3>
             <p className="font-mono text-accent text-lg">{sqliFlag.flag}</p>
             <p className="text-white/30 text-xs mt-2">{sqliFlag.message}</p>
           </div>
         )}
         <div className="card p-6 border-cyan/30">
-          <h3 className="font-heading font-bold text-sm text-cyan mb-2">JWT Forging Flag</h3>
+          <h3 className="font-heading font-bold text-sm text-cyan mb-2">Flag JWT Forging</h3>
           <p className="font-mono text-cyan text-lg">{data.flag}</p>
           <p className="text-white/30 text-xs mt-2">{data.message}</p>
         </div>
@@ -55,11 +55,11 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="card p-6 text-center">
           <p className="text-3xl font-heading font-extrabold text-accent">{data.stats.users}</p>
-          <p className="text-white/30 text-xs uppercase tracking-wider mt-2">Users</p>
+          <p className="text-white/30 text-xs uppercase tracking-wider mt-2">Utilisateurs</p>
         </div>
         <div className="card p-6 text-center">
           <p className="text-3xl font-heading font-extrabold text-cyan">{data.stats.products}</p>
-          <p className="text-white/30 text-xs uppercase tracking-wider mt-2">Products</p>
+          <p className="text-white/30 text-xs uppercase tracking-wider mt-2">Produits</p>
         </div>
         <div className="card p-6 text-center">
           <p className="text-3xl font-heading font-extrabold">{data.stats.transactions}</p>
@@ -67,7 +67,7 @@ export default function AdminDashboard() {
         </div>
         <div className="card p-6 text-center">
           <p className="text-3xl font-heading font-extrabold text-emerald-400">{data.stats.revenue}</p>
-          <p className="text-white/30 text-xs uppercase tracking-wider mt-2">Revenue</p>
+          <p className="text-white/30 text-xs uppercase tracking-wider mt-2">Revenus</p>
         </div>
       </div>
     </div>

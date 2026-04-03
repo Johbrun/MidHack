@@ -17,7 +17,7 @@ export default function Register() {
       await register(username, email, password);
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.error || 'Registration failed');
+      setError(err.response?.data?.error || 'Échec de l\'inscription');
     }
   };
 
@@ -25,8 +25,8 @@ export default function Register() {
     <div className="page-container flex items-center justify-center min-h-screen">
       <div className="card w-full max-w-md p-8">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-heading font-extrabold mb-2">Create Account</h1>
-          <p className="text-white/40 text-sm">Join BananaShop and start trading</p>
+          <h1 className="text-2xl font-heading font-extrabold mb-2">Créer un compte</h1>
+          <p className="text-white/40 text-sm">Rejoignez BananaShop et commencez à échanger</p>
         </div>
 
         {error && (
@@ -37,18 +37,18 @@ export default function Register() {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="label">Username</label>
+            <label className="label">Nom d'utilisateur</label>
             <input
               type="text"
               className="input"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="Choose a username"
+              placeholder="Choisissez un nom d'utilisateur"
             />
           </div>
 
           <div>
-            <label className="label">Email</label>
+            <label className="label">E-mail</label>
             <input
               type="email"
               className="input"
@@ -59,25 +59,25 @@ export default function Register() {
           </div>
 
           <div>
-            <label className="label">Password</label>
+            <label className="label">Mot de passe</label>
             <input
               type="password"
               className="input"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Choose a password"
+              placeholder="Choisissez un mot de passe"
             />
           </div>
 
           <button type="submit" className="btn-primary w-full">
-            Create Account
+            Créer un compte
           </button>
         </form>
 
         <p className="text-center mt-6 text-sm text-white/40">
-          Already have an account?{' '}
+          Vous avez déjà un compte ?{' '}
           <Link to="/login" className="text-cyan hover:text-cyan/80 transition-colors">
-            Sign in
+            Se connecter
           </Link>
         </p>
       </div>

@@ -13,19 +13,19 @@ export default function TopUp() {
       const { data } = await api.post('/credits/topup', { amount, cardNumber });
       setResult({ type: 'success', data });
     } catch (err) {
-      setResult({ type: 'error', message: err.response?.data?.error || 'Top-up failed' });
+      setResult({ type: 'error', message: err.response?.data?.error || 'Échec du rechargement' });
     }
   };
 
   return (
     <div className="page-container max-w-lg">
-      <h1 className="section-title mb-2">Top Up Credits</h1>
-      <p className="text-white/40 text-sm mb-8">Add credits to your account</p>
+      <h1 className="section-title mb-2">Recharger des crédits</h1>
+      <p className="text-white/40 text-sm mb-8">Ajoutez des crédits à votre compte</p>
 
       <div className="card p-8">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="label">Amount (1-1000)</label>
+            <label className="label">Montant (1-1000)</label>
             <input
               type="number"
               className="input"
@@ -38,7 +38,7 @@ export default function TopUp() {
           </div>
 
           <div>
-            <label className="label">Card Number</label>
+            <label className="label">Numéro de carte</label>
             <input
               type="text"
               className="input"
@@ -47,11 +47,11 @@ export default function TopUp() {
               placeholder="4242 4242 4242 4242"
               maxLength={19}
             />
-            <p className="text-white/20 text-xs mt-2">Any card number will work (this is a demo)</p>
+            <p className="text-white/20 text-xs mt-2">N'importe quel numéro de carte fonctionne (ceci est une démo)</p>
           </div>
 
           <button type="submit" className="btn-primary w-full">
-            Top Up
+            Recharger
           </button>
         </form>
 
@@ -62,7 +62,7 @@ export default function TopUp() {
               : 'bg-red-500/10 border border-red-500/20 text-red-400'
           }`}>
             {result.type === 'success' ? (
-              <p>{result.data.message} — New balance: {result.data.balance?.toFixed(2)} credits</p>
+              <p>{result.data.message} — Nouveau solde : {result.data.balance?.toFixed(2)} crédits</p>
             ) : (
               <p>{result.message}</p>
             )}

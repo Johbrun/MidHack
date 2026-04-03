@@ -18,42 +18,42 @@ export default function SendCredits() {
       setRecipient('');
       setAmount('');
     } catch (err) {
-      setResult({ type: 'error', message: err.response?.data?.error || 'Transfer failed' });
+      setResult({ type: 'error', message: err.response?.data?.error || 'Échec du transfert' });
     }
   };
 
   return (
     <div className="page-container max-w-lg">
-      <h1 className="section-title mb-2">Send Credits</h1>
-      <p className="text-white/40 text-sm mb-8">Transfer credits to another user</p>
+      <h1 className="section-title mb-2">Envoyer des crédits</h1>
+      <p className="text-white/40 text-sm mb-8">Transférer des crédits à un autre utilisateur</p>
 
       <div className="card p-8">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="label">Recipient Username</label>
+            <label className="label">Nom d'utilisateur du destinataire</label>
             <input
               type="text"
               className="input"
               value={recipient}
               onChange={(e) => setRecipient(e.target.value)}
-              placeholder="Enter username"
+              placeholder="Entrez le nom d'utilisateur"
             />
           </div>
 
           <div>
-            <label className="label">Amount</label>
+            <label className="label">Montant</label>
             {/* VULNERABLE: type="text" allows negative values */}
             <input
               type="text"
               className="input"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              placeholder="Enter amount"
+              placeholder="Entrez le montant"
             />
           </div>
 
           <button type="submit" className="btn-primary w-full">
-            Send Credits
+            Envoyer des crédits
           </button>
         </form>
 
@@ -66,7 +66,7 @@ export default function SendCredits() {
             {result.type === 'success' ? (
               <div>
                 <p>{result.data.message}</p>
-                <p className="mt-2 font-mono">New balance: {result.data.balance?.toFixed(2)} credits</p>
+                <p className="mt-2 font-mono">Nouveau solde : {result.data.balance?.toFixed(2)} crédits</p>
                 {result.data.flag && (
                   <div className="mt-3 p-3 bg-accent/10 border border-accent/30 rounded text-accent font-mono">
                     {result.data.flag}

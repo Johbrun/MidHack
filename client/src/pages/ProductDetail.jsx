@@ -26,7 +26,7 @@ export default function ProductDetail() {
       const { data } = await api.post(`/products/${id}/buy`);
       setMessage({ type: 'success', text: data.message });
     } catch (err) {
-      setMessage({ type: 'error', text: err.response?.data?.error || 'Purchase failed' });
+      setMessage({ type: 'error', text: err.response?.data?.error || 'Échec de l\'achat' });
     }
   };
 
@@ -41,11 +41,11 @@ export default function ProductDetail() {
       setReviewContent('');
       setRating(5);
     } catch (err) {
-      setMessage({ type: 'error', text: 'Failed to post review' });
+      setMessage({ type: 'error', text: 'Échec de la publication de l\'avis' });
     }
   };
 
-  if (!product) return <div className="page-container">Loading...</div>;
+  if (!product) return <div className="page-container">Chargement...</div>;
 
   return (
     <div className="page-container max-w-4xl">
@@ -59,9 +59,9 @@ export default function ProductDetail() {
             <p className="text-white/50 mb-6 leading-relaxed">{product.description}</p>
             <div className="flex items-center gap-6 mb-6">
               <span className="text-4xl font-heading font-extrabold text-accent">
-                {product.price} <span className="text-sm text-white/30">credits</span>
+                {product.price} <span className="text-sm text-white/30">crédits</span>
               </span>
-              <span className="text-sm text-white/20 font-mono">{product.stock} in stock</span>
+              <span className="text-sm text-white/20 font-mono">{product.stock} en stock</span>
             </div>
 
             {message && (
@@ -83,11 +83,11 @@ export default function ProductDetail() {
                 }}
                 className="btn-primary"
               >
-                {addedToCart ? 'Added!' : 'Add to Cart'}
+                {addedToCart ? 'Ajouté !' : 'Ajouter au panier'}
               </button>
               {user && (
                 <button onClick={handleBuy} className="btn-secondary">
-                  Buy Now
+                  Acheter maintenant
                 </button>
               )}
             </div>
@@ -98,24 +98,24 @@ export default function ProductDetail() {
       {/* Reviews Section */}
       <div className="mb-8">
         <h2 className="font-heading font-bold text-xl mb-6">
-          Reviews <span className="text-white/20 text-sm">({reviews.length})</span>
+          Avis <span className="text-white/20 text-sm">({reviews.length})</span>
         </h2>
 
         {/* Review Form */}
         {user && (
           <form onSubmit={handleReview} className="card p-6 mb-6">
             <div className="mb-4">
-              <label className="label">Your Review</label>
+              <label className="label">Votre avis</label>
               <textarea
                 className="input min-h-[100px] resize-none"
                 value={reviewContent}
                 onChange={(e) => setReviewContent(e.target.value)}
-                placeholder="Write your review..."
+                placeholder="Rédigez votre avis..."
               />
             </div>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
-                <label className="label !mb-0">Rating:</label>
+                <label className="label !mb-0">Note :</label>
                 <select
                   className="input !w-20 !py-2"
                   value={rating}
@@ -126,7 +126,7 @@ export default function ProductDetail() {
                   ))}
                 </select>
               </div>
-              <button type="submit" className="btn-secondary">Post Review</button>
+              <button type="submit" className="btn-secondary">Publier l'avis</button>
             </div>
           </form>
         )}
@@ -137,7 +137,7 @@ export default function ProductDetail() {
             <ReviewCard key={review.id} review={review} />
           ))}
           {reviews.length === 0 && (
-            <p className="text-white/20 text-sm text-center py-8">No reviews yet. Be the first!</p>
+            <p className="text-white/20 text-sm text-center py-8">Aucun avis pour le moment. Soyez le premier !</p>
           )}
         </div>
       </div>
