@@ -36,19 +36,13 @@ export default function Navbar() {
                 to="/dashboard"
                 className="px-4 py-2 text-sm text-white/60 hover:text-cyan transition-colors font-body"
               >
-                Tableau de bord
+                Voir mon profil
               </Link>
               <Link
                 to="/send"
                 className="px-4 py-2 text-sm text-white/60 hover:text-cyan transition-colors font-body"
               >
                 Envoyer des crédits
-              </Link>
-              <Link
-                to={`/profile/${user.id}`}
-                className="px-4 py-2 text-sm text-white/60 hover:text-cyan transition-colors font-body"
-              >
-                Profil
               </Link>
               {user.role === 'admin' && (
                 <Link
