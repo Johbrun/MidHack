@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const db = require('../db');
 
 // VULNERABLE: weak, hardcoded secret
 const JWT_SECRET = 'secret';
@@ -10,6 +11,10 @@ function authenticate(req, res, next) {
   try {
     // VULNERABLE: accepts alg:none — allows unsigned token forging
     const decoded = jwt.verify(token, JWT_SECRET, { algorithms: ['HS256', 'none'] });
+
+    const user = db.prepare('SELECT id FROM users WHERE id = ?').get(decoded.id);
+    if (!user) return res.status(401).json({ error: 'User not found' });
+
     req.user = decoded;
     next();
   } catch (err) {
