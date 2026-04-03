@@ -3,21 +3,17 @@ import api from '../api';
 
 export default function AdminDashboard() {
   const [data, setData] = useState(null);
-  const [sqliFlag, setSqliFlag] = useState(null);
   const [users, setUsers] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [error, setError] = useState('');
   const [saveMsg, setSaveMsg] = useState('');
+  const [saveMsgError, setSaveMsgError] = useState(false);
 
   useEffect(() => {
     api.get('/admin/dashboard')
       .then(r => setData(r.data))
       .catch(err => setError(err.response?.data?.error || 'Access denied'));
-
-    api.get('/admin/sqli-flag')
-      .then(r => setSqliFlag(r.data))
-      .catch(() => {});
 
     api.get('/admin/users')
       .then(r => setUsers(r.data))
@@ -40,10 +36,13 @@ export default function AdminDashboard() {
       const { data } = await api.put(`/admin/users/${userId}`, editForm);
       setUsers(users.map(u => u.id === userId ? data : u));
       setEditingId(null);
+      setSaveMsgError(false);
       setSaveMsg(`Utilisateur #${userId} mis à jour`);
       setTimeout(() => setSaveMsg(''), 3000);
     } catch (err) {
+      setSaveMsgError(true);
       setSaveMsg(err.response?.data?.error || 'Erreur lors de la mise à jour');
+      setTimeout(() => setSaveMsg(''), 3000);
     }
   };
 
@@ -66,21 +65,16 @@ export default function AdminDashboard() {
       <h1 className="section-title mb-2">Tableau de bord Admin</h1>
       <p className="text-white/40 text-sm mb-8">Vue d'ensemble du système</p>
 
-      {/* Flags */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-        {sqliFlag && (
-          <div className="card p-6 border-accent/30">
-            <h3 className="font-heading font-bold text-sm text-accent mb-2">Flag SQL Injection</h3>
-            <p className="font-mono text-accent text-lg">{sqliFlag.flag}</p>
-            <p className="text-white/30 text-xs mt-2">{sqliFlag.message}</p>
+      {/* Super Admin Flag */}
+      {data.flag && (
+        <div className="mb-8">
+          <div className="card p-6 border-cyan/30">
+            <h3 className="font-heading font-bold text-sm text-cyan mb-2">Section Super Admin</h3>
+            <p className="font-mono text-cyan text-lg">{data.flag}</p>
+            <p className="text-white/30 text-xs mt-2">{data.secret_message}</p>
           </div>
-        )}
-        <div className="card p-6 border-cyan/30">
-          <h3 className="font-heading font-bold text-sm text-cyan mb-2">Flag JWT Forging</h3>
-          <p className="font-mono text-cyan text-lg">{data.flag}</p>
-          <p className="text-white/30 text-xs mt-2">{data.message}</p>
         </div>
-      </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
@@ -106,7 +100,11 @@ export default function AdminDashboard() {
       <h2 className="font-heading font-bold text-xl mb-4">Gestion des membres</h2>
 
       {saveMsg && (
-        <div className="mb-4 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm">
+        <div className={`mb-4 p-3 rounded-lg text-sm ${
+          saveMsgError
+            ? 'bg-red-500/10 border border-red-500/20 text-red-400'
+            : 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
+        }`}>
           {saveMsg}
         </div>
       )}
