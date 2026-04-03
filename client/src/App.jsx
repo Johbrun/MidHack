@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import Navbar from './components/Navbar';
+import FloatingMenu from './components/FloatingMenu';
 import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -24,6 +25,7 @@ export default function App() {
         <CartProvider>
           <div className="geo-bg" />
           <Navbar />
+          <FloatingMenu />
           <div className="relative z-10">
             <Routes>
               <Route path="/" element={<Home />} />

@@ -1,8 +1,10 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const { totalItems } = useCart();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -22,10 +24,10 @@ export default function Navbar() {
 
         <div className="flex items-center gap-1">
           <Link
-            to="/instructions"
+            to="/shop"
             className="px-4 py-2 text-sm text-white/60 hover:text-cyan transition-colors font-body"
           >
-            Instructions CTF
+            Boutique
           </Link>
 
           {user ? (
@@ -35,12 +37,6 @@ export default function Navbar() {
                 className="px-4 py-2 text-sm text-white/60 hover:text-cyan transition-colors font-body"
               >
                 Tableau de bord
-              </Link>
-              <Link
-                to="/shop"
-                className="px-4 py-2 text-sm text-white/60 hover:text-cyan transition-colors font-body"
-              >
-                Boutique
               </Link>
               <Link
                 to="/send"
@@ -62,34 +58,37 @@ export default function Navbar() {
                   Admin
                 </Link>
               )}
-              <Link
-                to="/scoreboard"
-                className="px-4 py-2 text-sm text-white/60 hover:text-cyan transition-colors font-body"
-              >
-                Classement
-              </Link>
-              <div className="ml-2 pl-4 border-l border-white/10 flex items-center gap-3">
-                <span className="text-sm font-mono text-accent">{user.username}</span>
-                <button
-                  onClick={handleLogout}
-                  className="text-sm text-white/40 hover:text-red-400 transition-colors"
-                >
-                  Déconnexion
-                </button>
-              </div>
             </>
+          ) : null}
+
+          {/* Cart */}
+          <Link to="/cart" className="relative px-3 py-2 text-white/60 hover:text-accent transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+            </svg>
+            {totalItems > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full bg-accent text-dark text-[10px] font-heading font-bold flex items-center justify-center">
+                {totalItems}
+              </span>
+            )}
+          </Link>
+
+          {/* Auth */}
+          {user ? (
+            <div className="ml-2 pl-3 border-l border-white/10 flex items-center gap-3">
+              <span className="text-sm font-mono text-accent">{user.username}</span>
+              <button
+                onClick={handleLogout}
+                className="text-sm text-white/40 hover:text-red-400 transition-colors"
+              >
+                Déconnexion
+              </button>
+            </div>
           ) : (
-            <>
-              <Link
-                to="/scoreboard"
-                className="px-4 py-2 text-sm text-white/60 hover:text-cyan transition-colors font-body"
-              >
-                Classement
-              </Link>
-              <Link to="/login" className="btn-primary !h-9 !text-xs !px-4 ml-2">
-                Connexion
-              </Link>
-            </>
+            <Link to="/login" className="btn-primary !h-9 !text-xs !px-4 ml-2">
+              Connexion
+            </Link>
           )}
         </div>
       </div>
