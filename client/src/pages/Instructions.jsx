@@ -84,24 +84,6 @@ export default function Instructions() {
           <p>Accédez au tableau de bord de votre serveur d'exploitation pour voir les requêtes entrantes en temps réel.</p>
         </div>
       </div>
-
-      {/* Recommended Tools */}
-      <div className="card p-8">
-        <h2 className="font-heading font-bold text-xl mb-6">Outils recommandés</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {[
-            { name: 'Browser DevTools', desc: 'Inspectez les requêtes réseau, cookies, console (F12)' },
-            { name: 'curl / Postman', desc: 'Envoyez des requêtes HTTP personnalisées à l\'API' },
-            { name: 'jwt.io', desc: 'Décodez et forgez des JSON Web Tokens' },
-            { name: 'Burp Suite', desc: 'Interceptez et modifiez le trafic HTTP (optionnel)' },
-          ].map((tool, i) => (
-            <div key={i} className="p-4 rounded-lg bg-white/[0.02] border border-white/[0.05]">
-              <h3 className="font-heading font-semibold text-sm text-cyan mb-1">{tool.name}</h3>
-              <p className="text-white/40 text-xs">{tool.desc}</p>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
