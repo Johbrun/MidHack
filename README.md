@@ -56,15 +56,15 @@ cd dashboard && npm run dev       # port 5000
 
 ## Vulnérabilités
 
-| # | Type | Difficulté | Flag |
-|---|------|-----------|------|
-| 1 | Sensitive Data Exposure | Facile | `CTF{D3BUG_3NDP01NT_L34K}` |
-| 2 | IDOR | Facile | `CTF{ID0R_PR0FILE_4CC3SS}` |
-| 3 | Reflected XSS | Facile-Moyen | `CTF{R3FL3CT3D_XSS_S34RCH}` |
-| 4 | SQL Injection | Moyen | `CTF{SQL1_4DM1N_BYP4SS}` |
-| 5 | Business Logic | Moyen | `CTF{N3G4T1V3_CR3D1T_H4CK}` |
-| 6 | JWT Forging (alg:none) | Moyen-Difficile | `CTF{F0RG3D_JWT_4DM1N}` |
-| 7 | Stored XSS | Difficile | `CTF{ST0R3D_XSS_R3V13W}` |
+| # | Type | Difficulté |
+|---|------|-----------|
+| 1 | Sensitive Data Exposure | Facile |
+| 2 | IDOR | Facile |
+| 3 | Reflected XSS | Facile-Moyen |
+| 4 | SQL Injection | Moyen |
+| 5 | Business Logic | Moyen |
+| 6 | JWT Forging (alg:none) | Moyen-Difficile |
+| 7 | Stored XSS | Difficile |
 
 ## Déroulement suggéré (2h)
 

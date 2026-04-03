@@ -64,7 +64,7 @@ if (userCount === 0) {
     'john', johnHash, 'john@example.com', 'Just a regular banana lover', 'user', 500
   );
   db.prepare(`INSERT INTO users (username, password_hash, email, bio, role, balance) VALUES (?, ?, ?, ?, ?, ?)`).run(
-    'flag_holder', flagHash, 'hidden@bananashop.local', FLAGS.IDOR, 'user', 0
+    'flag_holder', flagHash, 'secret@bananashop.local', FLAGS.IDOR, 'user', 0
   );
 
   // Seed products
