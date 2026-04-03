@@ -1,0 +1,15 @@
+{
+  "name": "midhack",
+  "private": true,
+  "scripts": {
+    "dev:server": "cd server && PORT=3001 npm run dev",
+    "dev:client": "cd client && npm run dev",
+    "dev:exploit": "cd exploit-server && npm run dev",
+    "dev:dashboard": "cd dashboard && npm run dev",
+    "dev": "concurrently --kill-others --names server,client,exploit,dash -c yellow,cyan,magenta,green \"npm run dev:server\" \"npm run dev:client\" \"npm run dev:exploit\" \"npm run dev:dashboard\"",
+    "install:all": "cd server && npm install && cd ../client && npm install && cd ../exploit-server && npm install && cd ../dashboard && npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

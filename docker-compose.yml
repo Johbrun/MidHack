@@ -1,0 +1,105 @@
+services:
+  # Central live dashboard (to project on screen)
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.dashboard
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+
+  # ──────────────────────── Team 1 ────────────────────────
+  site-team1:
+    build:
+      context: .
+      dockerfile: Dockerfile.site
+    environment:
+      - TEAM_NAME=Team 1
+      - DASHBOARD_URL=http://dashboard:5000
+    ports:
+      - "3001:3000"
+    depends_on:
+      - dashboard
+    restart: unless-stopped
+
+  exploit-team1:
+    build:
+      context: .
+      dockerfile: Dockerfile.exploit
+    environment:
+      - TEAM_PASSWORD=team1-banana
+    ports:
+      - "4001:4000"
+    restart: unless-stopped
+
+  # ──────────────────────── Team 2 ────────────────────────
+  site-team2:
+    build:
+      context: .
+      dockerfile: Dockerfile.site
+    environment:
+      - TEAM_NAME=Team 2
+      - DASHBOARD_URL=http://dashboard:5000
+    ports:
+      - "3002:3000"
+    depends_on:
+      - dashboard
+    restart: unless-stopped
+
+  exploit-team2:
+    build:
+      context: .
+      dockerfile: Dockerfile.exploit
+    environment:
+      - TEAM_PASSWORD=team2-banana
+    ports:
+      - "4002:4000"
+    restart: unless-stopped
+
+  # ──────────────────────── Team 3 ────────────────────────
+  site-team3:
+    build:
+      context: .
+      dockerfile: Dockerfile.site
+    environment:
+      - TEAM_NAME=Team 3
+      - DASHBOARD_URL=http://dashboard:5000
+    ports:
+      - "3003:3000"
+    depends_on:
+      - dashboard
+    restart: unless-stopped
+
+  exploit-team3:
+    build:
+      context: .
+      dockerfile: Dockerfile.exploit
+    environment:
+      - TEAM_PASSWORD=team3-banana
+    ports:
+      - "4003:4000"
+    restart: unless-stopped
+
+  # ──────────────────────── Team 4 ────────────────────────
+  site-team4:
+    build:
+      context: .
+      dockerfile: Dockerfile.site
+    environment:
+      - TEAM_NAME=Team 4
+      - DASHBOARD_URL=http://dashboard:5000
+    ports:
+      - "3004:3000"
+    depends_on:
+      - dashboard
+    restart: unless-stopped
+
+  exploit-team4:
+    build:
+      context: .
+      dockerfile: Dockerfile.exploit
+    environment:
+      - TEAM_PASSWORD=team4-banana
+    ports:
+      - "4004:4000"
+    restart: unless-stopped

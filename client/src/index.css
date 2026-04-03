@@ -1,0 +1,139 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-dark text-white font-body antialiased;
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
+
+  code, pre {
+    font-family: 'Source Code Pro', monospace;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-white text-dark font-heading font-semibold px-6 h-[50px] rounded-md
+           transition-all duration-300 hover:bg-accent hover:text-dark
+           flex items-center justify-center gap-2 text-sm uppercase tracking-wider;
+  }
+
+  .btn-secondary {
+    @apply bg-transparent border border-cyan text-cyan font-heading font-semibold
+           px-6 h-[50px] rounded-md transition-all duration-300
+           hover:bg-cyan/10 flex items-center justify-center gap-2 text-sm uppercase tracking-wider;
+  }
+
+  .btn-danger {
+    @apply bg-transparent border border-red-500 text-red-400 font-heading font-semibold
+           px-6 h-[50px] rounded-md transition-all duration-300
+           hover:bg-red-500/10 flex items-center justify-center gap-2 text-sm uppercase tracking-wider;
+  }
+
+  .card {
+    @apply bg-white/[0.03] backdrop-blur-sm border border-white/[0.08] rounded-xl p-6
+           transition-all duration-300;
+  }
+
+  .card-hover {
+    @apply card hover:border-white/20 hover:bg-white/[0.06];
+  }
+
+  .input {
+    @apply w-full bg-white/[0.05] border border-white/[0.1] text-white rounded-lg px-4 py-3
+           font-body placeholder:text-white/30 transition-all duration-200
+           focus:outline-none focus:border-cyan focus:ring-1 focus:ring-cyan/50;
+  }
+
+  .label {
+    @apply block text-sm font-body text-white/60 mb-2 uppercase tracking-wider;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-heading font-semibold uppercase tracking-wider;
+  }
+
+  .badge-easy {
+    @apply badge bg-emerald-500/20 text-emerald-400 border border-emerald-500/30;
+  }
+
+  .badge-medium {
+    @apply badge bg-accent/20 text-accent border border-accent/30;
+  }
+
+  .badge-hard {
+    @apply badge bg-red-500/20 text-red-400 border border-red-500/30;
+  }
+
+  .badge-cyan {
+    @apply badge bg-cyan/20 text-cyan border border-cyan/30;
+  }
+
+  .page-container {
+    @apply max-w-6xl mx-auto px-6 pt-28 pb-16;
+  }
+
+  .section-title {
+    @apply text-3xl font-heading font-extrabold tracking-tight;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-accent to-cyan bg-clip-text text-transparent;
+  }
+}
+
+/* Background geometric shapes */
+.geo-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.geo-bg::before {
+  content: '';
+  position: absolute;
+  top: -20%;
+  right: -10%;
+  width: 600px;
+  height: 600px;
+  border: 1px solid rgba(250, 187, 92, 0.06);
+  border-radius: 50%;
+  transform: rotate(15deg);
+}
+
+.geo-bg::after {
+  content: '';
+  position: absolute;
+  bottom: -15%;
+  left: -5%;
+  width: 500px;
+  height: 500px;
+  border: 1px solid rgba(5, 147, 167, 0.06);
+  transform: rotate(-30deg);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0E0B11;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}

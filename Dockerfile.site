@@ -1,0 +1,23 @@
+FROM node:20-alpine
+
+# Required for building better-sqlite3 native addon on Alpine
+RUN apk add --no-cache python3 make g++
+
+WORKDIR /app
+
+# Install client dependencies and build
+COPY client/package.json client/package-lock.json* ./client/
+RUN cd client && npm install
+
+COPY client/ ./client/
+RUN cd client && npm run build
+
+# Install server dependencies (rebuilds native modules for Alpine/musl)
+COPY server/package.json server/package-lock.json* ./server/
+RUN cd server && npm install --build-from-source
+
+COPY server/ ./server/
+
+EXPOSE 3000
+ENV PORT=3000
+CMD ["node", "server/src/index.js"]
