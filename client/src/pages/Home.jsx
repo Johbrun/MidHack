@@ -6,7 +6,7 @@ export default function Home() {
   const [products, setProducts] = useState([]);
 
   useEffect(() => {
-    api.get('/products').then(r => setProducts(r.data.products)).catch(() => {});
+    api.get('/products').then(r => setProducts(r.data.products)).catch(() => { });
   }, []);
 
   const tierColors = {
@@ -26,13 +26,9 @@ export default function Home() {
           <div className="absolute bottom-0 right-0 w-[400px] h-[400px] rounded-full bg-cyan/[0.03] blur-3xl" />
         </div>
         <div className="relative max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.05] border border-white/[0.08] text-xs text-white/40 font-mono mb-8">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-            Marketplace de bananes premium
-          </div>
           <h1 className="text-6xl md:text-7xl font-heading font-extrabold tracking-tight mb-6 leading-[1.1]">
             Les meilleures bananes,<br />
-            <span className="gradient-text">livrées en crédits.</span>
+            <span className="gradient-text">livrées chez vous en en 67h</span>
           </h1>
           <p className="text-white/40 text-lg max-w-2xl mx-auto mb-10 leading-relaxed">
             Du bio au diamant, BananaShop propose la collection de bananes la plus exclusive du marché. Rechargez vos crédits et commencez vos achats.
