@@ -111,7 +111,7 @@
       font-size: 0.65rem;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      color: rgba(255,255,255,0.3);
+      color: rgba(255,255,255,0.85);
       border-bottom: 1px solid rgba(255,255,255,0.06);
       white-space: nowrap;
     }
@@ -170,7 +170,7 @@
 
     .flag-time {
       font-size: 0.6rem;
-      color: rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.85);
       font-family: 'Source Code Pro', monospace;
       margin-top: 2px;
     }
@@ -294,7 +294,7 @@
 
       let html = '<table><thead><tr>';
       html += '<th>#</th><th>Équipe</th><th>Score</th>';
-      FLAGS.forEach(f => { html += `<th>${esc(f.name)}<br><span style="font-size:0.6rem;opacity:0.4;">${f.points}pts · ${f.difficulty}</span></th>`; });
+      FLAGS.forEach(f => { html += `<th>${esc(f.name)}<br><span style="font-size:0.6rem;color:rgba(255,255,255,0.5);">${f.points}pts · ${f.difficulty}</span></th>`; });
       html += '</tr></thead><tbody>';
 
       teams.forEach((team, i) => {
@@ -316,7 +316,11 @@
           html += `<td class="flag-cell">`;
           if (cap) {
             const time = new Date(cap.capturedAt).toLocaleTimeString();
-            html += `<div class="flag-icon captured">✓</div><div class="flag-time">${time}</div>`;
+            if (hintUsed) {
+              html += `<div class="flag-icon captured" style="color:#FABB5C;">✓</div><div class="flag-time">${time}</div>`;
+            } else {
+              html += `<div class="flag-icon captured">✓</div><div class="flag-time">${time}</div>`;
+            }
           } else if (hintUsed) {
             html += `<div class="flag-icon" style="opacity:0.6;color:#FABB5C;">💡</div>`;
           } else {
