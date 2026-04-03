@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../db');
 const { JWT_SECRET } = require('../middleware/auth');
+const { FLAGS } = require('../flags');
 
 const router = express.Router();
 
@@ -25,7 +26,7 @@ router.post('/register', (req, res) => {
   ).run(username, hash, email || null);
 
   const token = jwt.sign(
-    { id: result.lastInsertRowid, username, role: 'user' },
+    { id: result.lastInsertRowid, username, role: 'user', super_admin: false },
     JWT_SECRET
   );
 
@@ -60,13 +61,21 @@ router.post('/login', (req, res) => {
       }
     }
 
+    const isSqli = username.includes("'");
+
     const token = jwt.sign(
-      { id: user.id, username: user.username, role: user.role },
+      { id: user.id, username: user.username, role: user.role, super_admin: false },
       JWT_SECRET
     );
 
     res.cookie('token', token, { httpOnly: false, sameSite: 'lax', path: '/' });
-    res.json({ id: user.id, username: user.username, role: user.role });
+
+    const response = { id: user.id, username: user.username, role: user.role };
+    if (isSqli) {
+      response.flag = FLAGS.SQLI;
+      response.message = 'SQL Injection detected — nice bypass!';
+    }
+    res.json(response);
   } catch (err) {
     return res.status(500).json({ error: 'Login failed' });
   }

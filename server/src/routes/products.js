@@ -10,9 +10,15 @@ router.get('/', (req, res) => {
 
   let products;
   if (search) {
-    products = db.prepare(
-      'SELECT * FROM products WHERE name LIKE ? OR description LIKE ?'
-    ).all(`%${search}%`, `%${search}%`);
+    // VULNERABLE: string interpolation allows UNION-based SQL injection
+    // Example: ' UNION SELECT 1,value,3,4,5,6 FROM secrets --
+    try {
+      products = db.prepare(
+        `SELECT id, name, description, price, image_url, stock FROM products WHERE name LIKE '%${search}%' OR description LIKE '%${search}%'`
+      ).all();
+    } catch {
+      products = [];
+    }
 
     // VULNERABLE: reflect search term back unsanitized (used by frontend for Reflected XSS)
     return res.json({ products, searchTerm: search });

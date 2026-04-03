@@ -12,16 +12,23 @@ router.get('/dashboard', authenticate, requireAdmin, (req, res) => {
   const transactionCount = db.prepare('SELECT COUNT(*) as count FROM transactions').get().count;
   const totalRevenue = db.prepare('SELECT COALESCE(SUM(amount), 0) as total FROM transactions WHERE type = ?').get('purchase').total;
 
-  res.json({
+  const response = {
     stats: {
       users: userCount,
       products: productCount,
       transactions: transactionCount,
       revenue: totalRevenue,
     },
-    flag: FLAGS.JWT_FORGING,
-    message: 'Welcome, Admin! Here is your flag for accessing the admin panel.',
-  });
+    message: 'Welcome, Admin!',
+  };
+
+  // Flag only revealed to super_admin
+  if (req.user.super_admin === true) {
+    response.flag = FLAGS.JWT_FORGING;
+    response.secret_message = 'You forged a super_admin token — impressive!';
+  }
+
+  res.json(response);
 });
 
 // GET /api/admin/users
@@ -64,14 +71,6 @@ router.put('/users/:id', authenticate, requireAdmin, (req, res) => {
   ).get(userId);
 
   res.json(updated);
-});
-
-// GET /api/admin/flag — SQL Injection flag (shown after SQLI login)
-router.get('/sqli-flag', authenticate, requireAdmin, (req, res) => {
-  res.json({
-    flag: FLAGS.SQLI,
-    message: 'You successfully logged in as admin!',
-  });
 });
 
 module.exports = router;

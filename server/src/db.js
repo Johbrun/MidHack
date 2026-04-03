@@ -48,6 +48,12 @@ db.exec(`
     type TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
+
+  CREATE TABLE IF NOT EXISTS secrets (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    key TEXT NOT NULL,
+    value TEXT NOT NULL
+  );
 `);
 
 // Seed data (only if empty)
@@ -66,6 +72,9 @@ if (userCount === 0) {
   db.prepare(`INSERT INTO users (username, password_hash, email, bio, role, balance) VALUES (?, ?, ?, ?, ?, ?)`).run(
     'flag_holder', flagHash, 'secret@bananashop.local', FLAGS.IDOR, 'user', 0
   );
+
+  // Seed secrets
+  db.prepare('INSERT INTO secrets (key, value) VALUES (?, ?)').run('sqli_flag', FLAGS.SQLI_UNION);
 
   // Seed products
   const products = [
