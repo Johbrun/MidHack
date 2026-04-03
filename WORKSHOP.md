@@ -2,7 +2,7 @@
 
 ## Challenges
 
-Les 7 challenges sont classés par difficulté croissante. Chaque flag est au format `CTF{...}`.
+Les 7 challenges sont classés par difficulté croissante. Chaque flag est au format `ASY{...}`.
 
 ---
 
