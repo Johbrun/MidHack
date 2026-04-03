@@ -6,7 +6,7 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const DASHBOARD_URL = process.env.DASHBOARD_URL || 'http://localhost:5000';
-const TEAM_NAME = process.env.TEAM_NAME || 'Unknown Team';
+const TEAM_NAME = process.env.TEAM_NAME || 'Team Dev';
 
 // Middleware
 app.use(cors({ origin: true, credentials: true }));

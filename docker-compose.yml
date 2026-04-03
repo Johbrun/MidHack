@@ -14,7 +14,7 @@ services:
       context: .
       dockerfile: Dockerfile.site
     environment:
-      - TEAM_NAME=Team 1
+      - TEAM_NAME=Alpha
       - DASHBOARD_URL=http://dashboard:5000
     ports:
       - "3001:3000"
@@ -28,6 +28,8 @@ services:
       dockerfile: Dockerfile.exploit
     environment:
       - TEAM_PASSWORD=team1-banana
+      - SITE_URL=http://site-team1:3000
+      - DASHBOARD_URL=http://dashboard:5000
     ports:
       - "4001:4000"
     restart: unless-stopped
@@ -38,7 +40,7 @@ services:
       context: .
       dockerfile: Dockerfile.site
     environment:
-      - TEAM_NAME=Team 2
+      - TEAM_NAME=Bravo
       - DASHBOARD_URL=http://dashboard:5000
     ports:
       - "3002:3000"
@@ -52,6 +54,8 @@ services:
       dockerfile: Dockerfile.exploit
     environment:
       - TEAM_PASSWORD=team2-banana
+      - SITE_URL=http://site-team2:3000
+      - DASHBOARD_URL=http://dashboard:5000
     ports:
       - "4002:4000"
     restart: unless-stopped
@@ -62,7 +66,7 @@ services:
       context: .
       dockerfile: Dockerfile.site
     environment:
-      - TEAM_NAME=Team 3
+      - TEAM_NAME=Charlie
       - DASHBOARD_URL=http://dashboard:5000
     ports:
       - "3003:3000"
@@ -76,6 +80,8 @@ services:
       dockerfile: Dockerfile.exploit
     environment:
       - TEAM_PASSWORD=team3-banana
+      - SITE_URL=http://site-team3:3000
+      - DASHBOARD_URL=http://dashboard:5000
     ports:
       - "4003:4000"
     restart: unless-stopped
@@ -86,7 +92,7 @@ services:
       context: .
       dockerfile: Dockerfile.site
     environment:
-      - TEAM_NAME=Team 4
+      - TEAM_NAME=Delta
       - DASHBOARD_URL=http://dashboard:5000
     ports:
       - "3004:3000"
@@ -100,6 +106,8 @@ services:
       dockerfile: Dockerfile.exploit
     environment:
       - TEAM_PASSWORD=team4-banana
+      - SITE_URL=http://site-team4:3000
+      - DASHBOARD_URL=http://dashboard:5000
     ports:
       - "4004:4000"
     restart: unless-stopped

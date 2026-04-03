@@ -6,7 +6,6 @@ import api from '../api';
 export default function Dashboard() {
   const { user } = useAuth();
   const [profile, setProfile] = useState(null);
-  const [transactions, setTransactions] = useState([]);
 
   useEffect(() => {
     if (user) {
@@ -54,11 +53,8 @@ export default function Dashboard() {
         </Link>
       </div>
 
-      {/* Flag Submission */}
-      <FlagSubmit />
-
       {/* User Info */}
-      <div className="card p-6 mt-6">
+      <div className="card p-6">
         <h2 className="font-heading font-bold text-sm uppercase tracking-wider text-white/40 mb-4">Informations du compte</h2>
         <div className="space-y-3 text-sm">
           <div className="flex justify-between">
@@ -81,52 +77,6 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-function FlagSubmit() {
-  const [flag, setFlag] = useState('');
-  const [result, setResult] = useState(null);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setResult(null);
-    try {
-      const { data } = await api.post('/flags/submit', { flag });
-      setResult({ success: true, message: data.message });
-    } catch (err) {
-      setResult({ success: false, message: err.response?.data?.error || 'Flag invalide' });
-    }
-    setFlag('');
-  };
-
-  return (
-    <div className="card p-6 border-cyan/20">
-      <h2 className="font-heading font-bold text-sm uppercase tracking-wider text-cyan mb-4">
-        Soumettre un Flag
-      </h2>
-      <form onSubmit={handleSubmit} className="flex gap-3">
-        <input
-          type="text"
-          className="input flex-1"
-          value={flag}
-          onChange={(e) => setFlag(e.target.value)}
-          placeholder="CTF{...}"
-        />
-        <button type="submit" className="btn-secondary !px-8">
-          Soumettre
-        </button>
-      </form>
-      {result && (
-        <div className={`mt-3 p-3 rounded-lg text-sm ${
-          result.success
-            ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
-            : 'bg-red-500/10 border border-red-500/20 text-red-400'
-        }`}>
-          {result.message}
-        </div>
-      )}
     </div>
   );
 }
