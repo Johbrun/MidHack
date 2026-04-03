@@ -1,5 +1,5 @@
 const express = require('express');
-const { ALL_FLAGS, FLAG_NAMES, FLAG_POINTS, FLAGS } = require('../flags');
+const { ALL_FLAGS, FLAG_NAMES, FLAG_POINTS, FLAG_EXPLANATIONS, FLAGS } = require('../flags');
 
 const router = express.Router();
 
@@ -30,12 +30,15 @@ router.post('/submit', (req, res) => {
     // Dashboard might not be running in dev mode
   });
 
+  const explanation = FLAG_EXPLANATIONS[flag] || null;
+
   res.json({
     valid: true,
     flagName,
     points: flagInfo.points,
     difficulty: flagInfo.difficulty,
     message: `Congratulations! You found the ${flagName} flag! (+${flagInfo.points} pts)`,
+    explanation,
   });
 });
 

@@ -70,6 +70,17 @@ router.post('/send', authenticate, (req, res) => {
     response.message += ' 🎉 Impressive balance!';
   }
 
+  // VULNERABLE: CSRF — flag revealed when transfer comes from a cross-origin request
+  const origin = req.headers.origin || '';
+  const referer = req.headers.referer || '';
+  if (origin && !origin.includes('localhost:' + (process.env.PORT || 3000)) && !origin.includes('localhost:5173')) {
+    response.csrf_flag = FLAGS.CSRF;
+    response.csrf_message = 'CSRF détecté ! Ce transfert a été effectué depuis un autre site.';
+  } else if (referer && !referer.includes('localhost:' + (process.env.PORT || 3000)) && !referer.includes('localhost:5173')) {
+    response.csrf_flag = FLAGS.CSRF;
+    response.csrf_message = 'CSRF détecté ! Ce transfert a été effectué depuis un autre site.';
+  }
+
   res.json(response);
 });
 

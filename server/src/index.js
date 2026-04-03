@@ -8,6 +8,18 @@ const PORT = process.env.PORT || 3000;
 const DASHBOARD_URL = process.env.DASHBOARD_URL || 'http://localhost:5000';
 const TEAM_NAME = process.env.TEAM_NAME || 'Unknown Team';
 
+// VULNERABLE: Intentionally misconfigured security headers
+app.use((req, res, next) => {
+  // Too permissive CSP — allows inline scripts and eval (doesn't block XSS)
+  res.setHeader('Content-Security-Policy', "default-src * 'unsafe-inline' 'unsafe-eval'; img-src * data:; connect-src *");
+  // ALLOW is not a valid value — should be DENY or SAMEORIGIN
+  res.setHeader('X-Frame-Options', 'ALLOW');
+  // Leaks full URL to third parties
+  res.setHeader('Referrer-Policy', 'unsafe-url');
+  // Missing X-Content-Type-Options (should be 'nosniff')
+  next();
+});
+
 // Middleware
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
@@ -26,6 +38,12 @@ app.use('/api/admin', require('./routes/admin'));
 app.use('/api/debug', require('./routes/debug'));
 app.use('/api/flags', require('./routes/flags'));
 app.use('/api', require('./routes/flags'));
+
+// VULNERABLE: Internal-only endpoint — not linked from the UI, but accessible via SSRF
+const { FLAGS } = require('./flags');
+app.get('/api/internal/flag', (req, res) => {
+  res.json({ flag: FLAGS.SSRF, message: 'You accessed an internal endpoint via SSRF!' });
+});
 
 // Serve static client build in production only
 const clientBuild = path.join(__dirname, '..', '..', 'client', 'dist');

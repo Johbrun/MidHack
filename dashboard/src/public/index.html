@@ -204,6 +204,56 @@
       transform: translateY(0);
       opacity: 1;
     }
+
+    /* Timer */
+    .timer {
+      font-family: 'Exo', sans-serif;
+      font-weight: 900;
+      font-size: 2rem;
+      color: #FABB5C;
+      letter-spacing: 0.05em;
+    }
+    .timer.warning { color: #f87171; animation: pulse 1s infinite; }
+    .timer-label {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.3);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    /* Toast stack */
+    .toast-container {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 8px;
+      z-index: 100;
+    }
+    .toast-item {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #10B981;
+      padding: 16px 24px;
+      border-radius: 12px;
+      font-family: 'Exo', sans-serif;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transform: translateX(120%);
+      opacity: 0;
+      transition: all 0.4s ease;
+      white-space: nowrap;
+    }
+    .toast-item.show {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    .toast-item.hint {
+      background: rgba(250, 187, 92, 0.15);
+      border-color: rgba(250, 187, 92, 0.3);
+      color: #FABB5C;
+    }
   </style>
 </head>
 <body>
@@ -212,6 +262,10 @@
       <div>
         <h1 class="title"><span class="gradient-text">BananaShop CTF</span></h1>
         <p class="subtitle">Classement en direct</p>
+      </div>
+      <div id="timerBlock" style="text-align:center;display:none;">
+        <div class="timer-label">Temps restant</div>
+        <div class="timer" id="timerDisplay">--:--</div>
       </div>
       <div class="live-badge">
         <div class="live-dot" id="liveDot"></div>
@@ -229,19 +283,25 @@
     </div>
   </div>
 
-  <div class="toast" id="toast"></div>
+  <div class="toast-container" id="toastContainer"></div>
 
   <script>
     const FLAGS = [
       { name: 'Sensitive Data Exposure', points: 10, difficulty: 'Facile' },
       { name: 'IDOR', points: 10, difficulty: 'Facile' },
+      { name: 'Path Traversal', points: 10, difficulty: 'Facile' },
+      { name: 'User Enumeration', points: 10, difficulty: 'Facile' },
       { name: 'Reflected XSS', points: 15, difficulty: 'Moyen' },
-      { name: 'SQL Injection', points: 15, difficulty: 'Moyen' },
+      { name: 'SQL Injection (Login Bypass)', points: 15, difficulty: 'Moyen' },
       { name: 'Business Logic', points: 15, difficulty: 'Moyen' },
-      { name: 'JWT Forging', points: 20, difficulty: 'Difficile' },
-      { name: 'Stored XSS', points: 20, difficulty: 'Difficile' },
-      { name: 'Zero Rating', points: 15, difficulty: 'Moyen' },
+      { name: 'Zero Rating', points: 10, difficulty: 'Facile' },
       { name: 'Mass Assignment', points: 15, difficulty: 'Moyen' },
+      { name: 'CSRF', points: 15, difficulty: 'Moyen' },
+      { name: 'JWT Forging', points: 15, difficulty: 'Moyen' },
+      { name: 'SQL Injection (UNION)', points: 20, difficulty: 'Difficile' },
+      { name: 'Stored XSS', points: 20, difficulty: 'Difficile' },
+      { name: 'SSRF', points: 20, difficulty: 'Difficile' },
+      { name: 'Cookie Theft (XSS)', points: 20, difficulty: 'Difficile' },
     ];
     const MAX_SCORE = FLAGS.reduce((s, f) => s + f.points, 0);
     const HINT_PENALTY = 3;
@@ -249,9 +309,12 @@
     const content = document.getElementById('content');
     const liveDot = document.getElementById('liveDot');
     const statusText = document.getElementById('statusText');
-    const toast = document.getElementById('toast');
+    const toastContainer = document.getElementById('toastContainer');
+    const timerBlock = document.getElementById('timerBlock');
+    const timerDisplay = document.getElementById('timerDisplay');
 
     let teams = [];
+    let timerEndTime = null;
 
     function connect() {
       const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -277,11 +340,21 @@
         }
 
         if (data.type === 'capture') {
-          showToast(`${data.teamName} a capturé ${data.flagName} !`);
+          showToast(`🏴 ${data.teamName} a capturé ${data.flagName} ! (+${data.points}pts)`);
         }
 
         if (data.type === 'hint') {
           showToast(`💡 ${data.teamName} a utilisé un indice pour ${data.challengeName} (-${HINT_PENALTY}pts)`, 'hint');
+        }
+
+        if (data.type === 'timer') {
+          if (data.running && data.endTime) {
+            timerEndTime = data.endTime;
+            timerBlock.style.display = 'block';
+          } else {
+            timerEndTime = null;
+            timerBlock.style.display = 'none';
+          }
         }
       };
     }
@@ -337,13 +410,43 @@
     }
 
     function showToast(msg, type) {
-      toast.textContent = msg;
-      toast.style.background = type === 'hint' ? 'rgba(250, 187, 92, 0.15)' : 'rgba(16, 185, 129, 0.15)';
-      toast.style.borderColor = type === 'hint' ? 'rgba(250, 187, 92, 0.3)' : 'rgba(16, 185, 129, 0.3)';
-      toast.style.color = type === 'hint' ? '#FABB5C' : '#10B981';
-      toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 4000);
+      const item = document.createElement('div');
+      item.className = 'toast-item' + (type === 'hint' ? ' hint' : '');
+      item.textContent = msg;
+      toastContainer.appendChild(item);
+      requestAnimationFrame(() => requestAnimationFrame(() => item.classList.add('show')));
+      setTimeout(() => {
+        item.classList.remove('show');
+        setTimeout(() => item.remove(), 400);
+      }, 5000);
+      // Keep max 5 toasts
+      while (toastContainer.children.length > 5) toastContainer.removeChild(toastContainer.firstChild);
     }
+
+    // Timer update loop
+    function updateTimer() {
+      if (!timerEndTime) return;
+      const remaining = Math.max(0, timerEndTime - Date.now());
+      const minutes = Math.floor(remaining / 60000);
+      const seconds = Math.floor((remaining % 60000) / 1000);
+      timerDisplay.textContent = String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+      timerDisplay.className = remaining < 300000 ? 'timer warning' : 'timer';
+      if (remaining <= 0) {
+        timerDisplay.textContent = "00:00";
+        timerDisplay.className = 'timer warning';
+        timerEndTime = null;
+      }
+    }
+    setInterval(updateTimer, 1000);
+
+    // Load timer state on page load
+    fetch('/api/timer').then(r => r.json()).then(data => {
+      if (data.running && data.endTime) {
+        timerEndTime = data.endTime;
+        timerBlock.style.display = 'block';
+        updateTimer();
+      }
+    }).catch(() => {});
 
     function esc(s) {
       const d = document.createElement('div');

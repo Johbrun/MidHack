@@ -119,6 +119,32 @@ app.post('/api/hint', (req, res) => {
   res.json({ ok: true });
 });
 
+// ─── Timer ───
+let timer = { endTime: null, duration: null, running: false };
+
+// POST /api/timer/start — start or restart a countdown
+app.post('/api/timer/start', (req, res) => {
+  const { duration } = req.body; // duration in minutes
+  if (!duration || duration <= 0) return res.status(400).json({ error: 'duration (minutes) required' });
+  timer = { endTime: Date.now() + duration * 60 * 1000, duration, running: true };
+  broadcast({ type: 'timer', ...timer });
+  console.log(`Timer started: ${duration} minutes`);
+  res.json({ ok: true, ...timer });
+});
+
+// POST /api/timer/stop — stop the timer
+app.post('/api/timer/stop', (req, res) => {
+  timer = { endTime: null, duration: null, running: false };
+  broadcast({ type: 'timer', ...timer });
+  console.log('Timer stopped');
+  res.json({ ok: true });
+});
+
+// GET /api/timer — get current timer state
+app.get('/api/timer', (req, res) => {
+  res.json(timer);
+});
+
 // Get scoreboard
 app.get('/api/scoreboard', (req, res) => {
   res.json({ teams: getScoreboardData() });

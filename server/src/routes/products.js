@@ -1,8 +1,13 @@
 const express = require('express');
+const fs = require('fs');
+const path = require('path');
 const db = require('../db');
 const { authenticate } = require('../middleware/auth');
+const { FLAGS } = require('../flags');
 
 const router = express.Router();
+
+const PORT = process.env.PORT || 3000;
 
 // GET /api/products
 router.get('/', (req, res) => {
@@ -121,6 +126,56 @@ router.post('/buy-batch', authenticate, (req, res) => {
     totalCost,
     items: resolvedItems.map(({ product, qty }) => ({ name: product.name, qty, subtotal: product.price * qty })),
   });
+});
+
+// GET /api/products/image?file=banana.png
+// VULNERABLE: Path Traversal — reads arbitrary files from disk
+router.get('/image', (req, res) => {
+  const { file } = req.query;
+  if (!file) {
+    return res.status(400).json({ error: 'File parameter is required' });
+  }
+
+  try {
+    // VULNERABLE: user input is used directly in file path without sanitization
+    const filePath = path.join(__dirname, '..', '..', 'public', 'bananas', file);
+    const content = fs.readFileSync(filePath, 'utf-8');
+
+    // Check if the content contains the path traversal flag
+    if (content.includes(FLAGS.PATH_TRAVERSAL)) {
+      return res.json({ content, flag: FLAGS.PATH_TRAVERSAL, message: 'Path Traversal réussi !' });
+    }
+
+    res.json({ content });
+  } catch (err) {
+    res.status(404).json({ error: 'File not found' });
+  }
+});
+
+// POST /api/products/:id/image-url
+// VULNERABLE: SSRF — fetches an arbitrary URL from the server
+router.post('/:id/image-url', authenticate, async (req, res) => {
+  const { url } = req.body;
+  if (!url) {
+    return res.status(400).json({ error: 'URL is required' });
+  }
+
+  try {
+    // VULNERABLE: no validation or filtering of the URL — allows requests to internal services
+    const response = await fetch(url, { signal: AbortSignal.timeout(5000) });
+    const contentType = response.headers.get('content-type') || '';
+    let data;
+
+    if (contentType.includes('application/json')) {
+      data = await response.json();
+    } else {
+      data = await response.text();
+    }
+
+    res.json({ status: response.status, data });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch URL: ' + err.message });
+  }
 });
 
 module.exports = router;
