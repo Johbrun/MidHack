@@ -41,7 +41,7 @@
     }
 
     .container {
-      max-width: 1400px;
+      max-width: 1600px;
       margin: 0 auto;
       padding: 40px 48px;
       position: relative;
@@ -97,7 +97,7 @@
       background: rgba(255,255,255,0.02);
       border: 1px solid rgba(255,255,255,0.06);
       border-radius: 16px;
-      overflow: hidden;
+      overflow-x: auto;
     }
     table {
       width: 100%;
@@ -105,21 +105,22 @@
     }
     th {
       text-align: center;
-      padding: 16px 12px;
+      padding: 16px 8px;
       font-family: 'Exo', sans-serif;
       font-weight: 700;
-      font-size: 0.7rem;
+      font-size: 0.65rem;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.08em;
       color: rgba(255,255,255,0.3);
       border-bottom: 1px solid rgba(255,255,255,0.06);
+      white-space: nowrap;
     }
     th:first-child, th:nth-child(2) { text-align: left; }
     td {
-      padding: 20px 12px;
+      padding: 16px 8px;
       text-align: center;
       border-bottom: 1px solid rgba(255,255,255,0.03);
-      font-size: 0.9rem;
+      font-size: 0.85rem;
     }
     td:first-child, td:nth-child(2) { text-align: left; }
     tr:last-child td { border-bottom: none; }
