@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api';
 
 export default function Profile() {
-  const { id } = useParams();
   const { user, updateUser } = useAuth();
+  const id = user?.id;
   const [profile, setProfile] = useState(null);
   const [editing, setEditing] = useState(false);
   const [username, setUsername] = useState('');

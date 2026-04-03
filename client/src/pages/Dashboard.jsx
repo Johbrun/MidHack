@@ -57,7 +57,7 @@ export default function Dashboard() {
       <div className="card p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-heading font-bold text-sm uppercase tracking-wider text-white/40">Informations du compte</h2>
-          <Link to={`/profile/${user?.id}`} className="btn-secondary !text-xs !py-1.5 !px-4">
+          <Link to="/me" className="btn-secondary !text-xs !py-1.5 !px-4">
             Modifier le profil
           </Link>
         </div>
