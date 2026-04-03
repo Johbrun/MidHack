@@ -149,8 +149,8 @@ export default function AdminDashboard() {
                         value={editForm.role}
                         onChange={e => setEditForm({ ...editForm, role: e.target.value })}
                       >
-                        <option value="user">user</option>
-                        <option value="admin">admin</option>
+                        <option value="user">Utilisateur</option>
+                        <option value="admin">Administrateur</option>
                       </select>
                     </td>
                     <td className="p-4">

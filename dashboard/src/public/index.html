@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BananaShop CTF - Live Scoreboard</title>
+  <title>BananaShop CTF - Classement en direct</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Exo:wght@400;600;700;800;900&family=Figtree:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -210,11 +210,11 @@
     <div class="header">
       <div>
         <h1 class="title"><span class="gradient-text">BananaShop CTF</span></h1>
-        <p class="subtitle">Live Scoreboard</p>
+        <p class="subtitle">Classement en direct</p>
       </div>
       <div class="live-badge">
         <div class="live-dot" id="liveDot"></div>
-        <span id="statusText">Connecting...</span>
+        <span id="statusText">Connexion...</span>
       </div>
     </div>
 
@@ -222,7 +222,7 @@
       <div id="content">
         <div class="empty">
           <div class="empty-emoji">🍌</div>
-          <p>Waiting for teams to register...</p>
+          <p>En attente des équipes...</p>
         </div>
       </div>
     </div>
@@ -232,15 +232,16 @@
 
   <script>
     const FLAGS = [
-      'Sensitive Data Exposure',
-      'IDOR',
-      'Reflected XSS',
-      'SQL Injection',
-      'Business Logic',
-      'JWT Forging',
-      'Stored XSS',
-      'Zero Rating',
+      { name: 'Sensitive Data Exposure', points: 10, difficulty: 'Facile' },
+      { name: 'IDOR', points: 10, difficulty: 'Facile' },
+      { name: 'Reflected XSS', points: 15, difficulty: 'Moyen' },
+      { name: 'SQL Injection', points: 15, difficulty: 'Moyen' },
+      { name: 'Business Logic', points: 15, difficulty: 'Moyen' },
+      { name: 'JWT Forging', points: 20, difficulty: 'Difficile' },
+      { name: 'Stored XSS', points: 20, difficulty: 'Difficile' },
+      { name: 'Zero Rating', points: 15, difficulty: 'Moyen' },
     ];
+    const MAX_SCORE = FLAGS.reduce((s, f) => s + f.points, 0);
 
     const content = document.getElementById('content');
     const liveDot = document.getElementById('liveDot');
@@ -255,12 +256,12 @@
 
       ws.onopen = () => {
         liveDot.classList.remove('offline');
-        statusText.textContent = 'Live';
+        statusText.textContent = 'En direct';
       };
 
       ws.onclose = () => {
         liveDot.classList.add('offline');
-        statusText.textContent = 'Reconnecting...';
+        statusText.textContent = 'Reconnexion...';
         setTimeout(connect, 3000);
       };
 
@@ -273,31 +274,32 @@
         }
 
         if (data.type === 'capture') {
-          showToast(`${data.teamName} captured ${data.flagName}!`);
+          showToast(`${data.teamName} a capturé ${data.flagName} !`);
         }
       };
     }
 
     function render() {
       if (teams.length === 0) {
-        content.innerHTML = '<div class="empty"><div class="empty-emoji">🍌</div><p>Waiting for teams...</p></div>';
+        content.innerHTML = '<div class="empty"><div class="empty-emoji">🍌</div><p>En attente des équipes...</p></div>';
         return;
       }
 
       let html = '<table><thead><tr>';
-      html += '<th>Rank</th><th>Team</th><th>Score</th>';
-      FLAGS.forEach(f => { html += `<th>${f}</th>`; });
+      html += '<th>#</th><th>Équipe</th><th>Score</th>';
+      FLAGS.forEach(f => { html += `<th>${esc(f.name)}<br><span style="font-size:0.6rem;opacity:0.4;">${f.points}pts · ${f.difficulty}</span></th>`; });
       html += '</tr></thead><tbody>';
 
       teams.forEach((team, i) => {
         const rank = i + 1;
+        const score = team.score !== undefined ? team.score : team.captures.reduce((s, c) => s + (c.points || 0), 0);
         html += `<tr>`;
         html += `<td class="rank ${rank === 1 ? 'rank-1' : ''}">${rank}</td>`;
         html += `<td class="team-name ${rank === 1 ? 'team-1' : ''}">${esc(team.name)}</td>`;
-        html += `<td class="score">${team.captures.length}<span style="font-size:0.7rem;color:rgba(255,255,255,0.2)"> / ${FLAGS.length}</span></td>`;
+        html += `<td class="score">${score}<span style="font-size:0.7rem;color:rgba(255,255,255,0.2)"> / ${MAX_SCORE}</span></td>`;
 
         FLAGS.forEach(f => {
-          const cap = team.captures.find(c => c.flagName === f);
+          const cap = team.captures.find(c => c.flagName === f.name);
           html += `<td class="flag-cell">`;
           if (cap) {
             const time = new Date(cap.capturedAt).toLocaleTimeString();
