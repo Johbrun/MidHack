@@ -23,16 +23,14 @@ export default function TopUp() {
       <p className="text-white/40 text-sm mb-8">Ajoutez des crédits à votre compte</p>
 
       <div className="card p-8">
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-6 opacity-50">
           <div>
             <label className="label">Montant (1-1000)</label>
             <input
               type="number"
               className="input"
               value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              min="1"
-              max="1000"
+              disabled
               placeholder="100"
             />
           </div>
@@ -43,31 +41,20 @@ export default function TopUp() {
               type="text"
               className="input"
               value={cardNumber}
-              onChange={(e) => setCardNumber(e.target.value)}
+              disabled
               placeholder="4242 4242 4242 4242"
               maxLength={19}
             />
-            <p className="text-white/20 text-xs mt-2">N'importe quel numéro de carte fonctionne (ceci est une démo)</p>
           </div>
 
-          <button type="submit" className="btn-primary w-full">
-            Recharger
+          <button disabled className="btn-primary w-full disabled:opacity-50 cursor-not-allowed">
+            Rechargement désactivé pour le moment
           </button>
-        </form>
+        </div>
 
-        {result && (
-          <div className={`mt-6 p-4 rounded-lg text-sm ${
-            result.type === 'success'
-              ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
-              : 'bg-red-500/10 border border-red-500/20 text-red-400'
-          }`}>
-            {result.type === 'success' ? (
-              <p>{result.data.message} — Nouveau solde : {result.data.balance?.toFixed(2)} crédits</p>
-            ) : (
-              <p>{result.message}</p>
-            )}
-          </div>
-        )}
+        <div className="mt-6 p-4 rounded-lg text-sm bg-amber-500/10 border border-amber-500/20 text-amber-400">
+          <p>Le rechargement de crédits est temporairement indisponible.</p>
+        </div>
       </div>
     </div>
   );

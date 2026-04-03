@@ -15,22 +15,13 @@ export default function Cart() {
     setPurchasing(true);
     setResults(null);
 
-    const outcomes = [];
-    for (const item of items) {
-      for (let i = 0; i < item.qty; i++) {
-        try {
-          const { data } = await api.post(`/products/${item.id}/buy`);
-          outcomes.push({ product: item.name, success: true, message: data.message, balance: data.balance });
-        } catch (err) {
-          outcomes.push({ product: item.name, success: false, message: err.response?.data?.error || 'Échec de l\'achat' });
-          break;
-        }
-      }
-    }
-
-    setResults(outcomes);
-    if (outcomes.every(o => o.success)) {
+    try {
+      const payload = items.map(item => ({ id: item.id, qty: item.qty }));
+      const { data } = await api.post('/products/buy-batch', { items: payload });
+      setResults({ success: true, message: data.message, balance: data.balance, items: data.items });
       clearCart();
+    } catch (err) {
+      setResults({ success: false, message: err.response?.data?.error || 'Échec de l\'achat' });
     }
     setPurchasing(false);
   };
@@ -115,22 +106,24 @@ export default function Cart() {
 
           {/* Results */}
           {results && (
-            <div className="mt-6 space-y-2">
-              {results.map((r, i) => (
-                <div
-                  key={i}
-                  className={`p-3 rounded-lg text-sm ${
-                    r.success
-                      ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
-                      : 'bg-red-500/10 border border-red-500/20 text-red-400'
-                  }`}
-                >
-                  {r.product}: {r.message}
-                  {r.balance !== undefined && (
-                    <span className="ml-2 font-mono text-white/30">Solde : {r.balance.toFixed(2)}</span>
-                  )}
-                </div>
-              ))}
+            <div className={`mt-6 p-5 rounded-lg text-sm ${
+              results.success
+                ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
+                : 'bg-red-500/10 border border-red-500/20 text-red-400'
+            }`}>
+              <p className="font-heading font-bold text-base mb-2">{results.message}</p>
+              {results.success && results.items && (
+                <>
+                  <ul className="space-y-1 mb-3">
+                    {results.items.map((item, i) => (
+                      <li key={i} className="text-white/50">
+                        {item.name} x{item.qty} — {item.subtotal} cr
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="font-mono text-white/30">Nouveau solde : {results.balance.toFixed(2)} crédits</p>
+                </>
+              )}
             </div>
           )}
         </>

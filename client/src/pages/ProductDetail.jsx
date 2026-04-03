@@ -21,15 +21,6 @@ export default function ProductDetail() {
     api.get(`/products/${id}/reviews`).then(r => setReviews(r.data)).catch(() => {});
   }, [id]);
 
-  const handleBuy = async () => {
-    try {
-      const { data } = await api.post(`/products/${id}/buy`);
-      setMessage({ type: 'success', text: data.message });
-    } catch (err) {
-      setMessage({ type: 'error', text: err.response?.data?.error || 'Échec de l\'achat' });
-    }
-  };
-
   const handleReview = async (e) => {
     e.preventDefault();
     try {
@@ -85,11 +76,6 @@ export default function ProductDetail() {
               >
                 {addedToCart ? 'Ajouté !' : 'Ajouter au panier'}
               </button>
-              {user && (
-                <button onClick={handleBuy} className="btn-secondary">
-                  Acheter maintenant
-                </button>
-              )}
             </div>
           </div>
         </div>

@@ -8,6 +8,7 @@ export default function Profile() {
   const { user } = useAuth();
   const [profile, setProfile] = useState(null);
   const [editing, setEditing] = useState(false);
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [bio, setBio] = useState('');
   const [message, setMessage] = useState('');
@@ -15,6 +16,7 @@ export default function Profile() {
   useEffect(() => {
     api.get(`/users/${id}`).then(r => {
       setProfile(r.data);
+      setUsername(r.data.username || '');
       setEmail(r.data.email || '');
       setBio(r.data.bio || '');
     }).catch(() => {});
@@ -22,7 +24,7 @@ export default function Profile() {
 
   const handleSave = async () => {
     try {
-      const { data } = await api.put(`/users/${id}`, { email, bio });
+      const { data } = await api.put(`/users/${id}`, { username, email, bio });
       setProfile(data);
       setEditing(false);
       setMessage('Profil mis à jour');
@@ -44,7 +46,16 @@ export default function Profile() {
             {profile.username[0].toUpperCase()}
           </div>
           <div>
-            <h2 className="font-heading font-extrabold text-xl">{profile.username}</h2>
+            {editing ? (
+              <input
+                className="input !py-1 !text-xl font-heading font-extrabold mb-1"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Nom d'utilisateur"
+              />
+            ) : (
+              <h2 className="font-heading font-extrabold text-xl">{profile.username}</h2>
+            )}
             <p className="text-white/40 text-sm font-mono">{profile.role}</p>
           </div>
         </div>

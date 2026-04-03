@@ -50,6 +50,7 @@ router.post('/:productId/reviews', authenticate, (req, res) => {
     username: req.user.username,
     content,
     rating: safeRating,
+    created_at: new Date().toISOString(),
   };
 
   // Flag revealed when a review with rating 0 is submitted via API
