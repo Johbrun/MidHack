@@ -39,7 +39,7 @@ app.post('/api/teams/register', (req, res) => {
 
 // Record a capture
 app.post('/api/capture', (req, res) => {
-  const { teamName, flag, flagName } = req.body;
+  const { teamName, flag, flagName, points } = req.body;
   if (!teamName || !flag) return res.status(400).json({ error: 'teamName and flag required' });
 
   if (!teams.has(teamName)) {
@@ -53,10 +53,10 @@ app.post('/api/capture', (req, res) => {
     return res.json({ ok: true, duplicate: true });
   }
 
-  const capture = { flag, flagName: flagName || 'Unknown', capturedAt: new Date().toISOString() };
+  const capture = { flag, flagName: flagName || 'Unknown', points: points || 0, capturedAt: new Date().toISOString() };
   team.captures.push(capture);
 
-  console.log(`CAPTURE: ${teamName} found ${flagName} (${flag})`);
+  console.log(`CAPTURE: ${teamName} found ${flagName} (${flag}) +${points || 0}pts`);
 
   broadcast({ type: 'capture', teamName, ...capture });
   broadcastScoreboard();
@@ -91,9 +91,15 @@ function broadcastScoreboard() {
   broadcast({ type: 'scoreboard', teams: getScoreboardData() });
 }
 
+function getTeamScore(team) {
+  return team.captures.reduce((sum, c) => sum + (c.points || 0), 0);
+}
+
 function getScoreboardData() {
   return Array.from(teams.values())
+    .map(t => ({ ...t, score: getTeamScore(t) }))
     .sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
       if (b.captures.length !== a.captures.length) return b.captures.length - a.captures.length;
       const aFirst = a.captures[0]?.capturedAt || 'z';
       const bFirst = b.captures[0]?.capturedAt || 'z';

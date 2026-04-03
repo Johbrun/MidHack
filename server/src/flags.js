@@ -7,6 +7,7 @@ const FLAGS = {
   JWT_FORGING: 'ASY{j3t0n_f0rg3_4cc3s_t0t4l}',
   STORED_XSS: 'ASY{4v1s_emp01s0nn3_p4g3_p13g33}',
   ZERO_RATING: 'ASY{z3r0_3t01l3s_v4l1d4t10n_byp4ss}',
+  MASS_ASSIGNMENT: 'ASY{m4ss_4ss1gn_r0l3_4dm1n}',
 };
 
 const FLAG_NAMES = {
@@ -18,8 +19,20 @@ const FLAG_NAMES = {
   [FLAGS.JWT_FORGING]: 'JWT Forging',
   [FLAGS.STORED_XSS]: 'Stored XSS',
   [FLAGS.ZERO_RATING]: 'Zero Rating',
+  [FLAGS.MASS_ASSIGNMENT]: 'Mass Assignment',
+};
+
+const FLAG_POINTS = {
+  [FLAGS.DATA_EXPOSURE]: { points: 10, difficulty: 'Facile' },
+  [FLAGS.IDOR]: { points: 10, difficulty: 'Facile' },
+  [FLAGS.REFLECTED_XSS]: { points: 15, difficulty: 'Moyen' },
+  [FLAGS.SQLI]: { points: 15, difficulty: 'Moyen' },
+  [FLAGS.BUSINESS_LOGIC]: { points: 15, difficulty: 'Moyen' },
+  [FLAGS.JWT_FORGING]: { points: 20, difficulty: 'Difficile' },
+  [FLAGS.STORED_XSS]: { points: 20, difficulty: 'Difficile' },
+  [FLAGS.ZERO_RATING]: { points: 15, difficulty: 'Moyen' },
 };
 
 const ALL_FLAGS = Object.values(FLAGS);
 
-module.exports = { FLAGS, FLAG_NAMES, ALL_FLAGS };
+module.exports = { FLAGS, FLAG_NAMES, FLAG_POINTS, ALL_FLAGS };

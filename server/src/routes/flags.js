@@ -1,5 +1,5 @@
 const express = require('express');
-const { ALL_FLAGS, FLAG_NAMES, FLAGS } = require('../flags');
+const { ALL_FLAGS, FLAG_NAMES, FLAG_POINTS, FLAGS } = require('../flags');
 
 const router = express.Router();
 
@@ -19,12 +19,13 @@ router.post('/submit', (req, res) => {
   }
 
   const flagName = FLAG_NAMES[flag] || 'Unknown';
+  const flagInfo = FLAG_POINTS[flag] || { points: 0, difficulty: 'Unknown' };
 
   // Notify the central dashboard
   fetch(`${DASHBOARD_URL}/api/capture`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ teamName: TEAM_NAME, flag, flagName }),
+    body: JSON.stringify({ teamName: TEAM_NAME, flag, flagName, points: flagInfo.points }),
   }).catch(() => {
     // Dashboard might not be running in dev mode
   });
@@ -32,7 +33,9 @@ router.post('/submit', (req, res) => {
   res.json({
     valid: true,
     flagName,
-    message: `Congratulations! You found the ${flagName} flag!`,
+    points: flagInfo.points,
+    difficulty: flagInfo.difficulty,
+    message: `Congratulations! You found the ${flagName} flag! (+${flagInfo.points} pts)`,
   });
 });
 
