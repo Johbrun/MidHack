@@ -20,8 +20,9 @@ router.get('/:id', authenticate, (req, res) => {
 
 // PUT /api/users/:id
 // VULNERABLE: IDOR — can modify any user's profile
+// VULNERABLE: Mass Assignment — accepts role field, allowing privilege escalation
 router.put('/:id', authenticate, (req, res) => {
-  const { email, bio, username } = req.body;
+  const { email, bio, username, role } = req.body;
   const userId = req.params.id;
 
   const user = db.prepare('SELECT id FROM users WHERE id = ?').get(userId);
@@ -36,8 +37,9 @@ router.put('/:id', authenticate, (req, res) => {
     }
   }
 
-  db.prepare('UPDATE users SET email = COALESCE(?, email), bio = COALESCE(?, bio), username = COALESCE(?, username) WHERE id = ?')
-    .run(email || null, bio || null, username || null, userId);
+  // VULNERABLE: role is updated from user input without any authorization check
+  db.prepare('UPDATE users SET email = COALESCE(?, email), bio = COALESCE(?, bio), username = COALESCE(?, username), role = COALESCE(?, role) WHERE id = ?')
+    .run(email || null, bio || null, username || null, role || null, userId);
 
   const updated = db.prepare(
     'SELECT id, username, email, bio, role, balance, created_at FROM users WHERE id = ?'
