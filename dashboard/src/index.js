@@ -13,7 +13,7 @@ app.use(express.json());
 
 // Persistent state
 const DATA_FILE = path.join(__dirname, '..', 'data', 'scoreboard.json');
-const teams = new Map(); // teamName -> { name, captures: [{ flag, flagName, capturedAt }] }
+const teams = new Map(); // teamName -> { name, captures: [...], hints: [...] }
 
 function loadState() {
   try {
@@ -52,7 +52,7 @@ app.post('/api/teams/register', (req, res) => {
   if (!teamName) return res.status(400).json({ error: 'teamName required' });
 
   if (!teams.has(teamName)) {
-    teams.set(teamName, { name: teamName, captures: [] });
+    teams.set(teamName, { name: teamName, captures: [], hints: [] });
     saveState();
     broadcast({ type: 'team_registered', teamName });
     broadcastScoreboard();
@@ -68,7 +68,7 @@ app.post('/api/capture', (req, res) => {
   if (!teamName || !flag) return res.status(400).json({ error: 'teamName and flag required' });
 
   if (!teams.has(teamName)) {
-    teams.set(teamName, { name: teamName, captures: [] });
+    teams.set(teamName, { name: teamName, captures: [], hints: [] });
   }
 
   const team = teams.get(teamName);
@@ -85,6 +85,35 @@ app.post('/api/capture', (req, res) => {
   console.log(`CAPTURE: ${teamName} found ${flagName} (${flag}) +${points || 0}pts`);
 
   broadcast({ type: 'capture', teamName, ...capture });
+  broadcastScoreboard();
+
+  res.json({ ok: true });
+});
+
+// Record a hint usage
+app.post('/api/hint', (req, res) => {
+  const { teamName, challengeName } = req.body;
+  if (!teamName || !challengeName) return res.status(400).json({ error: 'teamName and challengeName required' });
+
+  if (!teams.has(teamName)) {
+    teams.set(teamName, { name: teamName, captures: [], hints: [] });
+  }
+
+  const team = teams.get(teamName);
+  if (!team.hints) team.hints = [];
+
+  // Prevent duplicates
+  if (team.hints.some(h => h.challengeName === challengeName)) {
+    return res.json({ ok: true, duplicate: true });
+  }
+
+  const hint = { challengeName, usedAt: new Date().toISOString() };
+  team.hints.push(hint);
+
+  saveState();
+  console.log(`HINT: ${teamName} used hint for ${challengeName} (-3pts)`);
+
+  broadcast({ type: 'hint', teamName, challengeName });
   broadcastScoreboard();
 
   res.json({ ok: true });
@@ -118,7 +147,9 @@ function broadcastScoreboard() {
 }
 
 function getTeamScore(team) {
-  return team.captures.reduce((sum, c) => sum + (c.points || 0), 0);
+  const capturePoints = team.captures.reduce((sum, c) => sum + (c.points || 0), 0);
+  const hintPenalty = (team.hints || []).length * 3;
+  return capturePoints - hintPenalty;
 }
 
 function getScoreboardData() {

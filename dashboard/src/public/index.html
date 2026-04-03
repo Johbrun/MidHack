@@ -240,8 +240,10 @@
       { name: 'JWT Forging', points: 20, difficulty: 'Difficile' },
       { name: 'Stored XSS', points: 20, difficulty: 'Difficile' },
       { name: 'Zero Rating', points: 15, difficulty: 'Moyen' },
+      { name: 'Mass Assignment', points: 15, difficulty: 'Moyen' },
     ];
     const MAX_SCORE = FLAGS.reduce((s, f) => s + f.points, 0);
+    const HINT_PENALTY = 3;
 
     const content = document.getElementById('content');
     const liveDot = document.getElementById('liveDot');
@@ -276,6 +278,10 @@
         if (data.type === 'capture') {
           showToast(`${data.teamName} a capturé ${data.flagName} !`);
         }
+
+        if (data.type === 'hint') {
+          showToast(`💡 ${data.teamName} a utilisé un indice pour ${data.challengeName} (-${HINT_PENALTY}pts)`, 'hint');
+        }
       };
     }
 
@@ -292,18 +298,26 @@
 
       teams.forEach((team, i) => {
         const rank = i + 1;
-        const score = team.score !== undefined ? team.score : team.captures.reduce((s, c) => s + (c.points || 0), 0);
+        const hints = team.hints || [];
+        const score = team.score !== undefined ? team.score : (team.captures.reduce((s, c) => s + (c.points || 0), 0) - hints.length * HINT_PENALTY);
         html += `<tr>`;
         html += `<td class="rank ${rank === 1 ? 'rank-1' : ''}">${rank}</td>`;
-        html += `<td class="team-name ${rank === 1 ? 'team-1' : ''}">${esc(team.name)}</td>`;
+        html += `<td class="team-name ${rank === 1 ? 'team-1' : ''}">${esc(team.name)}`;
+        if (hints.length > 0) {
+          html += `<span style="margin-left:8px;font-size:0.65rem;color:rgba(250,187,92,0.5);" title="${hints.length} indice(s) utilisé(s) (-${hints.length * HINT_PENALTY}pts)">💡${hints.length}</span>`;
+        }
+        html += `</td>`;
         html += `<td class="score">${score}<span style="font-size:0.7rem;color:rgba(255,255,255,0.2)"> / ${MAX_SCORE}</span></td>`;
 
         FLAGS.forEach(f => {
           const cap = team.captures.find(c => c.flagName === f.name);
+          const hintUsed = hints.some(h => h.challengeName === f.name);
           html += `<td class="flag-cell">`;
           if (cap) {
             const time = new Date(cap.capturedAt).toLocaleTimeString();
             html += `<div class="flag-icon captured">✓</div><div class="flag-time">${time}</div>`;
+          } else if (hintUsed) {
+            html += `<div class="flag-icon" style="opacity:0.6;color:#FABB5C;">💡</div>`;
           } else {
             html += `<div class="flag-icon">🔒</div>`;
           }
@@ -317,8 +331,11 @@
       content.innerHTML = html;
     }
 
-    function showToast(msg) {
+    function showToast(msg, type) {
       toast.textContent = msg;
+      toast.style.background = type === 'hint' ? 'rgba(250, 187, 92, 0.15)' : 'rgba(16, 185, 129, 0.15)';
+      toast.style.borderColor = type === 'hint' ? 'rgba(250, 187, 92, 0.3)' : 'rgba(16, 185, 129, 0.3)';
+      toast.style.color = type === 'hint' ? '#FABB5C' : '#10B981';
       toast.classList.add('show');
       setTimeout(() => toast.classList.remove('show'), 4000);
     }
