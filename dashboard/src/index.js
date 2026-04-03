@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const { WebSocketServer } = require('ws');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const server = http.createServer(app);
@@ -10,8 +11,31 @@ const PORT = process.env.PORT || 5000;
 
 app.use(express.json());
 
-// In-memory state
+// Persistent state
+const DATA_FILE = path.join(__dirname, '..', 'data', 'scoreboard.json');
 const teams = new Map(); // teamName -> { name, captures: [{ flag, flagName, capturedAt }] }
+
+function loadState() {
+  try {
+    if (fs.existsSync(DATA_FILE)) {
+      const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8'));
+      for (const team of data) {
+        teams.set(team.name, team);
+      }
+      console.log(`Loaded ${teams.size} teams from disk`);
+    }
+  } catch { /* start fresh */ }
+}
+
+function saveState() {
+  try {
+    const dir = path.dirname(DATA_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(DATA_FILE, JSON.stringify(Array.from(teams.values()), null, 2));
+  } catch (err) { console.error('Failed to save state:', err.message); }
+}
+
+loadState();
 
 // CORS
 app.use((req, res, next) => {
@@ -29,6 +53,7 @@ app.post('/api/teams/register', (req, res) => {
 
   if (!teams.has(teamName)) {
     teams.set(teamName, { name: teamName, captures: [] });
+    saveState();
     broadcast({ type: 'team_registered', teamName });
     broadcastScoreboard();
     console.log(`Team registered: ${teamName}`);
@@ -56,6 +81,7 @@ app.post('/api/capture', (req, res) => {
   const capture = { flag, flagName: flagName || 'Unknown', points: points || 0, capturedAt: new Date().toISOString() };
   team.captures.push(capture);
 
+  saveState();
   console.log(`CAPTURE: ${teamName} found ${flagName} (${flag}) +${points || 0}pts`);
 
   broadcast({ type: 'capture', teamName, ...capture });
