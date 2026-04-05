@@ -27,10 +27,11 @@ router.post('/register', (req, res) => {
 
   const token = jwt.sign(
     { id: result.lastInsertRowid, username, role: 'user', super_admin: false },
-    JWT_SECRET
+    JWT_SECRET,
+    { expiresIn: '30d' }
   );
 
-  res.cookie('token', token, { httpOnly: false, sameSite: 'lax', path: '/' });
+  res.cookie('token', token, { httpOnly: false, sameSite: 'lax', path: '/', maxAge: 30 * 24 * 60 * 60 * 1000 });
   res.json({ id: result.lastInsertRowid, username, role: 'user' });
 });
 
@@ -65,10 +66,11 @@ router.post('/login', (req, res) => {
 
     const token = jwt.sign(
       { id: user.id, username: user.username, role: user.role, super_admin: false },
-      JWT_SECRET
+      JWT_SECRET,
+      { expiresIn: '30d' }
     );
 
-    res.cookie('token', token, { httpOnly: false, sameSite: 'lax', path: '/' });
+    res.cookie('token', token, { httpOnly: false, sameSite: 'lax', path: '/', maxAge: 30 * 24 * 60 * 60 * 1000 });
 
     const response = { id: user.id, username: user.username, role: user.role };
     if (isSqli) {
