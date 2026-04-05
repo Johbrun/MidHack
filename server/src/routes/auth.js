@@ -34,22 +34,6 @@ router.post('/register', (req, res) => {
   res.json({ id: result.lastInsertRowid, username, role: 'user' });
 });
 
-// GET /api/auth/exists
-// VULNERABLE: User Enumeration — reveals whether a username exists
-router.get('/exists', (req, res) => {
-  const { username } = req.query;
-  if (!username) {
-    return res.status(400).json({ error: 'Username is required' });
-  }
-  const user = db.prepare('SELECT id, username FROM users WHERE username = ?').get(username);
-  const response = { exists: !!user };
-  if (user) {
-    response.flag = FLAGS.USER_ENUM;
-    response.message = 'Cet endpoint révèle l\'existence des utilisateurs — User Enumeration !';
-  }
-  res.json(response);
-});
-
 // POST /api/auth/login
 // VULNERABLE: SQL Injection via string interpolation
 router.post('/login', (req, res) => {
@@ -64,7 +48,6 @@ router.post('/login', (req, res) => {
     const user = db.prepare(`SELECT * FROM users WHERE username = '${username}'`).get();
 
     if (!user) {
-      // VULNERABLE: Different error message reveals user doesn't exist (User Enumeration)
       return res.status(401).json({ error: 'Utilisateur introuvable' });
     }
 
@@ -74,7 +57,6 @@ router.post('/login', (req, res) => {
       // Still allow login if SQL injection was used (user row was found via injection)
       // This check is intentionally weak — the SQLi already returned the admin row
       if (!username.includes("'")) {
-        // VULNERABLE: Different error message reveals that the user exists but password is wrong
         return res.status(401).json({ error: 'Mot de passe incorrect' });
       }
     }

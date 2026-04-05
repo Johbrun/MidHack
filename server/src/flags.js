@@ -12,7 +12,6 @@ const FLAGS = {
   CSRF: 'ASY{csrf_tr4nsf3rt_f0rc3}',
   PATH_TRAVERSAL: 'ASY{tr4v3rs4l_f1ch13r_s3cr3t}',
   SSRF: 'ASY{ssrf_r3qu3t3_1nt3rn3}',
-  USER_ENUM: 'ASY{3num3r4t10n_ut1l1s4t3urs}',
   COOKIE_THEFT: 'ASY{c00k13_v0l3_xss_c0mpl3t}',
 };
 
@@ -30,7 +29,6 @@ const FLAG_NAMES = {
   [FLAGS.CSRF]: 'CSRF',
   [FLAGS.PATH_TRAVERSAL]: 'Path Traversal',
   [FLAGS.SSRF]: 'SSRF',
-  [FLAGS.USER_ENUM]: 'User Enumeration',
   [FLAGS.COOKIE_THEFT]: 'Cookie Theft (XSS)',
 };
 
@@ -48,7 +46,6 @@ const FLAG_POINTS = {
   [FLAGS.CSRF]: { points: 15, difficulty: 'Moyen' },
   [FLAGS.PATH_TRAVERSAL]: { points: 10, difficulty: 'Facile' },
   [FLAGS.SSRF]: { points: 20, difficulty: 'Difficile' },
-  [FLAGS.USER_ENUM]: { points: 10, difficulty: 'Facile' },
   [FLAGS.COOKIE_THEFT]: { points: 20, difficulty: 'Difficile' },
 };
 
@@ -143,13 +140,6 @@ const FLAG_EXPLANATIONS = {
     owasp: 'A10:2021 — Server-Side Request Forgery',
     vulnerableCode: `// L'utilisateur fournit l'URL\nconst response = await fetch(req.body.url);\nconst data = await response.text();\nres.json({ content: data });\n// url=http://localhost:3000/api/internal/flag`,
     fixedCode: `const url = new URL(req.body.url);\nconst blocked = ['localhost','127.0.0.1','0.0.0.0','[::1]'];\nif (blocked.includes(url.hostname)) {\n  return res.status(400).json({ error: 'URL non autorisée' });\n}`,
-  },
-  [FLAGS.USER_ENUM]: {
-    danger: "Un attaquant peut déterminer quels noms d'utilisateur existent, facilitant le brute-force ou le phishing ciblé.",
-    fix: "Utiliser un message d'erreur générique (\"Identifiants invalides\") pour login et inscription. Implémenter un rate limiting.",
-    owasp: 'A07:2021 — Identification and Authentication Failures',
-    vulnerableCode: `// Endpoint qui révèle l'existence d'un utilisateur\nrouter.get('/exists', (req, res) => {\n  const user = db.prepare('SELECT id FROM users WHERE username = ?').get(username);\n  res.json({ exists: !!user });\n});`,
-    fixedCode: `// Message d'erreur identique dans tous les cas\nif (!user || !bcrypt.compareSync(password, user.password_hash)) {\n  return res.status(401).json({ error: 'Identifiants invalides' });\n}`,
   },
   [FLAGS.COOKIE_THEFT]: {
     danger: "Via XSS, l'attaquant vole le cookie de session et peut usurper l'identité de la victime. C'est l'attaque XSS la plus impactante.",

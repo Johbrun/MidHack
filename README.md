@@ -73,7 +73,6 @@ midhack/
 |---|------|-----------------|------------|
 | 1 | Sensitive Data Exposure | Security Misconfiguration | Facile |
 | 2 | IDOR | Broken Access Control | Facile |
-| 3 | User Enumeration | Identification & Authentication Failures | Facile |
 | 4 | Path Traversal | Broken Access Control | Facile |
 | 5 | Zero Rating Bypass | Insecure Design | Facile |
 | 6 | Reflected XSS | Injection | Facile-Moyen |

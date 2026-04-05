@@ -22,7 +22,7 @@ Les endpoints de debug suivent souvent des conventions de nommage : /debug, /con
 
 <details>
 <summary>Hint 3</summary>
-<code>GET /api/debug/config</code>
+<code>GET /api/config</code>
 </details>
 
 ---
@@ -170,27 +170,6 @@ L'application a un endpoint pour récupérer des fichiers. Regardez les endpoint
 <details>
 <summary>Hint 3</summary>
 <code>GET /api/products/image?file=../../secret_flag.txt</code>
-</details>
-
----
-
-### Challenge #9 — User Enumeration (Facile)
-
-> Le serveur en dit trop quand on frappe à la mauvaise porte.
-
-<details>
-<summary>Hint 1</summary>
-Essayez de vous connecter avec un nom d'utilisateur qui n'existe pas, puis avec un qui existe mais un mauvais mot de passe. Les messages d'erreur sont-ils identiques ?
-</details>
-
-<details>
-<summary>Hint 2</summary>
-Cherchez des endpoints liés à l'authentification qui pourraient révéler des informations.
-</details>
-
-<details>
-<summary>Hint 3</summary>
-<code>GET /api/auth/exists?username=admin</code>
 </details>
 
 ---

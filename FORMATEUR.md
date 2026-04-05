@@ -151,7 +151,6 @@ npm run dev
 |---|----|------|------------|--------|
 | 1 | DATA_EXPOSURE | `ASY{4h_c3_f4m3ux_3ndp01nt_0ubl13}` | Facile | 10 |
 | 2 | IDOR | `ASY{pr0f1l_v0l3_s4ns_4ut0r1s4t10n}` | Facile | 10 |
-| 3 | USER_ENUM | `ASY{3num3r4t10n_ut1l1s4t3urs}` | Facile | 10 |
 | 4 | PATH_TRAVERSAL | `ASY{tr4v3rs4l_f1ch13r_s3cr3t}` | Facile | 10 |
 | 5 | ZERO_RATING | `ASY{z3r0_3t01l3s_v4l1d4t10n_byp4ss}` | Facile | 10 |
 | 6 | REFLECTED_XSS | `ASY{r3ch3rch3_p13g33_p4r_l3_scr1pt}` | Facile-Moyen | 15 |
@@ -174,7 +173,7 @@ npm run dev
 ### 1. Sensitive Data Exposure (Facile)
 
 ```
-GET /api/debug/config
+GET /api/config
 ```
 
 Endpoint de debug oublié qui expose le secret JWT et les credentials admin.
@@ -186,14 +185,6 @@ GET /api/users/3
 ```
 
 Accéder au profil de `flag_holder` (ID 3) sans vérification d'autorisation. Le flag est dans sa bio.
-
-### 3. User Enumeration (Facile)
-
-```
-GET /api/auth/exists?username=admin
-```
-
-L'endpoint révèle si un utilisateur existe ou non.
 
 ### 4. Path Traversal (Facile)
 
