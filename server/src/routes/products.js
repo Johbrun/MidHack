@@ -33,6 +33,36 @@ router.get('/', (req, res) => {
   res.json({ products });
 });
 
+// GET /api/products/image?file=banana.svg
+// VULNERABLE: Path Traversal — reads arbitrary files from disk
+router.get('/image', (req, res) => {
+  const { file } = req.query;
+  if (!file) {
+    return res.status(400).json({ error: 'File parameter is required' });
+  }
+
+  try {
+    // VULNERABLE: user input is used directly in file path without sanitization
+    const filePath = path.join(__dirname, '..', '..', 'public', 'bananas', file);
+    const content = fs.readFileSync(filePath, 'utf-8');
+
+    // Check if the content contains the path traversal flag
+    if (content.includes(FLAGS.PATH_TRAVERSAL)) {
+      return res.json({ content, flag: FLAGS.PATH_TRAVERSAL, message: 'Path Traversal réussi !' });
+    }
+
+    // Serve SVG files with proper content-type so <img> tags work
+    if (file.endsWith('.svg') || content.trimStart().startsWith('<svg')) {
+      res.setHeader('Content-Type', 'image/svg+xml');
+      return res.send(content);
+    }
+
+    res.json({ content });
+  } catch (err) {
+    res.status(404).json({ error: 'File not found' });
+  }
+});
+
 // GET /api/products/:id
 router.get('/:id', (req, res) => {
   const product = db.prepare('SELECT * FROM products WHERE id = ?').get(req.params.id);
@@ -128,29 +158,6 @@ router.post('/buy-batch', authenticate, (req, res) => {
   });
 });
 
-// GET /api/products/image?file=banana.png
-// VULNERABLE: Path Traversal — reads arbitrary files from disk
-router.get('/image', (req, res) => {
-  const { file } = req.query;
-  if (!file) {
-    return res.status(400).json({ error: 'File parameter is required' });
-  }
-
-  try {
-    // VULNERABLE: user input is used directly in file path without sanitization
-    const filePath = path.join(__dirname, '..', '..', 'public', 'bananas', file);
-    const content = fs.readFileSync(filePath, 'utf-8');
-
-    // Check if the content contains the path traversal flag
-    if (content.includes(FLAGS.PATH_TRAVERSAL)) {
-      return res.json({ content, flag: FLAGS.PATH_TRAVERSAL, message: 'Path Traversal réussi !' });
-    }
-
-    res.json({ content });
-  } catch (err) {
-    res.status(404).json({ error: 'File not found' });
-  }
-});
 
 // POST /api/products/:id/image-url
 // VULNERABLE: SSRF — fetches an arbitrary URL from the server

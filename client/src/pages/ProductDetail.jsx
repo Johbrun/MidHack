@@ -44,7 +44,9 @@ export default function ProductDetail() {
       <div className="card p-8 mb-8 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-accent/5 rounded-full -translate-y-1/2 translate-x-1/3" />
         <div className="relative flex gap-8 items-start">
-          <div className="text-7xl shrink-0 p-8">🍌</div>
+          <div className="shrink-0 p-8">
+            <img src={`/api/products/image?file=${product.image_url?.split('/').pop()}`} alt={product.name} className="w-32 h-32 object-contain" />
+          </div>
           <div className="flex-1">
             <h1 className="text-3xl font-heading font-extrabold mb-3">{product.name}</h1>
             <p className="text-white/50 mb-6 leading-relaxed">{product.description}</p>

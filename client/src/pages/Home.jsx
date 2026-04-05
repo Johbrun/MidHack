@@ -28,7 +28,7 @@ export default function Home() {
         <div className="relative max-w-4xl mx-auto text-center">
           <h1 className="text-6xl md:text-7xl font-heading font-extrabold tracking-tight mb-6 leading-[1.1]">
             Les meilleures bananes,<br />
-            <span className="gradient-text">livrées chez vous en en 67h</span>
+            <span className="gradient-text">livrées chez vous en 67h</span>
           </h1>
           <p className="text-white/40 text-lg max-w-2xl mx-auto mb-10 leading-relaxed">
             Du bio au diamant, BananaShop propose la collection de bananes la plus exclusive du marché. Rechargez vos crédits et commencez vos achats.
@@ -65,7 +65,9 @@ export default function Home() {
             >
               <div className={`absolute inset-0 bg-gradient-to-br ${tierColors[product.name] || 'from-white/5 to-white/0'} opacity-50`} />
               <div className="relative p-6">
-                <div className="text-5xl mb-4 text-center py-6 group-hover:scale-110 transition-transform duration-300">🍌</div>
+                <div className="mb-4 text-center py-6 flex justify-center group-hover:scale-110 transition-transform duration-300">
+                  <img src={`/api/products/image?file=${product.image_url?.split('/').pop()}`} alt={product.name} className="w-24 h-24 object-contain" />
+                </div>
                 <h3 className="font-heading font-bold text-lg mb-2 group-hover:text-accent transition-colors">
                   {product.name}
                 </h3>

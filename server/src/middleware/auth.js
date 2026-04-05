@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const db = require('../db');
 
 // VULNERABLE: weak, hardcoded secret
-const JWT_SECRET = 'secret';
+const JWT_SECRET = 'secret-pass-to-change';
 
 function authenticate(req, res, next) {
   const token = req.cookies.token;

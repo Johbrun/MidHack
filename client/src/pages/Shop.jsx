@@ -80,7 +80,9 @@ export default function Shop() {
           >
             <div className={`absolute inset-0 bg-gradient-to-br ${tierColors[product.name] || 'from-white/5 to-white/0'} opacity-50`} />
             <div className="relative p-6">
-              <div className="text-5xl mb-4 text-center py-6">🍌</div>
+              <div className="mb-4 text-center py-6 flex justify-center">
+                <img src={`/api/products/image?file=${product.image_url?.split('/').pop()}`} alt={product.name} className="w-24 h-24 object-contain" />
+              </div>
               <h3 className="font-heading font-bold text-lg mb-2 group-hover:text-accent transition-colors">
                 {product.name}
               </h3>

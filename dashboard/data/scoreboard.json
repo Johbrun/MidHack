@@ -3,29 +3,12 @@
     "name": "Unknown Team",
     "captures": [
       {
-        "flag": "ASY{m4ss_4ss1gn_r0l3_4dm1n}",
-        "flagName": "Mass Assignment",
-        "points": 15,
-        "capturedAt": "2026-04-03T21:50:17.761Z"
-      },
-      {
-        "flag": "ASY{pr0f1l_v0l3_s4ns_4ut0r1s4t10n}",
-        "flagName": "IDOR",
-        "points": 10,
-        "capturedAt": "2026-04-03T21:59:21.217Z"
-      },
-      {
-        "flag": "ASY{z3r0_3t01l3s_v4l1d4t10n_byp4ss}",
-        "flagName": "Zero Rating",
-        "points": 15,
-        "capturedAt": "2026-04-03T22:01:13.937Z"
+        "flag": "ASY{c00k13_v0l3_xss_c0mpl3t}",
+        "flagName": "Cookie Theft (XSS)",
+        "points": 20,
+        "capturedAt": "2026-04-05T22:58:13.389Z"
       }
     ],
-    "hints": [
-      {
-        "challengeName": "Zero Rating",
-        "usedAt": "2026-04-03T22:00:00.000Z"
-      }
-    ]
+    "hints": []
   }
 ]
