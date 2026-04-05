@@ -273,6 +273,26 @@
       border-radius: 50%;
     }
 
+    /* Reset button */
+    .reset-btn {
+      font-family: 'Exo', sans-serif;
+      font-weight: 700;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 8px 18px;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      border-radius: 8px;
+      background: rgba(239, 68, 68, 0.1);
+      color: #f87171;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .reset-btn:hover {
+      background: rgba(239, 68, 68, 0.25);
+      border-color: rgba(239, 68, 68, 0.6);
+    }
+
     .toast-item.hint {
       background: rgba(250, 187, 92, 0.15);
       border-color: rgba(250, 187, 92, 0.3);
@@ -291,9 +311,12 @@
         <div class="timer-label">Temps restant</div>
         <div class="timer" id="timerDisplay">--:--</div>
       </div>
-      <div class="live-badge">
-        <div class="live-dot" id="liveDot"></div>
-        <span id="statusText">Connexion...</span>
+      <div style="display:flex;align-items:center;gap:16px;">
+        <button id="resetBtn" class="reset-btn" title="Réinitialiser tous les scores">Reset</button>
+        <div class="live-badge">
+          <div class="live-dot" id="liveDot"></div>
+          <span id="statusText">Connexion...</span>
+        </div>
       </div>
     </div>
 
@@ -386,6 +409,11 @@
 
         if (data.type === 'hint') {
           showToast(`💡 ${data.teamName} a utilisé un indice pour ${data.challengeName} (-${HINT_PENALTY}pts)`, 'hint');
+        }
+
+        if (data.type === 'reset') {
+          teams = [];
+          render();
         }
 
         if (data.type === 'timer') {
@@ -499,6 +527,15 @@
       d.textContent = s;
       return d.innerHTML;
     }
+
+    // Reset button
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      if (!confirm('Réinitialiser tous les scores et indices ? Cette action est irréversible.')) return;
+      fetch('/api/reset', { method: 'POST' })
+        .then(r => r.json())
+        .then(() => showToast('🔄 Scores réinitialisés !', 'hint'))
+        .catch(() => alert('Erreur lors de la réinitialisation'));
+    });
 
     connect();
   </script>

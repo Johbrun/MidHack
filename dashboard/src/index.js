@@ -145,6 +145,16 @@ app.get('/api/timer', (req, res) => {
   res.json(timer);
 });
 
+// Reset all scores and hints
+app.post('/api/reset', (req, res) => {
+  teams.clear();
+  saveState();
+  console.log('RESET: All scores and hints cleared');
+  broadcast({ type: 'reset' });
+  broadcastScoreboard();
+  res.json({ ok: true });
+});
+
 // Get scoreboard
 app.get('/api/scoreboard', (req, res) => {
   res.json({ teams: getScoreboardData() });
