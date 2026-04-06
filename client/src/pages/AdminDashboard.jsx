@@ -12,12 +12,11 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     api.get('/admin/dashboard')
-      .then(r => setData(r.data))
+      .then(r => {
+        setData(r.data);
+        setUsers(r.data.users || []);
+      })
       .catch(err => setError(err.response?.data?.error || 'Access denied'));
-
-    api.get('/admin/users')
-      .then(r => setUsers(r.data))
-      .catch(() => {});
   }, []);
 
   const startEdit = (user) => {

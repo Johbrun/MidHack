@@ -12,6 +12,10 @@ router.get('/dashboard', authenticate, requireAdmin, (req, res) => {
   const transactionCount = db.prepare('SELECT COUNT(*) as count FROM transactions').get().count;
   const totalRevenue = db.prepare('SELECT COALESCE(SUM(amount), 0) as total FROM transactions WHERE type = ?').get('purchase').total;
 
+  const users = db.prepare(
+    'SELECT id, username, email, role, balance, created_at FROM users'
+  ).all();
+
   const response = {
     stats: {
       users: userCount,
@@ -19,6 +23,7 @@ router.get('/dashboard', authenticate, requireAdmin, (req, res) => {
       transactions: transactionCount,
       revenue: totalRevenue,
     },
+    users,
     message: 'Welcome, Admin!',
   };
 
@@ -29,15 +34,6 @@ router.get('/dashboard', authenticate, requireAdmin, (req, res) => {
   }
 
   res.json(response);
-});
-
-// GET /api/admin/users
-router.get('/users', authenticate, requireAdmin, (req, res) => {
-  const users = db.prepare(
-    'SELECT id, username, email, role, balance, created_at FROM users'
-  ).all();
-
-  res.json(users);
 });
 
 // PUT /api/admin/users/:id — modifier un utilisateur (admin)
