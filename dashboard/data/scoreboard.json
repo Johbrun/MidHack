@@ -31,6 +31,12 @@
         "flagId": "REFLECTED_XSS",
         "points": 15,
         "capturedAt": "2026-04-06T00:49:12.245Z"
+      },
+      {
+        "flag": "ASY{c00k13_v0l3_xss_c0mpl3t}",
+        "flagId": "COOKIE_THEFT",
+        "points": 20,
+        "capturedAt": "2026-04-06T11:40:57.123Z"
       }
     ],
     "hints": [
