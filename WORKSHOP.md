@@ -195,6 +195,27 @@ Utilisez la page "CSRF Demo" de l'exploit-server pour générer le payload autom
 
 ---
 
+### Bonus — CORS Reflection + Allow-Credentials (Difficile)
+
+> Le CSRF permet d'envoyer des requêtes... mais peut-on aussi **lire** les réponses ?
+
+<details>
+<summary>Hint 1</summary>
+Regardez les en-têtes CORS renvoyés par le serveur. Que vaut <code>Access-Control-Allow-Origin</code> ? Est-ce que <code>Access-Control-Allow-Credentials</code> est activé ?
+</details>
+
+<details>
+<summary>Hint 2</summary>
+La configuration <code>cors({ origin: true, credentials: true })</code> reflète n'importe quel Origin. Combiné avec <code>withCredentials</code>, un site malveillant peut lire les réponses authentifiées (profil, solde, etc.).
+</details>
+
+<details>
+<summary>Hint 3</summary>
+Créez une page sur l'exploit-server avec un <code>fetch('http://bananashop/api/users/me', { credentials: 'include' })</code>. Le navigateur enverra les cookies ET vous pourrez lire la réponse JSON, contrairement à un simple CSRF.
+</details>
+
+---
+
 ### Challenge #11 — SQL Injection UNION (Difficile)
 
 > Quand une requête en cache une autre...
