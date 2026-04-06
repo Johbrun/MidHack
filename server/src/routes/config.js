@@ -4,17 +4,16 @@ const { FLAGS } = require('../flags');
 const router = express.Router();
 
 // GET /api/config
-// VULNERABLE: Sensitive Data Exposure — leaks secrets and credentials
+// VULNERABLE: Sensitive Data Exposure - leaks secrets and credentials
 router.get('/config', (req, res) => {
   res.json({
     appName: 'BananaShop',
     version: '1.0.0',
-    environment: 'development',
+    environment: 'production',
     database: 'sqlite3',
-    jwtSecret: 'secret-pass-to-change',
+    databasePassword: '1q4sef561s56v4r8vf4',
     adminCredentials: {
       username: 'admin',
-      password: 'SuperSecretAdmin123!',
     },
     flag: FLAGS.DATA_EXPOSURE,
   });

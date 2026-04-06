@@ -6,9 +6,9 @@ Plateforme CTF (Capture The Flag) pour un atelier d'initiation à la sécurité 
 
 L'atelier se décompose en **trois parties** :
 
-1. **Le site BananaShop** — une application e-commerce React + Express contenant 15 vulnérabilités à exploiter
-2. **Le serveur d'exploit** — un espace par équipe avec webhook, générateur CSRF, outils d'exploitation et soumission de flags
-3. **Le dashboard live** — un tableau de scores en temps réel (WebSocket) à projeter, affichant la progression de chaque équipe
+1. **Le site BananaShop** - une application e-commerce React + Express contenant 15 vulnérabilités à exploiter
+2. **Le serveur d'exploit** - un espace par équipe avec webhook, générateur CSRF, outils d'exploitation et soumission de flags
+3. **Le dashboard live** - un tableau de scores en temps réel (WebSocket) à projeter, affichant la progression de chaque équipe
 
 Une **mini-académie** intégrée au serveur d'exploit propose des slides interactives couvrant les phases du pentest et chaque type de vulnérabilité (explication, détection, exemples de code, remédiation).
 
@@ -16,15 +16,15 @@ Une **mini-académie** intégrée au serveur d'exploit propose des slides intera
 
 ### Application vulnérable
 
-![BananaShop — Site e-commerce](1.png)
+![BananaShop - Site e-commerce](1.png)
 
 ### Tableau de classement temps réel
 
-![Dashboard live — Classement en direct](2.png)
+![Dashboard live - Classement en direct](2.png)
 
 ## Quick Start
 
-### Docker (recommandé — setup multi-équipes)
+### Docker (recommandé - setup multi-équipes)
 
 ```bash
 docker compose up --build
@@ -62,10 +62,10 @@ midhack/
 └── docker-compose.yml
 ```
 
-- **server/** — API Express.js + SQLite, contient les 15 vulnérabilités
-- **client/** — SPA React avec Vite et Tailwind CSS
-- **exploit-server/** — Webhook receiver, mini-académie, générateur CSRF, soumission de flags
-- **dashboard/** — Tableau de scores temps réel via WebSocket, persistance JSON
+- **server/** - API Express.js + SQLite, contient les 15 vulnérabilités
+- **client/** - SPA React avec Vite et Tailwind CSS
+- **exploit-server/** - Webhook receiver, mini-académie, générateur CSRF, soumission de flags
+- **dashboard/** - Tableau de scores temps réel via WebSocket, persistance JSON
 
 ## Vulnérabilités
 
@@ -97,8 +97,8 @@ midhack/
 | Durée | Activité |
 |-------|----------|
 | 0:00 - 0:15 | Intro OWASP Top 10 + outils (DevTools, Burp Suite) |
-| 0:15 - 1:45 | CTF libre — les équipes exploitent les vulnérabilités |
-| 1:45 - 2:00 | Debrief — walkthrough de chaque vuln + remédiations |
+| 0:15 - 1:45 | CTF libre - les équipes exploitent les vulnérabilités |
+| 1:45 - 2:00 | Debrief - walkthrough de chaque vuln + remédiations |
 
 ## Outils utiles pour les participants
 

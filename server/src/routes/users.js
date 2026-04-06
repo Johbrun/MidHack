@@ -6,7 +6,7 @@ const { FLAGS } = require('../flags');
 const router = express.Router();
 
 // GET /api/users/:id
-// VULNERABLE: IDOR — no check that req.user.id === params.id
+// VULNERABLE: IDOR - no check that req.user.id === params.id
 router.get('/:id', authenticate, (req, res) => {
   const user = db.prepare(
     'SELECT id, username, email, bio, role, balance, created_at FROM users WHERE id = ?'
@@ -20,8 +20,8 @@ router.get('/:id', authenticate, (req, res) => {
 });
 
 // PUT /api/users/:id
-// VULNERABLE: IDOR — can modify any user's profile
-// VULNERABLE: Mass Assignment — accepts role field, allowing privilege escalation
+// VULNERABLE: IDOR - can modify any user's profile
+// VULNERABLE: Mass Assignment - accepts role field, allowing privilege escalation
 router.put('/:id', authenticate, (req, res) => {
   const { email, bio, username, role } = req.body;
   const userId = req.params.id;

@@ -19,7 +19,7 @@ router.get('/:productId/reviews', (req, res) => {
 });
 
 // POST /api/products/:id/reviews
-// VULNERABLE: no sanitization of content — enables Stored XSS
+// VULNERABLE: no sanitization of content - enables Stored XSS
 router.post('/:productId/reviews', authenticate, (req, res) => {
   const { content, rating } = req.body;
   const productId = req.params.productId;

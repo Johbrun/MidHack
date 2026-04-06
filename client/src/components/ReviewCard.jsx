@@ -13,7 +13,7 @@ export default function ReviewCard({ review }) {
           ))}
         </div>
       </div>
-      {/* VULNERABLE: renders review content as raw HTML — enables Stored XSS */}
+      {/* VULNERABLE: renders review content as raw HTML - enables Stored XSS */}
       <div
         className="text-sm text-white/70 leading-relaxed"
         dangerouslySetInnerHTML={{ __html: review.content }}

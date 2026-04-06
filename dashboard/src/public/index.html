@@ -417,33 +417,9 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    const CATEGORIES = {
-      'authz': { label: 'Authz & Authn', color: '#a78bfa' },
-      'injection': { label: 'Injection', color: '#f87171' },
-      'misconfig': { label: 'Misconfig', color: '#38bdf8' },
-      'other': { label: 'Autre', color: '#9ca3af' },
-    };
-
-    const FLAGS = [
-      // Authz & Authn
-      { flagId: 'IDOR', name: 'Fuite PII', points: 10, difficulty: 'Facile', category: 'authz' },
-      { flagId: 'MASS_ASSIGNMENT', name: 'Go admin', points: 15, difficulty: 'Moyen', category: 'authz' },
-      { flagId: 'JWT_FORGING', name: 'Go superadmin', points: 15, difficulty: 'Moyen', category: 'authz' },
-      // Injection
-      { flagId: 'REFLECTED_XSS', name: 'Reflected XSS', points: 15, difficulty: 'Moyen', category: 'injection' },
-      { flagId: 'SQLI', name: 'SQL Injection (Login Bypass)', points: 15, difficulty: 'Moyen', category: 'injection' },
-      { flagId: 'SQLI_UNION', name: 'SQL Injection (UNION)', points: 20, difficulty: 'Difficile', category: 'injection' },
-      { flagId: 'STORED_XSS', name: 'Stored XSS', points: 20, difficulty: 'Difficile', category: 'injection' },
-      { flagId: 'SSRF', name: 'SSRF', points: 20, difficulty: 'Difficile', category: 'injection' },
-      { flagId: 'COOKIE_THEFT', name: 'Vol de cookie', points: 20, difficulty: 'Difficile', category: 'injection' },
-      // Misconfig
-      { flagId: 'DATA_EXPOSURE', name: 'Sensitive Data Exposure', points: 10, difficulty: 'Facile', category: 'misconfig' },
-      { flagId: 'PATH_TRAVERSAL', name: 'Exploration fichiers', points: 10, difficulty: 'Facile', category: 'misconfig' },
-      // Autre
-      { flagId: 'ZERO_RATING', name: 'Review nulle', points: 10, difficulty: 'Facile', category: 'other' },
-      { flagId: 'BUSINESS_LOGIC', name: 'Crédits', points: 15, difficulty: 'Moyen', category: 'other' },
-      { flagId: 'CSRF', name: 'CSRF', points: 15, difficulty: 'Moyen', category: 'other' },
-    ];
+    // Injected at render-time by dashboard/src/index.js from shared/flags.js
+    const CATEGORIES = /*__CATEGORIES__*/{};
+    const FLAGS = /*__FLAGS__*/[];
     const MAX_SCORE = FLAGS.reduce((s, f) => s + f.points, 0);
     const HINT_PENALTY = 3;
 

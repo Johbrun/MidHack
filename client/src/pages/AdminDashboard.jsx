@@ -99,11 +99,10 @@ export default function AdminDashboard() {
       <h2 className="font-heading font-bold text-xl mb-4">Gestion des membres</h2>
 
       {saveMsg && (
-        <div className={`mb-4 p-3 rounded-lg text-sm ${
-          saveMsgError
+        <div className={`mb-4 p-3 rounded-lg text-sm ${saveMsgError
             ? 'bg-red-500/10 border border-red-500/20 text-red-400'
             : 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
-        }`}>
+          }`}>
           {saveMsg}
         </div>
       )}
@@ -171,13 +170,12 @@ export default function AdminDashboard() {
                   <>
                     <td className="p-4 font-mono text-white/30">{u.id}</td>
                     <td className="p-4 font-heading font-semibold">{u.username}</td>
-                    <td className="p-4 font-mono text-white/50">{u.email || '—'}</td>
+                    <td className="p-4 font-mono text-white/50">{u.email || '-'}</td>
                     <td className="p-4">
-                      <span className={`px-2 py-0.5 rounded text-xs font-heading font-semibold ${
-                        u.role === 'admin'
+                      <span className={`px-2 py-0.5 rounded text-xs font-heading font-semibold ${u.role === 'admin'
                           ? 'bg-accent/20 text-accent'
                           : 'bg-white/5 text-white/40'
-                      }`}>
+                        }`}>
                         {u.role}
                       </span>
                     </td>

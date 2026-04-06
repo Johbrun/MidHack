@@ -46,36 +46,34 @@ router.post('/login', (req, res) => {
 
   try {
     // VULNERABLE: string interpolation instead of parameterized query
-    const user = db.prepare(`SELECT * FROM users WHERE username = '${username}'`).get();
+    const user = db.prepare(`SELECT * FROM users WHERE username = '${username}' AND password_hash = '${password}'`).get();
 
     if (!user) {
-      return res.status(401).json({ error: 'Utilisateur introuvable' });
-    }
-
-    // Password check is bypassed when SQL injection returns a row
-    const validPassword = bcrypt.compareSync(password, user.password_hash);
-    if (!validPassword) {
-      // Still allow login if SQL injection was used (user row was found via injection)
-      // This check is intentionally weak — the SQLi already returned the admin row
-      if (!username.includes("'")) {
-        return res.status(401).json({ error: 'Mot de passe incorrect' });
+      // Fallback: legitimate login path with bcrypt check
+      const legitUser = db.prepare(`SELECT * FROM users WHERE username = ?`).get(username);
+      if (!legitUser || !bcrypt.compareSync(password, legitUser.password_hash)) {
+        return res.status(401).json({ error: 'Identifiants invalides' });
       }
+      req._user = legitUser;
+    } else {
+      req._user = user;
     }
+    const authedUser = req._user;
 
-    const isSqli = username.includes("'");
+    const isSqli = username.includes("--") || password.includes("--");
 
     const token = jwt.sign(
-      { id: user.id, username: user.username, role: user.role, super_admin: false },
+      { id: authedUser.id, username: authedUser.username, role: authedUser.role, super_admin: false },
       JWT_SECRET,
       { expiresIn: '30d' }
     );
 
     res.cookie('token', token, { httpOnly: false, sameSite: 'lax', path: '/', maxAge: 30 * 24 * 60 * 60 * 1000 });
 
-    const response = { id: user.id, username: user.username, role: user.role };
+    const response = { id: authedUser.id, username: authedUser.username, role: authedUser.role };
     if (isSqli) {
       response.flag = FLAGS.SQLI;
-      response.message = 'SQL Injection detected — nice bypass!';
+      response.message = 'SQL Injection detected - nice bypass!';
     }
     res.json(response);
   } catch (err) {

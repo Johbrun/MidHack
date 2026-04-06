@@ -9,7 +9,7 @@ function authenticate(req, res, next) {
   if (!token) return res.status(401).json({ error: 'Not authenticated' });
 
   try {
-    // VULNERABLE: accepts alg:none — allows unsigned token forging
+    // VULNERABLE: accepts alg:none - allows unsigned token forging
     const parts = token.split('.');
     if (parts.length < 2) return res.status(401).json({ error: 'Invalid token' });
 
@@ -18,7 +18,7 @@ function authenticate(req, res, next) {
 
     if (header.alg === 'none') {
       // Intentionally vulnerable: trust unsigned tokens
-      // Goal : simulate old libraies which accept this
+      // Goal : simulate old libraries which accept this
       decoded = JSON.parse(Buffer.from(parts[1], 'base64url').toString());
     } else {
       decoded = jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] });

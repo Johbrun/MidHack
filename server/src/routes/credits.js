@@ -7,7 +7,7 @@ const router = express.Router();
 
 // POST /api/credits/topup
 router.post('/topup', authenticate, (req, res) => {
-  const { amount, cardNumber } = req.body;
+  const { amount } = req.body;
   const topupAmount = parseFloat(amount);
 
   if (!topupAmount || topupAmount <= 0 || topupAmount > 1000) {
@@ -64,8 +64,8 @@ router.post('/send', authenticate, (req, res) => {
     balance: updatedSender.balance,
   };
 
-  // Flag revealed when balance exceeds 9999 (achieved via negative amounts)
-  if (updatedSender.balance > 9999) {
+  // Flag revealed when balance exceeds 999 (achieved via negative amounts)
+  if (updatedSender.balance > 999) {
     response.flag = FLAGS.BUSINESS_LOGIC;
     response.message += ' 🎉 Impressive balance!';
   }

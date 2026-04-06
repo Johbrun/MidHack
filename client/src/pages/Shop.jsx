@@ -21,7 +21,7 @@ export default function Shop() {
       if (r.data.searchTerm) {
         setDisplaySearch(r.data.searchTerm);
       }
-    }).catch(() => {});
+    }).catch(() => { });
   }, [searchParams]);
 
   // VULNERABLE: inject HTML and execute <script> tags for Reflected XSS
@@ -73,7 +73,7 @@ export default function Shop() {
         </div>
       </form>
 
-      {/* VULNERABLE: Reflected XSS — renders search term as HTML */}
+      {/* VULNERABLE: Reflected XSS - renders search term as HTML */}
       {displaySearch && (
         <div className="mb-6 p-4 card">
           <span className="text-white/40 text-sm">Résultats pour : </span>

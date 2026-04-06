@@ -10,9 +10,9 @@ const TEAM_NAME = process.env.TEAM_NAME || 'Unknown Team';
 
 // VULNERABLE: Intentionally misconfigured security headers
 app.use((req, res, next) => {
-  // Too permissive CSP — allows inline scripts and eval (doesn't block XSS)
+  // Too permissive CSP - allows inline scripts and eval (doesn't block XSS)
   res.setHeader('Content-Security-Policy', "default-src * 'unsafe-inline' 'unsafe-eval'; img-src * data:; connect-src *");
-  // ALLOW is not a valid value — should be DENY or SAMEORIGIN
+  // ALLOW is not a valid value - should be DENY or SAMEORIGIN
   res.setHeader('X-Frame-Options', 'ALLOW');
   // Leaks full URL to third parties
   res.setHeader('Referrer-Policy', 'unsafe-url');
@@ -35,11 +35,11 @@ app.use('/api/credits', require('./routes/credits'));
 app.use('/api/products', require('./routes/products'));
 app.use('/api/products', require('./routes/reviews'));
 app.use('/api/admin', require('./routes/admin'));
-app.use('/api/debug', require('./routes/debug'));
+app.use('/api/config', require('./routes/config'));
 app.use('/api/flags', require('./routes/flags'));
 app.use('/api', require('./routes/flags'));
 
-// VULNERABLE: Internal-only endpoint — not linked from the UI, but accessible via SSRF
+// VULNERABLE: Internal-only endpoint - not linked from the UI, but accessible via SSRF
 const { FLAGS } = require('./flags');
 app.get('/api/internal/flag', (req, res) => {
   res.json({ flag: FLAGS.SSRF, message: 'You accessed an internal endpoint via SSRF!' });
@@ -61,7 +61,7 @@ setTimeout(() => {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ teamName: TEAM_NAME }),
-  }).catch(() => {});
+  }).catch(() => { });
 }, 2000);
 
 app.listen(PORT, () => {

@@ -1,11 +1,12 @@
 FROM node:20-alpine
 
-WORKDIR /app
+WORKDIR /app/dashboard
 
 COPY dashboard/package.json dashboard/package-lock.json* ./
 RUN npm install
 
 COPY dashboard/ ./
+COPY shared/ /app/shared/
 
 EXPOSE 5000
 ENV PORT=5000

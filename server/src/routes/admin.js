@@ -20,7 +20,7 @@ router.get('/dashboard', authenticate, requireAdmin, (req, res) => {
   // Flag only revealed to super_admin
   if (req.user.super_admin === true) {
     response.flag = FLAGS.JWT_FORGING;
-    response.secret_message = 'You forged a super_admin token — impressive!';
+    response.secret_message = 'You forged a super_admin token - impressive!';
   }
 
 
@@ -40,7 +40,7 @@ router.get('/dashboard', authenticate, requireAdmin, (req, res) => {
   res.json(response);
 });
 
-// PUT /api/admin/users/:id — modifier un utilisateur (admin)
+// PUT /api/admin/users/:id - modifier un utilisateur (admin)
 router.put('/users/:id', authenticate, requireAdmin, (req, res) => {
   const { username, email, role, balance } = req.body;
   const userId = req.params.id;

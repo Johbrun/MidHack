@@ -106,18 +106,17 @@ export default function Cart() {
 
           {/* Results */}
           {results && (
-            <div className={`mt-6 p-5 rounded-lg text-sm ${
-              results.success
+            <div className={`mt-6 p-5 rounded-lg text-sm ${results.success
                 ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
                 : 'bg-red-500/10 border border-red-500/20 text-red-400'
-            }`}>
+              }`}>
               <p className="font-heading font-bold text-base mb-2">{results.message}</p>
               {results.success && results.items && (
                 <>
                   <ul className="space-y-1 mb-3">
                     {results.items.map((item, i) => (
                       <li key={i} className="text-white/50">
-                        {item.name} x{item.qty} — {item.subtotal} cr
+                        {item.name} x{item.qty} - {item.subtotal} cr
                       </li>
                     ))}
                   </ul>

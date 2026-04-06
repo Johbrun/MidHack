@@ -19,8 +19,25 @@
         "flagId": "BUSINESS_LOGIC",
         "points": 15,
         "capturedAt": "2026-04-06T00:03:31.497Z"
+      },
+      {
+        "flag": "ASY{j3t0n_f0rg3_4cc3s_t0t4l}",
+        "flagId": "JWT_FORGING",
+        "points": 15,
+        "capturedAt": "2026-04-06T00:44:52.092Z"
+      },
+      {
+        "flag": "ASY{r3ch3rch3_p13g33_p4r_l3_scr1pt}",
+        "flagId": "REFLECTED_XSS",
+        "points": 15,
+        "capturedAt": "2026-04-06T00:49:12.245Z"
       }
     ],
-    "hints": []
+    "hints": [
+      {
+        "challengeName": "Fuite PII",
+        "usedAt": "2026-04-06T10:43:40.081Z"
+      }
+    ]
   }
 ]

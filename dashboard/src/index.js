@@ -3,6 +3,7 @@ const http = require('http');
 const { WebSocketServer } = require('ws');
 const path = require('path');
 const fs = require('fs');
+const { CHALLENGES, CATEGORIES } = require('../../shared/flags');
 
 const app = express();
 const server = http.createServer(app);
@@ -124,7 +125,7 @@ app.post('/api/hint', (req, res) => {
 // ─── Timer ───
 let timer = { endTime: null, duration: null, running: false };
 
-// POST /api/timer/start — start or restart a countdown
+// POST /api/timer/start - start or restart a countdown
 app.post('/api/timer/start', (req, res) => {
   const { duration } = req.body; // duration in minutes
   if (!duration || duration <= 0) return res.status(400).json({ error: 'duration (minutes) required' });
@@ -134,7 +135,7 @@ app.post('/api/timer/start', (req, res) => {
   res.json({ ok: true, ...timer });
 });
 
-// POST /api/timer/stop — stop the timer
+// POST /api/timer/stop - stop the timer
 app.post('/api/timer/stop', (req, res) => {
   timer = { endTime: null, duration: null, running: false };
   broadcast({ type: 'timer', ...timer });
@@ -142,7 +143,7 @@ app.post('/api/timer/stop', (req, res) => {
   res.json({ ok: true });
 });
 
-// GET /api/timer — get current timer state
+// GET /api/timer - get current timer state
 app.get('/api/timer', (req, res) => {
   res.json(timer);
 });
@@ -162,10 +163,16 @@ app.get('/api/scoreboard', (req, res) => {
   res.json({ teams: getScoreboardData() });
 });
 
-// Serve dashboard page
-app.use(express.static(path.join(__dirname, 'public')));
+// Serve dashboard page with injected flag definitions
+const INDEX_HTML = fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8');
+function renderIndex() {
+  return INDEX_HTML
+    .replace('/*__CATEGORIES__*/{}', JSON.stringify(CATEGORIES))
+    .replace('/*__FLAGS__*/[]', JSON.stringify(CHALLENGES));
+}
+app.use(express.static(path.join(__dirname, 'public'), { index: false }));
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.type('html').send(renderIndex());
 });
 
 // WebSocket

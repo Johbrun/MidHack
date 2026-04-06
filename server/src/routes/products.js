@@ -39,7 +39,7 @@ router.get('/', (req, res) => {
 });
 
 // GET /api/products/image?file=banana.svg
-// VULNERABLE: Path Traversal — reads arbitrary files from disk
+// VULNERABLE: Path Traversal - reads arbitrary files from disk
 router.get('/image', (req, res) => {
   const { file } = req.query;
   if (!file) {
@@ -140,7 +140,7 @@ router.post('/buy-batch', authenticate, (req, res) => {
     return res.status(400).json({ error: `Solde insuffisant. Total: ${totalCost} crédits, solde: ${user.balance.toFixed(2)} crédits` });
   }
 
-  // Tout est ok — exécuter la transaction
+  // Tout est ok - exécuter la transaction
   const buyAll = db.transaction(() => {
     for (const { product, qty } of resolvedItems) {
       db.prepare('UPDATE products SET stock = stock - ? WHERE id = ?').run(qty, product.id);
@@ -165,7 +165,7 @@ router.post('/buy-batch', authenticate, (req, res) => {
 
 
 // POST /api/products/:id/image-url
-// VULNERABLE: SSRF — fetches an arbitrary URL from the server
+// VULNERABLE: SSRF - fetches an arbitrary URL from the server
 router.post('/:id/image-url', authenticate, async (req, res) => {
   const { url } = req.body;
   if (!url) {
@@ -173,7 +173,7 @@ router.post('/:id/image-url', authenticate, async (req, res) => {
   }
 
   try {
-    // VULNERABLE: no validation or filtering of the URL — allows requests to internal services
+    // VULNERABLE: no validation or filtering of the URL - allows requests to internal services
     const response = await fetch(url, { signal: AbortSignal.timeout(5000) });
     const contentType = response.headers.get('content-type') || '';
     let data;

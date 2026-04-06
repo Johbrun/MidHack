@@ -1,4 +1,4 @@
-# Guide Formateur — MidHack BananaShop CTF
+# Guide Formateur - MidHack BananaShop CTF
 
 Document réservé aux formateurs. **Ne pas partager avec les participants.**
 
@@ -55,7 +55,7 @@ Le secret JWT est `secret` (chaîne littérale). Le serveur accepte les algorith
 
 ## Déroulement de l'atelier (2h)
 
-### Phase 1 — Introduction (15 min)
+### Phase 1 - Introduction (15 min)
 
 1. Présenter le contexte : sécurité offensive, OWASP Top 10
 2. Montrer les outils : DevTools, Burp Suite, extension JWT de Burp
@@ -63,20 +63,20 @@ Le secret JWT est `secret` (chaîne littérale). Le serveur accepte les algorith
 4. Expliquer les règles : chaque flag trouvé rapporte des points, les indices coûtent -3 pts
 5. **Lancer le timer** depuis le dashboard (voir section ci-dessous)
 
-### Phase 2 — CTF libre (1h30)
+### Phase 2 - CTF libre (1h30)
 
 - Les équipes exploitent les vulnérabilités à leur rythme
 - Le dashboard projète le scoreboard en temps réel
 - Les participants peuvent consulter l'Académie dans leur serveur d'exploit
 - Circuler entre les équipes pour débloquer si besoin (donner des indices oraux)
 
-### Phase 3 — Debrief (15 min)
+### Phase 3 - Debrief (15 min)
 
 - Walkthrough de chaque vulnérabilité avec les participants
 - Montrer le code vulnérable vs. le code corrigé (onglet "Fix-It" du serveur d'exploit)
 - Discuter des remédiations et bonnes pratiques
 
-### Phase 4 — Démo CSRF en live (5-10 min)
+### Phase 4 - Démo CSRF en live (5-10 min)
 
 Terminer l'atelier par une démonstration concrète d'attaque CSRF pour marquer les esprits.
 
@@ -228,7 +228,7 @@ Le frontend limite à 1-5 mais l'API accepte 0.
 
 Rechercher dans la boutique avec un payload HTML, puis appeler `/api/xss-flag?type=reflected` depuis le contexte XSS.
 
-### 7. SQL Injection — Login Bypass (Moyen)
+### 7. SQL Injection - Login Bypass (Moyen)
 
 ```
 Username: admin' --
