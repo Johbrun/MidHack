@@ -2,6 +2,9 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
+const { registerTeam } = require('../../shared/register-team');
+const { FLAGS } = require('./flags');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -37,17 +40,15 @@ app.use('/api/products', require('./routes/reviews'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/config', require('./routes/config'));
 app.use('/api/flags', require('./routes/flags'));
-app.use('/api', require('./routes/flags'));
+app.use('/api/xss-flag', require('./routes/xss-flag'));
 
 // VULNERABLE: Internal-only endpoint - not linked from the UI, but accessible via SSRF
-const { FLAGS } = require('./flags');
 app.get('/api/internal/flag', (req, res) => {
   res.json({ flag: FLAGS.SSRF, message: 'You accessed an internal endpoint via SSRF!' });
 });
 
 // Serve static client build in production only
 const clientBuild = path.join(__dirname, '..', '..', 'client', 'dist');
-const fs = require('fs');
 if (fs.existsSync(path.join(clientBuild, 'index.html'))) {
   app.use(express.static(clientBuild));
   app.get('*', (req, res) => {
@@ -57,11 +58,7 @@ if (fs.existsSync(path.join(clientBuild, 'index.html'))) {
 
 // Register team with dashboard on startup
 setTimeout(() => {
-  fetch(`${DASHBOARD_URL}/api/teams/register`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ teamName: TEAM_NAME }),
-  }).catch(() => { });
+  registerTeam({ dashboardUrl: DASHBOARD_URL, teamName: TEAM_NAME }).catch(() => { });
 }, 2000);
 
 app.listen(PORT, () => {

@@ -1,5 +1,5 @@
 const express = require('express');
-const { ALL_FLAGS, FLAG_NAMES, FLAG_POINTS, FLAG_EXPLANATIONS, FLAG_IDS, FLAGS } = require('../flags');
+const { ALL_FLAGS, FLAG_NAMES, FLAG_POINTS, FLAG_EXPLANATIONS, FLAG_IDS } = require('../flags');
 
 const router = express.Router();
 
@@ -41,19 +41,6 @@ router.post('/submit', (req, res) => {
     message: `Congratulations! You found the ${flagName} flag! (+${flagInfo.points} pts)`,
     explanation,
   });
-});
-
-// Hidden XSS flag endpoint
-// GET /api/xss-flag
-router.get('/xss-flag', (req, res) => {
-  const type = req.query.type;
-  const referer = req.headers.referer || '';
-
-  if (type === 'reflected') {
-    res.json({ flag: FLAGS.REFLECTED_XSS });
-  } else {
-    res.json({ flag: FLAGS.STORED_XSS });
-  }
 });
 
 module.exports = router;

@@ -7,6 +7,15 @@ const { FLAGS } = require('../flags');
 
 const router = express.Router();
 
+// VULNERABLE: httpOnly intentionally disabled so document.cookie exposes the
+// JWT — required for the Cookie Theft (XSS) challenge.
+const TOKEN_COOKIE_OPTIONS = {
+  httpOnly: false,
+  sameSite: 'lax',
+  path: '/',
+  maxAge: 30 * 24 * 60 * 60 * 1000,
+};
+
 // POST /api/auth/register
 router.post('/register', (req, res) => {
   const { username, email, password } = req.body;
@@ -31,7 +40,7 @@ router.post('/register', (req, res) => {
     { expiresIn: '30d' }
   );
 
-  res.cookie('token', token, { httpOnly: false, sameSite: 'lax', path: '/', maxAge: 30 * 24 * 60 * 60 * 1000 });
+  res.cookie('token', token, TOKEN_COOKIE_OPTIONS);
   res.json({ id: result.lastInsertRowid, username, role: 'user' });
 });
 
@@ -46,19 +55,19 @@ router.post('/login', (req, res) => {
 
   try {
     // VULNERABLE: string interpolation instead of parameterized query
-    const user = db.prepare(`SELECT * FROM users WHERE username = '${username}' AND password_hash = '${password}'`).get();
+    const sqliUser = db.prepare(`SELECT * FROM users WHERE username = '${username}' AND password_hash = '${password}'`).get();
 
-    if (!user) {
+    let authedUser;
+    if (sqliUser) {
+      authedUser = sqliUser;
+    } else {
       // Fallback: legitimate login path with bcrypt check
       const legitUser = db.prepare(`SELECT * FROM users WHERE username = ?`).get(username);
       if (!legitUser || !bcrypt.compareSync(password, legitUser.password_hash)) {
         return res.status(401).json({ error: 'Identifiants invalides' });
       }
-      req._user = legitUser;
-    } else {
-      req._user = user;
+      authedUser = legitUser;
     }
-    const authedUser = req._user;
 
     const isSqli = username.includes("--") || password.includes("--");
 
@@ -68,7 +77,7 @@ router.post('/login', (req, res) => {
       { expiresIn: '30d' }
     );
 
-    res.cookie('token', token, { httpOnly: false, sameSite: 'lax', path: '/', maxAge: 30 * 24 * 60 * 60 * 1000 });
+    res.cookie('token', token, TOKEN_COOKIE_OPTIONS);
 
     const response = { id: authedUser.id, username: authedUser.username, role: authedUser.role };
     if (isSqli) {
