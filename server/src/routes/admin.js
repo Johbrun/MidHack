@@ -16,7 +16,16 @@ router.get('/dashboard', authenticate, requireAdmin, (req, res) => {
     'SELECT id, username, email, role, balance, created_at FROM users'
   ).all();
 
-  const response = {
+  let response = {};
+  // Flag only revealed to super_admin
+  if (req.user.super_admin === true) {
+    response.flag = FLAGS.JWT_FORGING;
+    response.secret_message = 'You forged a super_admin token — impressive!';
+  }
+
+
+  response = {
+    ...response,
     stats: {
       users: userCount,
       products: productCount,
@@ -27,11 +36,6 @@ router.get('/dashboard', authenticate, requireAdmin, (req, res) => {
     message: 'Welcome, Admin!',
   };
 
-  // Flag only revealed to super_admin
-  if (req.user.super_admin === true) {
-    response.flag = FLAGS.JWT_FORGING;
-    response.secret_message = 'You forged a super_admin token — impressive!';
-  }
 
   res.json(response);
 });
