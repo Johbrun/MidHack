@@ -1,20 +1,41 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import api from '../api';
+import { useAuth } from '../context/AuthContext';
 
 export default function SendCredits() {
+  const { user } = useAuth();
   const [recipient, setRecipient] = useState('');
   const [amount, setAmount] = useState('');
+  const [balance, setBalance] = useState(null);
   const [result, setResult] = useState(null);
+
+  useEffect(() => {
+    if (user?.id) {
+      api.get(`/users/${user.id}`).then(r => setBalance(r.data.balance));
+    }
+  }, [user]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setResult(null);
+
+    const numAmount = parseFloat(amount);
+    if (isNaN(numAmount) || numAmount <= 0) {
+      setResult({ type: 'error', message: 'Le montant doit être supérieur à 0' });
+      return;
+    }
+    if (balance !== null && numAmount > balance) {
+      setResult({ type: 'error', message: `Solde insuffisant (${balance.toFixed(2)} crédits disponibles)` });
+      return;
+    }
+
     try {
       const { data } = await api.post('/credits/send', {
         recipientUsername: recipient,
         amount: amount,
       });
       setResult({ type: 'success', data });
+      setBalance(data.balance ?? (balance - numAmount));
       setRecipient('');
       setAmount('');
     } catch (err) {
@@ -41,14 +62,21 @@ export default function SendCredits() {
           </div>
 
           <div>
-            <label className="label">Montant</label>
-            {/* VULNERABLE: type="text" allows negative values */}
+            <label className="label">
+              Montant
+              {balance !== null && (
+                <span className="text-white/40 text-xs ml-2">({balance.toFixed(2)} crédits disponibles)</span>
+              )}
+            </label>
             <input
-              type="text"
+              type="number"
               className="input"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="Entrez le montant"
+              min="1"
+              max={balance ?? undefined}
+              step="10"
             />
           </div>
 
@@ -58,11 +86,10 @@ export default function SendCredits() {
         </form>
 
         {result && (
-          <div className={`mt-6 p-4 rounded-lg text-sm ${
-            result.type === 'success'
+          <div className={`mt-6 p-4 rounded-lg text-sm ${result.type === 'success'
               ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
               : 'bg-red-500/10 border border-red-500/20 text-red-400'
-          }`}>
+            }`}>
             {result.type === 'success' ? (
               <div>
                 <p>{result.data.message}</p>
