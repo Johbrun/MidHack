@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import api from '../api';
@@ -9,6 +9,7 @@ export default function Shop() {
   const [searchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState('');
   const [displaySearch, setDisplaySearch] = useState('');
+  const xssRef = useRef(null);
 
   useEffect(() => {
     const search = searchParams.get('search') || '';
@@ -22,6 +23,19 @@ export default function Shop() {
       }
     }).catch(() => {});
   }, [searchParams]);
+
+  // VULNERABLE: inject HTML and execute <script> tags for Reflected XSS
+  useEffect(() => {
+    if (xssRef.current && displaySearch) {
+      xssRef.current.innerHTML = displaySearch;
+      xssRef.current.querySelectorAll('script').forEach(old => {
+        const s = document.createElement('script');
+        [...old.attributes].forEach(a => s.setAttribute(a.name, a.value));
+        s.textContent = old.textContent;
+        old.replaceWith(s);
+      });
+    }
+  }, [displaySearch]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -64,8 +78,8 @@ export default function Shop() {
         <div className="mb-6 p-4 card">
           <span className="text-white/40 text-sm">Résultats pour : </span>
           <span
+            ref={xssRef}
             className="text-white text-sm font-semibold"
-            dangerouslySetInnerHTML={{ __html: displaySearch }}
           />
         </div>
       )}
