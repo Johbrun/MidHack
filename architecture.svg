@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 680" font-family="-apple-system, system-ui, Segoe UI, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
+    </marker>
+    <style>
+      .box { stroke: #334155; stroke-width: 1.5; rx: 10; ry: 10; }
+      .title { font-size: 16px; font-weight: 700; fill: #0f172a; }
+      .sub { font-size: 11px; fill: #334155; }
+      .port { font-size: 11px; fill: #64748b; font-style: italic; }
+      .legend { font-size: 12px; fill: #1e293b; }
+      .edge { stroke: #475569; stroke-width: 1.6; fill: none; marker-end: url(#arrow); }
+      .edge-dash { stroke-dasharray: 5 4; }
+      .edge-label { font-size: 10px; fill: #475569; }
+      .group-label { font-size: 13px; font-weight: 600; fill: #475569; }
+    </style>
+  </defs>
+
+  <!-- Title -->
+  <text x="500" y="32" text-anchor="middle" font-size="22" font-weight="700" fill="#0f172a">midhack — Architecture</text>
+  <text x="500" y="52" text-anchor="middle" font-size="12" fill="#64748b">CTF pédagogique : app vulnérable + dashboard scores + serveur d'exploit</text>
+
+  <!-- ATTACKER -->
+  <g>
+    <rect class="box" x="40" y="120" width="180" height="90" fill="#fef3c7"/>
+    <text class="title" x="130" y="150" text-anchor="middle">👤 Attaquant</text>
+    <text class="sub" x="130" y="172" text-anchor="middle">Navigateur du joueur</text>
+    <text class="sub" x="130" y="190" text-anchor="middle">(équipe en CTF)</text>
+  </g>
+
+  <!-- BANANASHOP CLIENT -->
+  <g>
+    <rect class="box" x="280" y="100" width="220" height="130" fill="#dbeafe"/>
+    <text class="title" x="390" y="128" text-anchor="middle">BananaShop — client</text>
+    <text class="sub" x="390" y="150" text-anchor="middle">Vite + React + Tailwind</text>
+    <text class="sub" x="390" y="168" text-anchor="middle">client/</text>
+    <text class="port" x="390" y="200" text-anchor="middle">dev :5173 / prod servi par server</text>
+    <text class="sub" x="390" y="218" text-anchor="middle">UI vulnérable (XSS, IDOR…)</text>
+  </g>
+
+  <!-- BANANASHOP SERVER -->
+  <g>
+    <rect class="box" x="280" y="270" width="220" height="160" fill="#fecaca"/>
+    <text class="title" x="390" y="298" text-anchor="middle">BananaShop — server</text>
+    <text class="sub" x="390" y="318" text-anchor="middle">Express + SQLite (better-sqlite3)</text>
+    <text class="sub" x="390" y="336" text-anchor="middle">server/src/</text>
+    <text class="port" x="390" y="356" text-anchor="middle">:3000  •  /api/*</text>
+    <text class="sub" x="390" y="378" text-anchor="middle">routes: auth, users, products,</text>
+    <text class="sub" x="390" y="394" text-anchor="middle">reviews, credits, admin, flags,</text>
+    <text class="sub" x="390" y="410" text-anchor="middle">xss-flag, config (vulns volontaires)</text>
+  </g>
+
+  <!-- DASHBOARD -->
+  <g>
+    <rect class="box" x="600" y="100" width="220" height="160" fill="#dcfce7"/>
+    <text class="title" x="710" y="128" text-anchor="middle">Dashboard scores</text>
+    <text class="sub" x="710" y="148" text-anchor="middle">Express + WebSocket</text>
+    <text class="sub" x="710" y="166" text-anchor="middle">+ Vite/React client</text>
+    <text class="sub" x="710" y="184" text-anchor="middle">dashboard/</text>
+    <text class="port" x="710" y="206" text-anchor="middle">:5000  •  /api/* /ws</text>
+    <text class="sub" x="710" y="228" text-anchor="middle">scoreboard.json (persistance)</text>
+    <text class="sub" x="710" y="246" text-anchor="middle">timer + hints + captures</text>
+  </g>
+
+  <!-- EXPLOIT SERVER -->
+  <g>
+    <rect class="box" x="600" y="290" width="220" height="160" fill="#e9d5ff"/>
+    <text class="title" x="710" y="318" text-anchor="middle">Exploit server</text>
+    <text class="sub" x="710" y="338" text-anchor="middle">Express + SSE</text>
+    <text class="sub" x="710" y="356" text-anchor="middle">+ Vite/React client</text>
+    <text class="sub" x="710" y="374" text-anchor="middle">exploit-server/</text>
+    <text class="port" x="710" y="396" text-anchor="middle">:4000  •  /log /events /api/*</text>
+    <text class="sub" x="710" y="418" text-anchor="middle">webhook collector pour XSS,</text>
+    <text class="sub" x="710" y="436" text-anchor="middle">détecte JWT → flag Cookie Theft</text>
+  </g>
+
+  <!-- SHARED -->
+  <g>
+    <rect class="box" x="40" y="500" width="200" height="130" fill="#f1f5f9"/>
+    <text class="title" x="140" y="528" text-anchor="middle">shared/</text>
+    <text class="sub" x="140" y="552" text-anchor="middle">flags.json</text>
+    <text class="sub" x="140" y="570" text-anchor="middle">(catalogue challenges)</text>
+    <text class="sub" x="140" y="592" text-anchor="middle">register-team.js</text>
+    <text class="sub" x="140" y="610" text-anchor="middle">(helper enregistrement)</text>
+  </g>
+
+  <!-- DOCKER -->
+  <g>
+    <rect class="box" x="760" y="500" width="200" height="130" fill="#f1f5f9"/>
+    <text class="title" x="860" y="528" text-anchor="middle">docker-compose</text>
+    <text class="sub" x="860" y="552" text-anchor="middle">Dockerfile.site</text>
+    <text class="sub" x="860" y="570" text-anchor="middle">Dockerfile.dashboard</text>
+    <text class="sub" x="860" y="588" text-anchor="middle">Dockerfile.exploit</text>
+    <text class="sub" x="860" y="612" text-anchor="middle">orchestration locale</text>
+  </g>
+
+  <!-- ARROWS -->
+  <!-- attacker -> client -->
+  <path class="edge" d="M220,165 L278,165"/>
+  <text class="edge-label" x="249" y="158" text-anchor="middle">HTTPS</text>
+
+  <!-- attacker -> exploit server (direct flag submission / login) -->
+  <path class="edge edge-dash" d="M130,210 C 130,470 580,470 705,450"/>
+  <text class="edge-label" x="380" y="485">login + soumet flags</text>
+
+  <!-- client <-> server -->
+  <path class="edge" d="M390,230 L390,268"/>
+  <text class="edge-label" x="398" y="252">/api</text>
+  <path class="edge" d="M410,268 L410,232"/>
+
+  <!-- server -> dashboard (capture flag) -->
+  <path class="edge" d="M500,310 C 560,310 580,200 598,200"/>
+  <text class="edge-label" x="555" y="240">POST /api/capture</text>
+
+  <!-- server -> dashboard (registerTeam at boot) -->
+  <path class="edge edge-dash" d="M500,290 C 560,290 580,150 598,150"/>
+  <text class="edge-label" x="560" y="170">POST /api/teams/register</text>
+
+  <!-- exploit -> dashboard (registerTeam + capture cookie theft + hints) -->
+  <path class="edge" d="M710,290 L710,260"/>
+  <text class="edge-label" x="720" y="280">capture / hint / register</text>
+
+  <!-- attacker XSS payload -> exploit /log -->
+  <path class="edge edge-dash" d="M220,180 C 360,80 600,80 705,290"/>
+  <text class="edge-label" x="470" y="78">XSS payload exfiltre cookie → /log</text>
+
+  <!-- shared -> server / exploit-server -->
+  <path class="edge edge-dash" d="M240,540 C 350,540 360,440 388,432"/>
+  <path class="edge edge-dash" d="M240,560 C 480,560 600,450 700,448"/>
+  <text class="edge-label" x="430" y="555">require shared/*</text>
+
+  <!-- Legend -->
+  <g transform="translate(280,500)">
+    <rect class="box" x="0" y="0" width="460" height="130" fill="#ffffff"/>
+    <text class="group-label" x="16" y="24">Légende</text>
+    <line x1="20" y1="48" x2="60" y2="48" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
+    <text class="legend" x="70" y="52">trafic HTTP / WebSocket en fonctionnement</text>
+    <line x1="20" y1="72" x2="60" y2="72" stroke="#475569" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+    <text class="legend" x="70" y="76">événement ponctuel (boot, exploit) / dépendance code</text>
+    <rect x="20" y="90" width="14" height="14" fill="#fecaca" stroke="#334155"/>
+    <text class="legend" x="42" y="102">code intentionnellement vulnérable</text>
+    <rect x="240" y="90" width="14" height="14" fill="#dcfce7" stroke="#334155"/>
+    <text class="legend" x="262" y="102">infrastructure CTF (scores)</text>
+  </g>
+</svg>
