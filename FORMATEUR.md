@@ -76,6 +76,25 @@ Le secret JWT est `secret` (chaîne littérale). Le serveur accepte les algorith
 - Montrer le code vulnérable vs. le code corrigé (onglet "Fix-It" du serveur d'exploit)
 - Discuter des remédiations et bonnes pratiques
 
+### Phase 4 — Démo CSRF en live (5-10 min)
+
+Terminer l'atelier par une démonstration concrète d'attaque CSRF pour marquer les esprits.
+
+1. **Préparer la démo** : sur le serveur d'exploit d'une équipe, créer une page HTML piégée contenant un formulaire caché qui effectue un transfert de crédits :
+
+   ```html
+   <h1>🎁 Vous avez gagné des bananes gratuites !</h1>
+   <form id="csrf" action="http://localhost:3001/api/credits/send" method="POST">
+     <input type="hidden" name="toUserId" value="1" />
+     <input type="hidden" name="amount" value="500" />
+   </form>
+   <script>document.getElementById('csrf').submit();</script>
+   ```
+
+2. **Scénario** : se connecter en tant que `john` sur le site BananaShop, puis ouvrir la page piégée dans un autre onglet du même navigateur
+3. **Résultat** : montrer que le transfert s'exécute sans aucune action de la victime, car le cookie de session est envoyé automatiquement et aucun token CSRF ne protège l'endpoint
+4. **Leçon** : expliquer les protections (token CSRF synchronisé, attribut `SameSite` sur les cookies, vérification de l'en-tête `Origin`/`Referer`)
+
 ---
 
 ## Contrôle du timer
@@ -194,7 +213,7 @@ GET /api/products/image?file=../../secret_flag.txt
 
 Lecture de fichier arbitraire via traversée de répertoire.
 
-### 5. Zero Rating Bypass (Facile)
+### 5. (Review nulle) Zero Rating Bypass (Facile)
 
 ```bash
 POST /api/products/1/reviews
