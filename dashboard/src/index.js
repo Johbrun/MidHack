@@ -66,7 +66,7 @@ app.post('/api/teams/register', (req, res) => {
 
 // Record a capture
 app.post('/api/capture', (req, res) => {
-  const { teamName, flag, flagName, points } = req.body;
+  const { teamName, flag, flagId, flagName, points } = req.body;
   if (!teamName || !flag) return res.status(400).json({ error: 'teamName and flag required' });
 
   if (!teams.has(teamName)) {
@@ -80,7 +80,7 @@ app.post('/api/capture', (req, res) => {
     return res.json({ ok: true, duplicate: true });
   }
 
-  const capture = { flag, flagName: flagName || 'Unknown', points: points || 0, capturedAt: new Date().toISOString() };
+  const capture = { flag, flagId: flagId || null, points: points || 0, capturedAt: new Date().toISOString() };
   team.captures.push(capture);
 
   saveState();

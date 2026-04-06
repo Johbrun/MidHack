@@ -152,4 +152,9 @@ const FLAG_EXPLANATIONS = {
 
 const ALL_FLAGS = Object.values(FLAGS);
 
-module.exports = { FLAGS, FLAG_NAMES, FLAG_POINTS, FLAG_EXPLANATIONS, ALL_FLAGS };
+// Reverse mapping: flag value -> flag key (e.g. 'ASY{...}' -> 'IDOR')
+const FLAG_IDS = Object.fromEntries(
+  Object.entries(FLAGS).map(([key, value]) => [value, key])
+);
+
+module.exports = { FLAGS, FLAG_NAMES, FLAG_POINTS, FLAG_EXPLANATIONS, FLAG_IDS, ALL_FLAGS };
