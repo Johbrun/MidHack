@@ -26,7 +26,12 @@ router.get('/', (req, res) => {
     }
 
     // VULNERABLE: reflect search term back unsanitized (used by frontend for Reflected XSS)
-    return res.json({ products, searchTerm: search });
+    // If the search contains alert(...), inject the flag inside the parentheses
+    let reflected = search;
+    if (/alert\s*\(/.test(search)) {
+      reflected = search.replace(/alert\s*\([^)]*\)/, `alert('${FLAGS.REFLECTED_XSS}')`);
+    }
+    return res.json({ products, searchTerm: reflected });
   }
 
   products = db.prepare('SELECT * FROM products').all();
