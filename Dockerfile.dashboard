@@ -1,12 +1,25 @@
+# ─── Build stage: build the React client ───
+FROM node:20-alpine AS client-build
+
+WORKDIR /build
+COPY shared/ /build/shared/
+COPY dashboard/client/package.json dashboard/client/package-lock.json* ./dashboard/client/
+RUN cd dashboard/client && npm install
+
+COPY dashboard/client/ ./dashboard/client/
+RUN cd dashboard/client && npm run build
+
+# ─── Runtime stage: Express serving the built client + API + WS ───
 FROM node:20-alpine
 
 WORKDIR /app/dashboard
 
 COPY dashboard/package.json dashboard/package-lock.json* ./
-RUN npm install
+RUN npm install --omit=dev
 
-COPY dashboard/ ./
+COPY dashboard/src ./src
 COPY shared/ /app/shared/
+COPY --from=client-build /build/dashboard/client/dist ./client/dist
 
 EXPOSE 5000
 ENV PORT=5000

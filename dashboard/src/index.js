@@ -3,7 +3,6 @@ const http = require('http');
 const { WebSocketServer } = require('ws');
 const path = require('path');
 const fs = require('fs');
-const { CHALLENGES, CATEGORIES } = require('../../shared/flags');
 
 const app = express();
 const server = http.createServer(app);
@@ -163,17 +162,24 @@ app.get('/api/scoreboard', (req, res) => {
   res.json({ teams: getScoreboardData() });
 });
 
-// Serve dashboard page with injected flag definitions
-const INDEX_HTML = fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8');
-function renderIndex() {
-  return INDEX_HTML
-    .replace('/*__CATEGORIES__*/{}', JSON.stringify(CATEGORIES))
-    .replace('/*__FLAGS__*/[]', JSON.stringify(CHALLENGES));
+// Serve the built React client from dashboard/client/dist.
+// In dev, run `npm run dev` (at dashboard/) to start Vite on :5173 with
+// hot reload; Vite proxies /api and /ws to this Express server on :5000.
+const CLIENT_DIST = path.join(__dirname, '..', 'client', 'dist');
+if (fs.existsSync(CLIENT_DIST)) {
+  app.use(express.static(CLIENT_DIST));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api') || req.path.startsWith('/ws')) return next();
+    res.sendFile(path.join(CLIENT_DIST, 'index.html'));
+  });
+} else {
+  app.get('/', (req, res) => {
+    res
+      .status(503)
+      .type('text/plain')
+      .send('Client not built. Run `npm run build` in dashboard/client/ or use `npm run dev` for hot reload.');
+  });
 }
-app.use(express.static(path.join(__dirname, 'public'), { index: false }));
-app.get('/', (req, res) => {
-  res.type('html').send(renderIndex());
-});
 
 // WebSocket
 wss.on('connection', (ws) => {
