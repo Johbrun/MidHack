@@ -35,6 +35,7 @@ router.post('/submit', (req, res) => {
 
   res.json({
     valid: true,
+    flagId,
     flagName,
     points: flagInfo.points,
     difficulty: flagInfo.difficulty,
