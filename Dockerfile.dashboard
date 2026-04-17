@@ -7,6 +7,8 @@ COPY dashboard/client/package.json dashboard/client/package-lock.json* ./dashboa
 RUN cd dashboard/client && npm install
 
 COPY dashboard/client/ ./dashboard/client/
+ARG VITE_NANTES_HACK=0
+ENV VITE_NANTES_HACK=$VITE_NANTES_HACK
 RUN cd dashboard/client && npm run build
 
 # ─── Runtime stage: Express serving the built client + API + WS ───

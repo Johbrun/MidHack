@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { NantesHackLogo } from '../lib/branding';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -16,6 +17,7 @@ export default function Navbar() {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-dark/80 backdrop-blur-md border-b border-white/[0.08]">
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-3 group">
+          <NantesHackLogo className="h-8 w-auto" />
           <span className="text-2xl">🍌</span>
           <span className="font-heading font-extrabold text-lg tracking-tight group-hover:text-accent transition-colors">
             BananaShop

@@ -1,9 +1,14 @@
+# Toggle "0" → "1" pour activer le branding Nantes@Hack sur tous les services.
+x-build-args: &build-args
+  VITE_NANTES_HACK: "1"
+
 services:
   # Central live dashboard (to project on screen)
   dashboard:
     build:
       context: .
       dockerfile: Dockerfile.dashboard
+      args: *build-args
     ports:
       - "5000:5000"
     restart: unless-stopped
@@ -13,6 +18,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.site
+      args: *build-args
     environment:
       - TEAM_NAME=Alpha
       - DASHBOARD_URL=http://dashboard:5000
@@ -26,7 +32,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.exploit
+      args: *build-args
     environment:
+      - TEAM_NAME=Alpha
       - TEAM_PASSWORD=team1-banana
       - SITE_URL=http://site-team1:3000
       - DASHBOARD_URL=http://dashboard:5000
@@ -39,6 +47,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.site
+      args: *build-args
     environment:
       - TEAM_NAME=Bravo
       - DASHBOARD_URL=http://dashboard:5000
@@ -52,7 +61,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.exploit
+      args: *build-args
     environment:
+      - TEAM_NAME=Bravo
       - TEAM_PASSWORD=team2-banana
       - SITE_URL=http://site-team2:3000
       - DASHBOARD_URL=http://dashboard:5000
@@ -65,6 +76,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.site
+      args: *build-args
     environment:
       - TEAM_NAME=Charlie
       - DASHBOARD_URL=http://dashboard:5000
@@ -78,7 +90,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.exploit
+      args: *build-args
     environment:
+      - TEAM_NAME=Charlie
       - TEAM_PASSWORD=team3-banana
       - SITE_URL=http://site-team3:3000
       - DASHBOARD_URL=http://dashboard:5000
@@ -91,6 +105,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.site
+      args: *build-args
     environment:
       - TEAM_NAME=Delta
       - DASHBOARD_URL=http://dashboard:5000
@@ -104,7 +119,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.exploit
+      args: *build-args
     environment:
+      - TEAM_NAME=Delta
       - TEAM_PASSWORD=team4-banana
       - SITE_URL=http://site-team4:3000
       - DASHBOARD_URL=http://dashboard:5000

@@ -10,6 +10,8 @@ COPY client/package.json client/package-lock.json* ./client/
 RUN cd client && npm install
 
 COPY client/ ./client/
+ARG VITE_NANTES_HACK=0
+ENV VITE_NANTES_HACK=$VITE_NANTES_HACK
 RUN cd client && npm run build
 
 # Install server dependencies (rebuilds native modules for Alpine/musl)
@@ -17,6 +19,7 @@ COPY server/package.json server/package-lock.json* ./server/
 RUN cd server && npm install --build-from-source
 
 COPY server/ ./server/
+COPY shared/ ./shared/
 
 EXPOSE 3000
 ENV PORT=3000

@@ -51,6 +51,51 @@ npm run dev
 
 Lance les 4 services simultanément (server, client, exploit-server, dashboard) via `concurrently`.
 
+### Déploiement sur un serveur
+
+Prérequis sur la machine cible : `git`, `docker` et `docker compose` (plugin officiel).
+
+```bash
+git clone <url-du-repo> midhack
+cd midhack
+docker compose up --build -d
+```
+
+Le `-d` lance les containers en arrière-plan. Vérifier ensuite leur état avec `docker compose ps` et suivre les logs avec `docker compose logs -f`.
+
+Ports à ouvrir dans le firewall du serveur (ou dans le groupe de sécurité cloud) :
+
+| Port      | Rôle                          |
+| --------- | ----------------------------- |
+| 5000      | Dashboard live                |
+| 3001-3004 | Sites BananaShop (Team 1 à 4) |
+| 4001-4004 | Exploit servers (Team 1 à 4)  |
+
+Les participants accèdent ensuite aux URLs via l'IP/le domaine public du serveur (ex. `http://ctf.asymis.fr:3001`).
+
+**Mettre à jour** après un `git pull` :
+
+```bash
+docker compose up --build -d
+```
+
+**Arrêter / nettoyer** :
+
+```bash
+docker compose down          # arrête les containers
+docker compose down -v       # arrête + supprime les volumes (reset complet)
+```
+
+### Mode Nantes@Hack
+
+Pour un événement co-organisé avec [Nantes@Hack](https://nantes-hack.fr), un logo peut être affiché dans les 3 UIs (site BananaShop, exploit server, dashboard). Activation :
+
+1. Déposer le logo aux chemins `client/public/nantes-hack.png`, `exploit-server/client/public/nantes-hack.png`, `dashboard/client/public/nantes-hack.png`
+2. En haut de [docker-compose.yml](docker-compose.yml), passer `VITE_NANTES_HACK: "0"` → `"1"`
+3. Rebuild : `docker compose up --build -d`
+
+Pour désactiver : remettre `"0"` et rebuild.
+
 ## Architecture
 
 ```text
