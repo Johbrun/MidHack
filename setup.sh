@@ -1,19 +1,138 @@
 #!/usr/bin/env bash
-# Generate docker-compose.yml with N teams.
-# Usage: ./setup.sh [number_of_teams]
+# Generate docker-compose.yml with N teams and optionally deploy.
+# Usage: ./setup.sh [number_of_teams] [--deploy]
+#   --deploy   Build & start containers after generating docker-compose.yml
+#   --reset    Stop & remove containers, volumes, and generated files
 # Default: 4 teams
 
 set -e
 
-TEAMS=${1:-4}
-NANTES_HACK=${VITE_NANTES_HACK:-1}
+# ─────────────────────────── Helpers ───────────────────────────
 
+RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; CYAN='\033[0;36m'; NC='\033[0m'
+
+ok()   { printf "  ${GREEN}✔${NC} %s\n" "$1"; }
+warn() { printf "  ${YELLOW}⚠${NC} %s\n" "$1"; }
+fail() { printf "  ${RED}✖${NC} %s\n" "$1"; exit 1; }
+info() { printf "  ${CYAN}ℹ${NC} %s\n" "$1"; }
+
+# ─────────────────────────── Parse args ───────────────────────────
+
+TEAMS=4
+DEPLOY=false
+RESET=false
+
+for arg in "$@"; do
+  case "$arg" in
+    --deploy) DEPLOY=true ;;
+    --reset)  RESET=true ;;
+    [0-9]*)   TEAMS="$arg" ;;
+  esac
+done
+
+NANTES_HACK=${VITE_NANTES_HACK:-1}
 NAMES=(Alpha Bravo Charlie Delta Echo Foxtrot Golf Hotel India Juliet Kilo Lima Mike November Oscar Papa Quebec Romeo Sierra Tango)
 
-if [ "$TEAMS" -lt 1 ] || [ "$TEAMS" -gt ${#NAMES[@]} ]; then
-  echo "Nombre d'equipes entre 1 et ${#NAMES[@]}"
-  exit 1
+# ─────────────────────────── Reset mode ───────────────────────────
+
+if $RESET; then
+  echo ""
+  echo "🧹 Reset de l'environnement CTF..."
+  echo ""
+  if command -v docker &>/dev/null && docker compose version &>/dev/null 2>&1; then
+    if [ -f "docker-compose.yml" ]; then
+      docker compose down -v --remove-orphans 2>/dev/null && ok "Conteneurs et volumes supprimés" || warn "Aucun conteneur à arrêter"
+    fi
+  fi
+  rm -f docker-compose.yml && ok "docker-compose.yml supprimé" || true
+  rm -f credentials.json credentials.html && ok "Fichiers d'identifiants supprimés" || true
+  echo ""
+  ok "Reset terminé."
+  echo ""
+  exit 0
 fi
+
+# ─────────────────────────── Prerequisites ───────────────────────────
+
+echo ""
+echo "🔍 Vérification des prérequis..."
+echo ""
+
+# Docker
+if ! command -v docker &>/dev/null; then
+  fail "Docker n'est pas installé. Installez-le: https://docs.docker.com/engine/install/"
+fi
+ok "Docker trouvé ($(docker --version | head -c 50))"
+
+# Docker daemon
+if ! docker info &>/dev/null 2>&1; then
+  fail "Le daemon Docker ne tourne pas. Lancez: sudo systemctl start docker"
+fi
+ok "Daemon Docker actif"
+
+# Docker Compose
+if ! docker compose version &>/dev/null 2>&1; then
+  fail "Docker Compose plugin manquant. Installez-le: https://docs.docker.com/compose/install/"
+fi
+ok "Docker Compose trouvé ($(docker compose version --short 2>/dev/null))"
+
+# RAM check (recommend 512MB per team minimum)
+TOTAL_RAM_MB=$(free -m 2>/dev/null | awk '/Mem:/{print $2}' || echo 0)
+REQUIRED_RAM_MB=$(( TEAMS * 512 ))
+if [ "$TOTAL_RAM_MB" -gt 0 ]; then
+  if [ "$TOTAL_RAM_MB" -lt "$REQUIRED_RAM_MB" ]; then
+    warn "RAM disponible: ${TOTAL_RAM_MB}MB — recommandé: ${REQUIRED_RAM_MB}MB pour $TEAMS équipes"
+  else
+    ok "RAM suffisante (${TOTAL_RAM_MB}MB disponible, ${REQUIRED_RAM_MB}MB recommandé)"
+  fi
+fi
+
+# Disk space check (need at least 2GB)
+AVAILABLE_DISK_MB=$(df -m . 2>/dev/null | awk 'NR==2{print $4}' || echo 0)
+if [ "$AVAILABLE_DISK_MB" -gt 0 ]; then
+  if [ "$AVAILABLE_DISK_MB" -lt 2048 ]; then
+    warn "Espace disque faible: ${AVAILABLE_DISK_MB}MB — recommandé: 2048MB minimum"
+  else
+    ok "Espace disque suffisant (${AVAILABLE_DISK_MB}MB disponible)"
+  fi
+fi
+
+# Port availability check
+check_port() {
+  if command -v ss &>/dev/null; then
+    ss -tlnp 2>/dev/null | grep -q ":$1 " && return 1
+  elif command -v netstat &>/dev/null; then
+    netstat -tlnp 2>/dev/null | grep -q ":$1 " && return 1
+  fi
+  return 0
+}
+
+PORTS_BUSY=()
+# Dashboard
+check_port 5000 || PORTS_BUSY+=(5000)
+# Team ports
+for i in $(seq 1 "$TEAMS"); do
+  check_port $((3000 + i)) || PORTS_BUSY+=($((3000 + i)))
+  check_port $((4000 + i)) || PORTS_BUSY+=($((4000 + i)))
+done
+
+if [ ${#PORTS_BUSY[@]} -gt 0 ]; then
+  warn "Ports déjà utilisés: ${PORTS_BUSY[*]} — les conteneurs existants seront remplacés"
+else
+  ok "Tous les ports nécessaires sont disponibles"
+fi
+
+# ─────────────────────────── Validate team count ───────────────────────────
+
+if [ "$TEAMS" -lt 1 ] || [ "$TEAMS" -gt ${#NAMES[@]} ]; then
+  fail "Nombre d'équipes entre 1 et ${#NAMES[@]}"
+fi
+
+echo ""
+echo "⚙️  Génération de docker-compose.yml pour $TEAMS équipe(s)..."
+echo ""
+
+# ─────────────────────────── Generate docker-compose.yml ───────────────────────────
 
 FILE="docker-compose.yml"
 
@@ -35,10 +154,17 @@ services:
     restart: unless-stopped
 EOF
 
+# Pre-generate random passwords (5 alphanumeric chars)
+declare -a PASSWORDS
+for i in $(seq 1 "$TEAMS"); do
+  PASSWORDS[$i]=$(head -c 100 /dev/urandom | tr -dc 'a-zA-Z0-9' | head -c 5)
+done
+
 for i in $(seq 1 "$TEAMS"); do
   NAME=${NAMES[$((i - 1))]}
   SITE_PORT=$((3000 + i))
   EXPLOIT_PORT=$((4000 + i))
+  TEAM_PWD=${PASSWORDS[$i]}
 
   cat >> "$FILE" <<EOF
 
@@ -64,7 +190,7 @@ for i in $(seq 1 "$TEAMS"); do
       args: *build-args
     environment:
       - TEAM_NAME=$NAME
-      - TEAM_PASSWORD=team${i}-banana
+      - TEAM_PASSWORD=$TEAM_PWD
       - SITE_URL=http://site-team${i}:3000
       - DASHBOARD_URL=http://dashboard:5000
     ports:
@@ -73,12 +199,67 @@ for i in $(seq 1 "$TEAMS"); do
 EOF
 done
 
+ok "docker-compose.yml généré"
+
+# ─────────────────────────── Summary ───────────────────────────
+
 echo ""
-echo "docker-compose.yml genere avec $TEAMS equipe(s)."
+echo "📋 Résumé de la configuration"
 echo ""
 echo "  Dashboard:  http://localhost:5000"
 for i in $(seq 1 "$TEAMS"); do
   echo "  Team $i:     http://localhost:$((3000 + i)) (site)  http://localhost:$((4000 + i)) (exploit)"
 done
 echo ""
-echo "Lancez: docker compose up --build -d"
+echo "╔══════════════════════════════════════════╗"
+echo "║        MOTS DE PASSE DES EQUIPES        ║"
+echo "╠══════════════════════════════════════════╣"
+for i in $(seq 1 "$TEAMS"); do
+  printf "║  %-10s  mdp: %-5s               ║\n" "${NAMES[$((i - 1))]}" "${PASSWORDS[$i]}"
+done
+echo "╚══════════════════════════════════════════╝"
+
+# ─────────────────────────── Deploy ───────────────────────────
+
+if $DEPLOY; then
+  echo ""
+  echo "🚀 Lancement du déploiement..."
+  echo ""
+  docker compose up --build -d
+  echo ""
+  ok "Déploiement terminé !"
+  echo ""
+  info "En attente que les services soient prêts..."
+  sleep 5
+
+  # Quick health check
+  ALL_OK=true
+  for i in $(seq 1 "$TEAMS"); do
+    if ! docker compose ps "site-team${i}" 2>/dev/null | grep -q "running"; then
+      warn "site-team${i} ne semble pas démarré"
+      ALL_OK=false
+    fi
+    if ! docker compose ps "exploit-team${i}" 2>/dev/null | grep -q "running"; then
+      warn "exploit-team${i} ne semble pas démarré"
+      ALL_OK=false
+    fi
+  done
+  if ! docker compose ps dashboard 2>/dev/null | grep -q "running"; then
+    warn "dashboard ne semble pas démarré"
+    ALL_OK=false
+  fi
+
+  if $ALL_OK; then
+    echo ""
+    ok "Tous les services sont en cours d'exécution !"
+  else
+    echo ""
+    warn "Certains services ne sont pas encore prêts. Vérifiez: docker compose ps"
+  fi
+else
+  echo ""
+  echo "Lancez: docker compose up --build -d"
+  echo "   ou : ./setup.sh $TEAMS --deploy"
+fi
+
+echo ""
