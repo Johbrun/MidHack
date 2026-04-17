@@ -27,20 +27,17 @@ Une **mini-académie** intégrée au serveur d'exploit propose des slides intera
 ### Docker (recommandé - setup multi-équipes)
 
 ```bash
-docker compose up --build
+./setup.sh 6            # génère docker-compose.yml pour 6 équipes (1 à 20)
+docker compose up --build -d
 ```
 
-| Service | URL |
-|---------|-----|
-| Dashboard live (à projeter) | <http://localhost:5000> |
-| Site Team 1 | <http://localhost:3001> |
-| Site Team 2 | <http://localhost:3002> |
-| Site Team 3 | <http://localhost:3003> |
-| Site Team 4 | <http://localhost:3004> |
-| Exploit Server Team 1 | <http://localhost:4001> |
-| Exploit Server Team 2 | <http://localhost:4002> |
-| Exploit Server Team 3 | <http://localhost:4003> |
-| Exploit Server Team 4 | <http://localhost:4004> |
+Le script `setup.sh` génère le `docker-compose.yml` avec le nombre d'équipes souhaité (défaut : 4). Chaque équipe obtient un site BananaShop et un exploit server sur des ports dédiés :
+
+| Service        | Ports              |
+| -------------- | ------------------ |
+| Dashboard live | `localhost:5000`   |
+| Site Team N    | `localhost:300N`   |
+| Exploit Team N | `localhost:400N`   |
 
 ### Développement local
 
