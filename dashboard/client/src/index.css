@@ -58,4 +58,8 @@
   .animate-flag-pop {
     animation: flag-pop 0.5s ease;
   }
+
+  .btn-admin {
+    @apply font-heading font-bold text-xs uppercase tracking-wider px-4 py-2 border rounded-lg transition cursor-pointer;
+  }
 }

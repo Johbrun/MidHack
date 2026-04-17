@@ -49,6 +49,10 @@ export function useScoreboard() {
           pushEvent('reset', data);
         } else if (data.type === 'timer') {
           setTimerEndTime(data.running && data.endTime ? data.endTime : null);
+        } else if (data.type === 'announcement') {
+          pushEvent('announcement', data);
+        } else if (data.type === 'freeze') {
+          pushEvent('freeze', data);
         }
       };
     }

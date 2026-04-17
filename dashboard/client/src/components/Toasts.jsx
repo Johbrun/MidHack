@@ -41,7 +41,9 @@ export default function Toasts({ events, consumeEvent }) {
         const base =
           'px-6 py-4 rounded-xl font-heading font-semibold text-sm whitespace-nowrap border transition-all duration-400 ease-out';
         const palette =
-          t.kind === 'hint'
+          t.kind === 'announcement'
+            ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
+            : t.kind === 'hint'
             ? 'bg-accent/15 border-accent/30 text-accent'
             : 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400';
         const motion = t.visible
@@ -74,6 +76,15 @@ function buildToast(evt) {
   }
   if (evt.type === 'reset') {
     return { msg: '🔄 Scores réinitialisés !', kind: 'hint' };
+  }
+  if (evt.type === 'announcement') {
+    return { msg: `📢 ${evt.payload.message}`, kind: 'announcement' };
+  }
+  if (evt.type === 'freeze') {
+    return {
+      msg: evt.payload.frozen ? '🧊 Scoreboard gelé !' : '🔓 Scoreboard dégelé !',
+      kind: 'hint',
+    };
   }
   return null;
 }

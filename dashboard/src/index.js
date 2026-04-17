@@ -8,8 +8,18 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server, path: '/ws' });
 const PORT = process.env.PORT || 5000;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin';
 
 app.use(express.json());
+
+// Admin auth middleware (simple token via query param or header)
+function requireAdmin(req, res, next) {
+  const token = req.headers['x-admin-token'] || req.query.token;
+  if (token !== ADMIN_PASSWORD) {
+    return res.status(401).json({ error: 'Invalid admin token' });
+  }
+  next();
+}
 
 // Persistent state
 const DATA_FILE = path.join(__dirname, '..', 'data', 'scoreboard.json');
@@ -148,13 +158,72 @@ app.get('/api/timer', (req, res) => {
 });
 
 // Reset all scores and hints
-app.post('/api/reset', (req, res) => {
+app.post('/api/reset', requireAdmin, (req, res) => {
   teams.clear();
   saveState();
   console.log('RESET: All scores and hints cleared');
   broadcast({ type: 'reset' });
   broadcastScoreboard();
   res.json({ ok: true });
+});
+
+// ─── Freeze mode ───
+let frozen = false;
+
+app.post('/api/scoreboard/freeze', requireAdmin, (req, res) => {
+  frozen = true;
+  console.log('FREEZE: Scoreboard frozen');
+  broadcast({ type: 'freeze', frozen: true });
+  res.json({ ok: true, frozen });
+});
+
+app.post('/api/scoreboard/unfreeze', requireAdmin, (req, res) => {
+  frozen = false;
+  console.log('UNFREEZE: Scoreboard unfrozen');
+  broadcast({ type: 'freeze', frozen: false });
+  broadcastScoreboard();
+  res.json({ ok: true, frozen });
+});
+
+// ─── Announcements ───
+app.post('/api/announce', requireAdmin, (req, res) => {
+  const { message } = req.body;
+  if (!message) return res.status(400).json({ error: 'message required' });
+  console.log(`ANNOUNCE: ${message}`);
+  broadcast({ type: 'announcement', message, timestamp: new Date().toISOString() });
+  res.json({ ok: true });
+});
+
+// ─── Admin info ───
+app.post('/api/admin/login', (req, res) => {
+  const { password } = req.body;
+  if (password !== ADMIN_PASSWORD) return res.status(401).json({ error: 'Invalid password' });
+  res.json({ ok: true, token: ADMIN_PASSWORD });
+});
+
+app.get('/api/admin/status', requireAdmin, (req, res) => {
+  res.json({
+    teams: Array.from(teams.keys()),
+    teamCount: teams.size,
+    frozen,
+    timer,
+  });
+});
+
+// ─── Export ───
+app.get('/api/export', requireAdmin, (req, res) => {
+  const scoreboard = getScoreboardData();
+  const format = req.query.format || 'json';
+  if (format === 'csv') {
+    const header = 'rank,team,score,captures,hints,first_capture';
+    const rows = scoreboard.map((t, i) => {
+      const firstCapture = t.captures[0]?.capturedAt || '';
+      return `${i + 1},${t.name},${t.score},${t.captures.length},${(t.hints || []).length},${firstCapture}`;
+    });
+    res.type('text/csv').send([header, ...rows].join('\n'));
+  } else {
+    res.json({ teams: scoreboard, exportedAt: new Date().toISOString() });
+  }
 });
 
 // Get scoreboard
@@ -194,6 +263,7 @@ function broadcast(data) {
 }
 
 function broadcastScoreboard() {
+  if (frozen) return; // When frozen, public clients don't receive updates
   broadcast({ type: 'scoreboard', teams: getScoreboardData() });
 }
 

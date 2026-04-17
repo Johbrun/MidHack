@@ -1,24 +1,15 @@
+import { useState } from 'react';
 import Header from './components/Header';
 import Legend from './components/Legend';
 import Scoreboard from './components/Scoreboard';
 import Toasts from './components/Toasts';
+import AdminPanel from './components/AdminPanel';
 import { useScoreboard } from './useScoreboard';
 
 export default function App() {
   const { teams, status, online, timerEndTime, events, consumeEvent } =
     useScoreboard();
-
-  function handleReset() {
-    if (
-      !confirm(
-        'Réinitialiser tous les scores et indices ? Cette action est irréversible.'
-      )
-    )
-      return;
-    fetch('/api/reset', { method: 'POST' })
-      .then((r) => r.json())
-      .catch(() => alert('Erreur lors de la réinitialisation'));
-  }
+  const [showAdmin, setShowAdmin] = useState(false);
 
   return (
     <>
@@ -27,7 +18,7 @@ export default function App() {
           online={online}
           status={status}
           timerEndTime={timerEndTime}
-          onReset={handleReset}
+          onAdmin={() => setShowAdmin(true)}
         />
         <Legend />
         <div className="bg-white/[0.02] border border-white/5 rounded-2xl overflow-x-hidden">
@@ -35,6 +26,7 @@ export default function App() {
         </div>
       </div>
       <Toasts events={events} consumeEvent={consumeEvent} />
+      {showAdmin && <AdminPanel onClose={() => setShowAdmin(false)} />}
     </>
   );
 }

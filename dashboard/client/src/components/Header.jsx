@@ -1,7 +1,7 @@
 import Timer from './Timer';
 import { NantesHackLogo } from '../lib/branding';
 
-export default function Header({ online, status, timerEndTime, onReset }) {
+export default function Header({ online, status, timerEndTime, onAdmin }) {
   return (
     <div className="flex items-center justify-between mb-12">
       <div className="flex items-center gap-4">
@@ -18,11 +18,11 @@ export default function Header({ online, status, timerEndTime, onReset }) {
 
       <div className="flex items-center gap-4">
         <button
-          onClick={onReset}
-          className="font-heading font-bold text-xs uppercase tracking-wider px-4 py-2 border border-red-500/40 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/25 hover:border-red-500/60 transition"
-          title="Réinitialiser tous les scores"
+          onClick={onAdmin}
+          className="font-heading font-bold text-xs uppercase tracking-wider px-4 py-2 border border-accent/40 rounded-lg bg-accent/10 text-accent hover:bg-accent/25 hover:border-accent/60 transition"
+          title="Panneau d'administration"
         >
-          Reset
+          Admin
         </button>
         <div className="flex items-center gap-2 text-xs text-white/30">
           <div
