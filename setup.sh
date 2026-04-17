@@ -152,6 +152,13 @@ services:
     ports:
       - "5000:5000"
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:5000/api/scoreboard"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    mem_limit: 256m
 EOF
 
 # Pre-generate random passwords (5 alphanumeric chars)
@@ -180,8 +187,16 @@ for i in $(seq 1 "$TEAMS"); do
     ports:
       - "${SITE_PORT}:3000"
     depends_on:
-      - dashboard
+      dashboard:
+        condition: service_healthy
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/products"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    mem_limit: 256m
 
   exploit-team${i}:
     build:
@@ -196,6 +211,13 @@ for i in $(seq 1 "$TEAMS"); do
     ports:
       - "${EXPLOIT_PORT}:4000"
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:4000"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    mem_limit: 128m
 EOF
 done
 
