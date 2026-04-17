@@ -41,7 +41,9 @@ export default function Toasts({ events, consumeEvent }) {
         const base =
           'px-6 py-4 rounded-xl font-heading font-semibold text-sm whitespace-nowrap border transition-all duration-400 ease-out';
         const palette =
-          t.kind === 'announcement'
+          t.kind === 'first_blood'
+            ? 'bg-red-500/20 border-red-500/40 text-red-300 text-base'
+            : t.kind === 'announcement'
             ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
             : t.kind === 'hint'
             ? 'bg-accent/15 border-accent/30 text-accent'
@@ -60,6 +62,14 @@ export default function Toasts({ events, consumeEvent }) {
 }
 
 function buildToast(evt) {
+  if (evt.type === 'first_blood') {
+    const flagDef = FLAGS.find((f) => f.flagId === evt.payload.flagId);
+    const label = flagDef ? flagDef.name : evt.payload.flagId;
+    return {
+      msg: `🩸 FIRST BLOOD ! ${evt.payload.teamName} — ${label} (+${evt.payload.points}pts dont +${evt.payload.bonus} bonus)`,
+      kind: 'first_blood',
+    };
+  }
   if (evt.type === 'capture') {
     const flagDef = FLAGS.find((f) => f.flagId === evt.payload.flagId);
     const label = flagDef ? flagDef.name : evt.payload.flagId;

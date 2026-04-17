@@ -92,16 +92,34 @@ app.post('/api/capture', (req, res) => {
     return res.json({ ok: true, duplicate: true });
   }
 
-  const capture = { flag, flagId: flagId || null, points: points || 0, capturedAt: new Date().toISOString() };
+  // Check for first blood: is this the first team to capture this flag?
+  const FIRST_BLOOD_BONUS = 5;
+  let firstBlood = true;
+  for (const [name, t] of teams) {
+    if (name !== teamName && t.captures.some(c => c.flag === flag)) {
+      firstBlood = false;
+      break;
+    }
+  }
+
+  const basePoints = points || 0;
+  const totalPoints = firstBlood ? basePoints + FIRST_BLOOD_BONUS : basePoints;
+  const capture = { flag, flagId: flagId || null, points: totalPoints, firstBlood, capturedAt: new Date().toISOString() };
   team.captures.push(capture);
 
   saveState();
-  console.log(`CAPTURE: ${teamName} found ${flagName} (${flag}) +${points || 0}pts`);
+
+  if (firstBlood) {
+    console.log(`FIRST BLOOD: ${teamName} found ${flagName} (${flag}) +${basePoints}pts +${FIRST_BLOOD_BONUS}pts bonus`);
+    broadcast({ type: 'first_blood', teamName, flagId, flagName, points: totalPoints, bonus: FIRST_BLOOD_BONUS });
+  } else {
+    console.log(`CAPTURE: ${teamName} found ${flagName} (${flag}) +${basePoints}pts`);
+  }
 
   broadcast({ type: 'capture', teamName, ...capture });
   broadcastScoreboard();
 
-  res.json({ ok: true });
+  res.json({ ok: true, firstBlood });
 });
 
 // Record a hint usage
