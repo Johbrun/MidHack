@@ -6,38 +6,72 @@ Document réservé aux formateurs. **Ne pas partager avec les participants.**
 
 ### Prérequis techniques
 
-- Docker et Docker Compose installés
+- Docker et Docker Compose (plugin) installés
 - Un écran/projecteur pour le dashboard live
 - Chaque équipe a besoin d'un navigateur avec Burp Suite Community installé
 
-### Lancement
+### Installation et lancement
 
 ```bash
-docker compose up --build
+# Générer la configuration pour N équipes (défaut : 4)
+./setup.sh 6
+
+# Ou tout-en-un : générer + lancer
+./setup.sh 6 --deploy
 ```
 
-Vérifier que tous les services sont accessibles :
+Le script vérifie automatiquement :
+- Présence de Docker et Docker Compose
+- Que le daemon Docker tourne
+- RAM et espace disque suffisants
+- Disponibilité des ports nécessaires
+
+Après exécution, le script génère :
+- `docker-compose.yml` avec healthchecks, limites mémoire et volumes persistants
+- `credentials.json` — identifiants au format JSON
+- `credentials.html` — cartes imprimables à découper (ouvrir dans un navigateur, imprimer)
+
+Le mot de passe admin du dashboard est affiché dans le résumé et sauvegardé dans `credentials.json`.
+
+Si vous n'utilisez pas `--deploy`, lancez manuellement :
+
+```bash
+docker compose up --build -d
+```
+
+### Configuration avancée
+
+Des variables d'environnement permettent de personnaliser l'événement :
+
+```bash
+# Changer le titre affiché sur le dashboard
+EVENT_TITLE="CyberWeek 2026" ./setup.sh 6
+
+# Changer la pénalité par indice (défaut : 3)
+HINT_PENALTY=5 ./setup.sh 6
+
+# Désactiver le branding Nantes@Hack
+VITE_NANTES_HACK=0 ./setup.sh 6
+```
+
+### Vérification des services
+
+```bash
+# Vérifier que tous les conteneurs sont healthy
+docker compose ps
+```
 
 | Service | URL | Vérification |
 |---------|-----|--------------|
 | Dashboard | <http://localhost:5000> | Le tableau de scores s'affiche |
-| Site Team 1 | <http://localhost:3001> | La boutique BananaShop s'affiche |
-| Site Team 2 | <http://localhost:3002> | Idem |
-| Site Team 3 | <http://localhost:3003> | Idem |
-| Site Team 4 | <http://localhost:3004> | Idem |
-| Exploit Team 1 | <http://localhost:4001> | Page de login |
-| Exploit Team 2 | <http://localhost:4002> | Idem |
-| Exploit Team 3 | <http://localhost:4003> | Idem |
-| Exploit Team 4 | <http://localhost:4004> | Idem |
+| Site Team N | <http://localhost:300N> | La boutique BananaShop s'affiche |
+| Exploit Team N | <http://localhost:400N> | Page de login |
 
 ### Mots de passe des serveurs d'exploit
 
-| Équipe | Nom | Port | Mot de passe |
-|--------|-----|------|--------------|
-| Team 1 | Alpha | 4001 | `team1-banana` |
-| Team 2 | Bravo | 4002 | `team2-banana` |
-| Team 3 | Charlie | 4003 | `team3-banana` |
-| Team 4 | Delta | 4004 | `team4-banana` |
+Les mots de passe sont **générés aléatoirement** à chaque exécution de `setup.sh`. Ils sont affichés dans le terminal et sauvegardés dans :
+- `credentials.json` — pour un usage programmatique
+- `credentials.html` — cartes imprimables à distribuer aux équipes
 
 ### Comptes utilisateurs sur le site
 
@@ -49,7 +83,53 @@ Vérifier que tous les services sont accessibles :
 
 ### Secret JWT
 
-Le secret JWT est `secret` (chaîne littérale). Le serveur accepte les algorithmes `HS256` et `none`.
+Le secret JWT est `secret-pass-to-change` (chaîne littérale). Le serveur accepte les algorithmes `HS256` et `none`.
+
+---
+
+## Panel d'administration
+
+Le dashboard dispose d'un panneau d'administration accessible via le bouton **Admin** en haut à droite du scoreboard.
+
+Le mot de passe admin est affiché lors du `setup.sh` et sauvegardé dans `credentials.json`.
+
+### Fonctionnalités du panel admin
+
+| Fonction | Description |
+|----------|-------------|
+| **Timer** | Démarrer/arrêter un compte à rebours (en minutes) |
+| **Annonces** | Envoyer un message en direct à toutes les équipes (toast sur les exploit-servers + scoreboard) |
+| **Geler le scoreboard** | Les captures continuent d'être enregistrées mais le classement public ne se met plus à jour (suspense pour les dernières minutes) |
+| **Dégeler le scoreboard** | Révéler le classement final |
+| **Réinitialiser les scores** | Remet tous les scores à zéro |
+| **Export JSON/CSV** | Télécharger les résultats complets |
+| **Certificats** | Générer une page HTML imprimable avec un certificat par équipe (rang, score, challenges résolus) |
+
+### Contrôle du timer via curl (alternative)
+
+```bash
+# Démarrer le timer (ex: 90 minutes)
+curl -X POST http://localhost:5000/api/timer/start \
+  -H "Content-Type: application/json" \
+  -H "X-Admin-Token: MOT_DE_PASSE_ADMIN" \
+  -d '{"duration": 90}'
+
+# Arrêter le timer
+curl -X POST http://localhost:5000/api/timer/stop \
+  -H "X-Admin-Token: MOT_DE_PASSE_ADMIN"
+
+# Voir l'état du timer
+curl http://localhost:5000/api/timer
+```
+
+### Annonces via curl
+
+```bash
+curl -X POST http://localhost:5000/api/announce \
+  -H "Content-Type: application/json" \
+  -H "X-Admin-Token: MOT_DE_PASSE_ADMIN" \
+  -d '{"message": "Plus que 30 minutes !"}'
+```
 
 ---
 
@@ -59,9 +139,13 @@ Le secret JWT est `secret` (chaîne littérale). Le serveur accepte les algorith
 
 1. Présenter le contexte : sécurité offensive, OWASP Top 10
 2. Montrer les outils : DevTools, Burp Suite, extension JWT de Burp
-3. Distribuer les accès (URL du site + mot de passe exploit-server) à chaque équipe
-4. Expliquer les règles : chaque flag trouvé rapporte des points, les indices coûtent -3 pts
-5. **Lancer le timer** depuis le dashboard (voir section ci-dessous)
+3. Distribuer les cartes d'accès imprimées (`credentials.html`) à chaque équipe
+4. Expliquer les règles :
+   - Chaque flag trouvé rapporte des points
+   - Les indices coûtent -3 pts (configurable)
+   - **First Blood** : +5 pts bonus pour la première équipe à capturer un flag
+   - Les challenges se déverrouillent progressivement (2 Faciles → Moyens, 2 Moyens → Difficiles)
+5. **Lancer le timer** depuis le panel admin du dashboard
 
 ### Phase 2 - CTF libre (1h30)
 
@@ -69,12 +153,16 @@ Le secret JWT est `secret` (chaîne littérale). Le serveur accepte les algorith
 - Le dashboard projète le scoreboard en temps réel
 - Les participants peuvent consulter l'Académie dans leur serveur d'exploit
 - Circuler entre les équipes pour débloquer si besoin (donner des indices oraux)
+- Utiliser les **annonces** pour donner des indices globaux ou marquer les étapes ("Plus que 30 min !")
+- **Geler le scoreboard** 15 minutes avant la fin pour maintenir le suspense
 
 ### Phase 3 - Debrief (15 min)
 
+- **Dégeler le scoreboard** pour la révélation du classement final
 - Walkthrough de chaque vulnérabilité avec les participants
-- Montrer le code vulnérable vs. le code corrigé (onglet "Fix-It" du serveur d'exploit)
+- Montrer le code vulnérable vs. le code corrigé via le bouton **Fix-It** sur la page Challenges (disponible pour chaque flag capturé)
 - Discuter des remédiations et bonnes pratiques
+- **Exporter les certificats** depuis le panel admin et les distribuer
 
 ### Phase 4 - Démo CSRF en live (5-10 min)
 
@@ -97,36 +185,53 @@ Terminer l'atelier par une démonstration concrète d'attaque CSRF pour marquer 
 
 ---
 
-## Contrôle du timer
+## Nouvelles fonctionnalités pour les participants
 
-Depuis un terminal ou Burp Suite :
+### Déverrouillage progressif des challenges
 
-```bash
-# Démarrer le timer (ex: 90 minutes)
-curl -X POST http://localhost:5000/api/timer/start \
-  -H "Content-Type: application/json" \
-  -d '{"duration": 90}'
+Les challenges ne sont pas tous visibles dès le départ :
+- **Facile** : toujours visibles
+- **Moyen** : se débloquent après avoir capturé 2 flags Faciles
+- **Difficile** : se débloquent après avoir capturé 2 flags Moyens
 
-# Arrêter le timer
-curl -X POST http://localhost:5000/api/timer/stop
+Les challenges verrouillés apparaissent en grisé avec "???".
 
-# Voir l'état du timer
-curl http://localhost:5000/api/timer
-```
+### Mode Fix-It
+
+Après avoir capturé un flag, un bouton **🔧 Fix-It** apparaît sur la page Challenges. Il ouvre une modale avec :
+- La description du danger
+- La correction recommandée
+- La référence OWASP
+- Un diff side-by-side du code vulnérable vs. corrigé
+
+### First Blood
+
+La première équipe à capturer un flag spécifique reçoit un bonus de **+5 points**. Un toast rouge "FIRST BLOOD" s'affiche sur le scoreboard projeté.
+
+### Confetti
+
+Une animation confetti se déclenche à chaque soumission de flag réussie pour récompenser visuellement les participants.
 
 ---
 
 ## Réinitialisation
+
+### Reset complet (recommandé)
+
+```bash
+# Supprime conteneurs, volumes et fichiers générés
+./setup.sh --reset
+
+# Puis relancer
+./setup.sh 4 --deploy
+```
 
 ### Réinitialiser une équipe (base de données)
 
 Chaque équipe a sa propre base de données SQLite. Pour réinitialiser :
 
 ```bash
-# Identifier le conteneur de l'équipe
 docker compose exec site-team1 rm /app/server/banana_shop.db
-
-# Redémarrer le service
 docker compose restart site-team1
 ```
 
@@ -134,31 +239,26 @@ La base sera recréée automatiquement au démarrage avec les données initiales
 
 ### Réinitialiser le scoreboard
 
-```bash
-# Supprimer les données du dashboard
-docker compose exec dashboard rm /app/data/scoreboard.json
+Utiliser le bouton **Réinitialiser les scores** dans le panel admin, ou :
 
-# Redémarrer le dashboard
+```bash
+docker compose exec dashboard rm /app/dashboard/data/scoreboard.json
 docker compose restart dashboard
 ```
 
-### Réinitialiser tout
+### Données persistantes
 
-```bash
-docker compose down
-docker compose up --build
-```
+Les données suivantes survivent à un `docker compose restart` grâce aux volumes Docker :
+- `dashboard-data` : scoreboard
+- `exploit-teamN-data` : logs webhook par équipe
+
+Un `docker compose down -v` ou `./setup.sh --reset` supprime ces volumes.
 
 ### Réinitialisation en développement local
 
 ```bash
-# Supprimer la base de données
 rm server/banana_shop.db
-
-# Supprimer le scoreboard
 rm dashboard/data/scoreboard.json
-
-# Relancer
 npm run dev
 ```
 
@@ -172,18 +272,18 @@ npm run dev
 | 2 | IDOR | `ASY{pr0f1l_v0l3_s4ns_4ut0r1s4t10n}` | Facile | 10 |
 | 4 | PATH_TRAVERSAL | `ASY{tr4v3rs4l_f1ch13r_s3cr3t}` | Facile | 10 |
 | 5 | ZERO_RATING | `ASY{z3r0_3t01l3s_v4l1d4t10n_byp4ss}` | Facile | 10 |
-| 6 | REFLECTED_XSS | `ASY{r3ch3rch3_p13g33_p4r_l3_scr1pt}` | Facile-Moyen | 15 |
+| 6 | REFLECTED_XSS | `ASY{r3ch3rch3_p13g33_p4r_l3_scr1pt}` | Moyen | 15 |
 | 7 | SQLI | `ASY{4dm1n_s4ns_m0t_d3_p4ss3}` | Moyen | 15 |
 | 8 | BUSINESS_LOGIC | `ASY{b4nqu13r_4ux_cr3d1ts_1nf1n1s}` | Moyen | 15 |
 | 9 | MASS_ASSIGNMENT | `ASY{m4ss_4ss1gn_r0l3_4dm1n}` | Moyen | 15 |
 | 10 | CSRF | `ASY{csrf_tr4nsf3rt_f0rc3}` | Moyen | 15 |
-| 11 | JWT_FORGING | `ASY{j3t0n_f0rg3_4cc3s_t0t4l}` | Moyen-Difficile | 15 |
+| 11 | JWT_FORGING | `ASY{j3t0n_f0rg3_4cc3s_t0t4l}` | Moyen | 15 |
 | 12 | SQLI_UNION | `ASY{un10n_s3l3ct_s3cr3ts_3xtr41ts}` | Difficile | 20 |
 | 13 | STORED_XSS | `ASY{4v1s_emp01s0nn3_p4g3_p13g33}` | Difficile | 20 |
 | 14 | SSRF | `ASY{ssrf_r3qu3t3_1nt3rn3}` | Difficile | 20 |
 | 15 | COOKIE_THEFT | `ASY{c00k13_v0l3_xss_c0mpl3t}` | Difficile | 20 |
 
-**Total : 220 points** (sans pénalités d'indices)
+**Total : 220 points** (sans pénalités d'indices ni bonus First Blood)
 
 ---
 
@@ -224,7 +324,7 @@ Content-Type: application/json
 
 Le frontend limite à 1-5 mais l'API accepte 0.
 
-### 6. Reflected XSS (Facile-Moyen)
+### 6. Reflected XSS (Moyen)
 
 Rechercher dans la boutique avec un payload HTML, puis appeler `/api/xss-flag?type=reflected` depuis le contexte XSS.
 
@@ -246,7 +346,7 @@ Content-Type: application/json
 {"toUserId": 2, "amount": -5000}
 ```
 
-Envoyer un montant négatif augmente le solde de l'expéditeur. Dépasser 9999 crédits pour obtenir le flag.
+Envoyer un montant négatif augmente le solde de l'expéditeur. Dépasser 999 crédits pour obtenir le flag.
 
 ### 9. Mass Assignment (Moyen)
 
@@ -263,9 +363,9 @@ Le champ `role` est accepté sans vérification.
 
 Créer un formulaire sur le serveur d'exploit qui envoie un transfert de crédits. L'absence de token CSRF permet l'attaque.
 
-### 11. JWT Forging (Moyen-Difficile)
+### 11. JWT Forging (Moyen)
 
-Forger un JWT avec `alg: none` ou signer avec le secret `secret`, en ajoutant `super_admin: true`. Accéder à `/api/admin/dashboard`.
+Forger un JWT avec `alg: none` ou signer avec le secret `secret-pass-to-change`, en ajoutant `super_admin: true`. Accéder à `/api/admin/dashboard`.
 
 ### 12. SQL Injection UNION (Difficile)
 
@@ -300,8 +400,12 @@ Combiner une XSS (stored ou reflected) pour exfiltrer `document.cookie` vers le 
 
 | Problème | Solution |
 |----------|----------|
-| Le dashboard n'affiche pas les équipes | Les équipes s'enregistrent au démarrage de leur exploit-server. Vérifier que les conteneurs exploit sont lancés |
+| Le dashboard n'affiche pas les équipes | Les équipes s'enregistrent au démarrage de leur exploit-server. Vérifier que les conteneurs exploit sont lancés (`docker compose ps`) |
+| Un conteneur n'est pas "healthy" | `docker compose logs <service>` pour diagnostiquer. Les healthchecks utilisent `wget` sur les endpoints principaux |
 | Une équipe ne peut plus se connecter | Réinitialiser la base de données de l'équipe (voir section Réinitialisation) |
-| Le timer ne se lance pas | Vérifier que le dashboard est accessible sur le port 5000 |
+| Le timer ne se lance pas | Utiliser le panel admin (bouton Admin sur le dashboard) ou vérifier le mot de passe admin |
 | Les flags ne sont pas validés | Vérifier la connexion entre exploit-server et dashboard (réseau Docker) |
-| Port déjà utilisé | `docker compose down` puis relancer |
+| Les annonces ne s'affichent pas chez les équipes | Vérifier que l'exploit-server est connecté au WebSocket du dashboard (voir les logs) |
+| Port déjà utilisé | `./setup.sh --reset` puis relancer |
+| Mots de passe perdus | Consulter `credentials.json` ou relancer `./setup.sh` (attention : régénère de nouveaux mots de passe) |
+| Données perdues après redémarrage | Les volumes Docker persistent les données. Un `docker compose down -v` les supprime |
