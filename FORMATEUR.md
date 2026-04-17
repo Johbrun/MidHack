@@ -41,17 +41,21 @@ docker compose up --build -d
 
 ### Configuration avancée
 
-Des variables d'environnement permettent de personnaliser l'événement :
+Les paramètres de l'événement sont déclarés dans le `docker-compose.yml` généré, dans le bloc `x-event-config` en haut du fichier. Modifiez-les **avant** de lancer `docker compose up` :
 
-```bash
-# Changer le titre affiché sur le dashboard
-EVENT_TITLE="CyberWeek 2026" ./setup.sh 6
+```yaml
+# Variables partagées pour le dashboard (modifiables ici)
+x-event-config: &event-config
+  ADMIN_PASSWORD: "aBcD1234"       # Mot de passe du panel admin
+  EVENT_TITLE: "BananaShop CTF"    # Titre affiché sur le dashboard
+  HINT_PENALTY: "3"               # Points retirés par indice utilisé
+```
 
-# Changer la pénalité par indice (défaut : 3)
-HINT_PENALTY=5 ./setup.sh 6
+Pour le branding Nantes@Hack, modifier `x-build-args` (nécessite un rebuild) :
 
-# Désactiver le branding Nantes@Hack
-VITE_NANTES_HACK=0 ./setup.sh 6
+```yaml
+x-build-args: &build-args
+  VITE_NANTES_HACK: "0"   # "0" = désactivé, "1" = activé
 ```
 
 ### Vérification des services
