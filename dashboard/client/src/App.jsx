@@ -7,7 +7,7 @@ import AdminPanel from './components/AdminPanel';
 import { useScoreboard } from './useScoreboard';
 
 export default function App() {
-  const { teams, status, online, timerEndTime, events, consumeEvent } =
+  const { teams, status, online, timerEndTime, events, consumeEvent, config } =
     useScoreboard();
   const [showAdmin, setShowAdmin] = useState(false);
 
@@ -18,11 +18,12 @@ export default function App() {
           online={online}
           status={status}
           timerEndTime={timerEndTime}
+          eventTitle={config.eventTitle}
           onAdmin={() => setShowAdmin(true)}
         />
         <Legend />
         <div className="bg-white/[0.02] border border-white/5 rounded-2xl overflow-x-hidden">
-          <Scoreboard teams={teams} />
+          <Scoreboard teams={teams} hintPenalty={config.hintPenalty} />
         </div>
       </div>
       <Toasts events={events} consumeEvent={consumeEvent} />

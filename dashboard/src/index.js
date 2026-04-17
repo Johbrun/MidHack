@@ -9,6 +9,8 @@ const server = http.createServer(app);
 const wss = new WebSocketServer({ server, path: '/ws' });
 const PORT = process.env.PORT || 5000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin';
+const HINT_PENALTY = parseInt(process.env.HINT_PENALTY || '3', 10);
+const EVENT_TITLE = process.env.EVENT_TITLE || 'BananaShop CTF';
 
 app.use(express.json());
 
@@ -228,7 +230,7 @@ app.get('/api/export', requireAdmin, (req, res) => {
 
 // Get scoreboard
 app.get('/api/scoreboard', (req, res) => {
-  res.json({ teams: getScoreboardData() });
+  res.json({ teams: getScoreboardData(), config: { hintPenalty: HINT_PENALTY, eventTitle: EVENT_TITLE } });
 });
 
 // Serve the built React client from dashboard/client/dist.
@@ -252,7 +254,7 @@ if (fs.existsSync(CLIENT_DIST)) {
 
 // WebSocket
 wss.on('connection', (ws) => {
-  ws.send(JSON.stringify({ type: 'scoreboard', teams: getScoreboardData() }));
+  ws.send(JSON.stringify({ type: 'scoreboard', teams: getScoreboardData(), config: { hintPenalty: HINT_PENALTY, eventTitle: EVENT_TITLE } }));
 });
 
 function broadcast(data) {
@@ -269,7 +271,7 @@ function broadcastScoreboard() {
 
 function getTeamScore(team) {
   const capturePoints = team.captures.reduce((sum, c) => sum + (c.points || 0), 0);
-  const hintPenalty = (team.hints || []).length * 3;
+  const hintPenalty = (team.hints || []).length * HINT_PENALTY;
   return capturePoints - hintPenalty;
 }
 

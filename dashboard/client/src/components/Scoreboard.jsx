@@ -1,8 +1,8 @@
-import { CATEGORIES, FLAGS, MAX_SCORE, HINT_PENALTY } from '../flags';
+import { CATEGORIES, FLAGS, MAX_SCORE } from '../flags';
 
 const DIFF_COLORS = { Facile: '#10B981', Moyen: '#FABB5C', Difficile: '#f87171' };
 
-export default function Scoreboard({ teams }) {
+export default function Scoreboard({ teams, hintPenalty = 3 }) {
   if (teams.length === 0) {
     return (
       <div className="text-center py-20 text-white/15">
@@ -42,20 +42,20 @@ export default function Scoreboard({ teams }) {
       </thead>
       <tbody>
         {teams.map((team, i) => (
-          <TeamRow key={team.name} team={team} rank={i + 1} />
+          <TeamRow key={team.name} team={team} rank={i + 1} hintPenalty={hintPenalty} />
         ))}
       </tbody>
     </table>
   );
 }
 
-function TeamRow({ team, rank }) {
+function TeamRow({ team, rank, hintPenalty = 3 }) {
   const hints = team.hints || [];
   const score =
     team.score !== undefined
       ? team.score
       : team.captures.reduce((s, c) => s + (c.points || 0), 0) -
-        hints.length * HINT_PENALTY;
+        hints.length * hintPenalty;
 
   return (
     <tr className="hover:bg-white/[0.02]">
@@ -77,7 +77,7 @@ function TeamRow({ team, rank }) {
         {hints.length > 0 && (
           <span
             className="ml-2 text-[0.65rem] text-accent/50"
-            title={`${hints.length} indice(s) utilisé(s) (-${hints.length * HINT_PENALTY}pts)`}
+            title={`${hints.length} indice(s) utilisé(s) (-${hints.length * hintPenalty}pts)`}
           >
             💡{hints.length}
           </span>

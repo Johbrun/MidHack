@@ -152,6 +152,8 @@ services:
       args: *build-args
     environment:
       - ADMIN_PASSWORD=$ADMIN_PWD
+      - HINT_PENALTY=${HINT_PENALTY:-3}
+      - EVENT_TITLE=${EVENT_TITLE:-BananaShop CTF}
     ports:
       - "5000:5000"
     restart: unless-stopped
