@@ -210,6 +210,14 @@ export default function AdminPanel({ onClose }) {
             >
               Export CSV
             </a>
+            <a
+              href={`/api/certificates?token=${token}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-admin bg-purple-500/20 border-purple-500/40 text-purple-400 hover:bg-purple-500/30 no-underline"
+            >
+              Certificats
+            </a>
           </div>
         </Section>
 

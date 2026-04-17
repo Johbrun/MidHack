@@ -228,6 +228,61 @@ app.get('/api/export', requireAdmin, (req, res) => {
   }
 });
 
+// ─── Certificates ───
+app.get('/api/certificates', requireAdmin, (req, res) => {
+  const scoreboard = getScoreboardData();
+  const flagsData = require(path.join(__dirname, '..', '..', 'shared', 'flags.json'));
+  const challenges = flagsData.CHALLENGES || [];
+
+  const cards = scoreboard.map((team, i) => {
+    const rank = i + 1;
+    const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
+    const solvedList = team.captures.map(c => {
+      const ch = challenges.find(f => f.flagId === c.flagId);
+      return ch ? ch.name : c.flagId;
+    }).join(', ');
+
+    return `
+    <div class="cert">
+      <div class="medal">${medal}</div>
+      <h2>Certificat de participation</h2>
+      <h1>${team.name}</h1>
+      <div class="event">${EVENT_TITLE}</div>
+      <div class="score">${team.score} points</div>
+      <div class="details">
+        <p>${team.captures.length} / ${challenges.length} challenges résolus</p>
+        ${solvedList ? `<p class="solved">${solvedList}</p>` : ''}
+      </div>
+      <div class="date">${new Date().toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+    </div>`;
+  }).join('\n');
+
+  res.type('html').send(`<!DOCTYPE html>
+<html lang="fr"><head><meta charset="UTF-8"><title>Certificats - ${EVENT_TITLE}</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: system-ui, sans-serif; background: #f3f4f6; padding: 20px; }
+  .cert {
+    background: white; border: 3px solid #1a1a2e; border-radius: 16px;
+    padding: 48px; margin: 20px auto; max-width: 700px; text-align: center;
+    page-break-after: always; position: relative; overflow: hidden;
+  }
+  .cert::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px;
+    background: linear-gradient(135deg, #FABB5C, #0593A7);
+  }
+  .medal { font-size: 3rem; margin-bottom: 12px; }
+  h2 { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 3px; color: #9ca3af; margin-bottom: 16px; }
+  h1 { font-size: 2.5rem; color: #1a1a2e; margin-bottom: 8px; }
+  .event { font-size: 1.1rem; color: #0593A7; font-weight: 600; margin-bottom: 20px; }
+  .score { font-size: 2rem; font-weight: 800; color: #FABB5C; margin-bottom: 16px; }
+  .details { color: #4b5563; margin-bottom: 20px; }
+  .solved { font-size: 0.85rem; color: #9ca3af; margin-top: 8px; }
+  .date { font-size: 0.85rem; color: #9ca3af; border-top: 1px solid #e5e7eb; padding-top: 16px; margin-top: 20px; }
+  @media print { body { background: white; padding: 0; } .cert { border: 2px solid #ccc; margin: 0; } }
+</style></head><body>${cards}</body></html>`);
+});
+
 // Get scoreboard
 app.get('/api/scoreboard', (req, res) => {
   res.json({ teams: getScoreboardData(), config: { hintPenalty: HINT_PENALTY, eventTitle: EVENT_TITLE } });
