@@ -1,143 +1,245 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 760" font-family="-apple-system, system-ui, Segoe UI, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 920" font-family="-apple-system, system-ui, 'Segoe UI', sans-serif">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
     </marker>
-    <style>
-      .box { stroke: #334155; stroke-width: 1.5; rx: 10; ry: 10; }
-      .title { font-size: 16px; font-weight: 700; fill: #0f172a; }
-      .sub { font-size: 11px; fill: #334155; }
-      .port { font-size: 11px; fill: #64748b; font-style: italic; }
-      .legend { font-size: 12px; fill: #1e293b; }
-      .edge { stroke: #475569; stroke-width: 1.6; fill: none; marker-end: url(#arrow); }
-      .edge-dash { stroke-dasharray: 5 4; }
-      .edge-label { font-size: 10px; fill: #475569; }
-      .group-label { font-size: 13px; font-weight: 600; fill: #475569; }
-    </style>
+    <marker id="arr-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#ef4444"/>
+    </marker>
+    <marker id="arr-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#22c55e"/>
+    </marker>
+    <marker id="arr-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#a855f7"/>
+    </marker>
+    <marker id="arr-amber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#f59e0b"/>
+    </marker>
   </defs>
 
+  <!-- Background -->
+  <rect width="1200" height="920" fill="#f8fafc" rx="12"/>
+
   <!-- Title -->
-  <text x="560" y="34" text-anchor="middle" font-size="22" font-weight="700" fill="#0f172a">midhack — Architecture</text>
-  <text x="560" y="54" text-anchor="middle" font-size="12" fill="#64748b">CTF pédagogique : app vulnérable + dashboard scores + serveur d'exploit</text>
+  <text x="600" y="38" text-anchor="middle" font-size="22" font-weight="800" fill="#0f172a" letter-spacing="-0.5">MidHack &mdash; Architecture</text>
+  <text x="600" y="58" text-anchor="middle" font-size="12" fill="#64748b">Plateforme CTF : app vulnérable + serveur d'exploit + dashboard temps réel</text>
 
-  <!-- ============ ROW 1 (y 100-260) ============ -->
+  <!-- ═══════════════════ DOCKER COMPOSE BOUNDARY ═══════════════════ -->
+  <rect x="20" y="80" width="1160" height="720" rx="14" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="8 4"/>
+  <text x="40" y="100" font-size="11" font-weight="600" fill="#94a3b8" letter-spacing="1">DOCKER COMPOSE NETWORK</text>
 
-  <!-- Attacker -->
-  <g>
-    <rect class="box" x="40" y="120" width="180" height="120" fill="#fef3c7"/>
-    <text class="title" x="130" y="152" text-anchor="middle">👤 Attaquant</text>
-    <text class="sub" x="130" y="176" text-anchor="middle">Navigateur du joueur</text>
-    <text class="sub" x="130" y="194" text-anchor="middle">(équipe en CTF)</text>
-    <text class="sub" x="130" y="218" text-anchor="middle">+ payloads XSS</text>
-  </g>
+  <!-- ═══════════════════ TEAM BOUNDARY (repeats x N) ═══════════════════ -->
+  <rect x="40" y="170" width="720" height="610" rx="10" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="5 3"/>
+  <text x="60" y="192" font-size="11" font-weight="600" fill="#64748b" letter-spacing="1">PAR EQUIPE (x N)  &mdash;  site-teamN + exploit-teamN</text>
 
-  <!-- BananaShop client -->
-  <g>
-    <rect class="box" x="290" y="120" width="220" height="120" fill="#dbeafe"/>
-    <text class="title" x="400" y="150" text-anchor="middle">BananaShop — client</text>
-    <text class="sub" x="400" y="172" text-anchor="middle">Vite + React + Tailwind</text>
-    <text class="sub" x="400" y="190" text-anchor="middle">client/</text>
-    <text class="port" x="400" y="214" text-anchor="middle">dev :5173</text>
-    <text class="sub" x="400" y="232" text-anchor="middle">UI vulnérable (XSS, IDOR…)</text>
-  </g>
+  <!-- ══════ BANANASHOP SITE ══════ -->
+  <!-- Client -->
+  <rect x="70" y="220" width="300" height="110" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/>
+  <text x="220" y="244" text-anchor="middle" font-size="14" font-weight="700" fill="#1e40af">BananaShop Client</text>
+  <text x="220" y="264" text-anchor="middle" font-size="11" fill="#3b82f6">React 18 + Vite + Tailwind</text>
+  <text x="220" y="282" text-anchor="middle" font-size="10" fill="#64748b">client/ &mdash; SPA vulnérable</text>
+  <text x="220" y="300" text-anchor="middle" font-size="10" fill="#64748b">XSS (dangerouslySetInnerHTML), CSRF forms</text>
+  <text x="220" y="318" text-anchor="middle" font-size="10" fill="#94a3b8" font-style="italic">:300N</text>
 
-  <!-- Exploit server -->
-  <g>
-    <rect class="box" x="580" y="120" width="220" height="120" fill="#e9d5ff"/>
-    <text class="title" x="690" y="150" text-anchor="middle">Exploit server</text>
-    <text class="sub" x="690" y="172" text-anchor="middle">Express + SSE + React</text>
-    <text class="sub" x="690" y="190" text-anchor="middle">exploit-server/</text>
-    <text class="port" x="690" y="214" text-anchor="middle">:4000  •  /log /events /api/*</text>
-    <text class="sub" x="690" y="232" text-anchor="middle">webhook + détection JWT volé</text>
-  </g>
+  <!-- Server -->
+  <rect x="70" y="370" width="300" height="150" rx="8" fill="#fecaca" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="220" y="394" text-anchor="middle" font-size="14" font-weight="700" fill="#991b1b">BananaShop Server</text>
+  <text x="220" y="414" text-anchor="middle" font-size="11" fill="#ef4444">Express + better-sqlite3</text>
+  <text x="220" y="434" text-anchor="middle" font-size="10" fill="#64748b">server/src/ &mdash; 14 vulnérabilités OWASP</text>
+  <text x="220" y="454" text-anchor="middle" font-size="10" fill="#64748b">Routes: auth, users, products, reviews,</text>
+  <text x="220" y="470" text-anchor="middle" font-size="10" fill="#64748b">credits, admin, flags, config, xss-flag</text>
+  <text x="220" y="490" text-anchor="middle" font-size="10" fill="#64748b">JWT (secret faible, alg:none), httpOnly:false</text>
+  <text x="220" y="508" text-anchor="middle" font-size="10" fill="#94a3b8" font-style="italic">:3000 interne</text>
 
-  <!-- Dashboard -->
-  <g>
-    <rect class="box" x="870" y="120" width="220" height="120" fill="#dcfce7"/>
-    <text class="title" x="980" y="150" text-anchor="middle">Dashboard scores</text>
-    <text class="sub" x="980" y="172" text-anchor="middle">Express + WebSocket + React</text>
-    <text class="sub" x="980" y="190" text-anchor="middle">dashboard/</text>
-    <text class="port" x="980" y="214" text-anchor="middle">:5000  •  /api/* /ws</text>
-    <text class="sub" x="980" y="232" text-anchor="middle">scoreboard.json + timer</text>
-  </g>
+  <!-- SQLite DB -->
+  <rect x="100" y="560" width="120" height="50" rx="20" fill="#fff7ed" stroke="#f97316" stroke-width="1.2"/>
+  <text x="160" y="582" text-anchor="middle" font-size="11" font-weight="600" fill="#c2410c">SQLite</text>
+  <text x="160" y="598" text-anchor="middle" font-size="9" fill="#9a3412">banana_shop.db</text>
 
-  <!-- ============ ROW 2 (y 350-470) ============ -->
+  <!-- secret_flag.txt -->
+  <rect x="250" y="560" width="100" height="50" rx="6" fill="#fef3c7" stroke="#f59e0b" stroke-width="1"/>
+  <text x="300" y="582" text-anchor="middle" font-size="10" font-weight="600" fill="#92400e">secret_flag.txt</text>
+  <text x="300" y="596" text-anchor="middle" font-size="9" fill="#a16207">Path Traversal</text>
 
-  <!-- BananaShop server -->
-  <g>
-    <rect class="box" x="290" y="370" width="220" height="160" fill="#fecaca"/>
-    <text class="title" x="400" y="400" text-anchor="middle">BananaShop — server</text>
-    <text class="sub" x="400" y="420" text-anchor="middle">Express + SQLite</text>
-    <text class="sub" x="400" y="438" text-anchor="middle">server/src/</text>
-    <text class="port" x="400" y="460" text-anchor="middle">:3000  •  /api/*</text>
-    <text class="sub" x="400" y="482" text-anchor="middle">routes: auth, users, products,</text>
-    <text class="sub" x="400" y="498" text-anchor="middle">reviews, credits, admin, flags,</text>
-    <text class="sub" x="400" y="514" text-anchor="middle">xss-flag, config</text>
-  </g>
+  <!-- ══════ EXPLOIT SERVER ══════ -->
+  <rect x="420" y="220" width="320" height="290" rx="8" fill="#f3e8ff" stroke="#a855f7" stroke-width="1.5"/>
+  <text x="580" y="244" text-anchor="middle" font-size="14" font-weight="700" fill="#6b21a8">Exploit Server</text>
+  <text x="580" y="264" text-anchor="middle" font-size="11" fill="#a855f7">Express + SSE + React + ws</text>
+  <text x="580" y="284" text-anchor="middle" font-size="10" fill="#64748b">exploit-server/ &mdash; QG de l'équipe</text>
 
-  <!-- ============ ROW 3 (y 600-720) ============ -->
+  <!-- Exploit sub-blocks -->
+  <rect x="440" y="300" width="130" height="40" rx="5" fill="#ede9fe" stroke="#c4b5fd" stroke-width="1"/>
+  <text x="505" y="316" text-anchor="middle" font-size="10" font-weight="600" fill="#6b21a8">Webhook /log</text>
+  <text x="505" y="330" text-anchor="middle" font-size="9" fill="#7c3aed">JWT theft detect</text>
 
-  <!-- Shared -->
-  <g>
-    <rect class="box" x="40" y="600" width="220" height="120" fill="#f1f5f9"/>
-    <text class="title" x="150" y="628" text-anchor="middle">shared/</text>
-    <text class="sub" x="150" y="652" text-anchor="middle">flags.json — catalogue</text>
-    <text class="sub" x="150" y="670" text-anchor="middle">register-team.js — helper</text>
-    <text class="sub" x="150" y="694" text-anchor="middle">requis par server + exploit</text>
-  </g>
+  <rect x="590" y="300" width="130" height="40" rx="5" fill="#ede9fe" stroke="#c4b5fd" stroke-width="1"/>
+  <text x="655" y="316" text-anchor="middle" font-size="10" font-weight="600" fill="#6b21a8">SSE /events</text>
+  <text x="655" y="330" text-anchor="middle" font-size="9" fill="#7c3aed">temps réel</text>
 
-  <!-- Docker -->
-  <g>
-    <rect class="box" x="870" y="600" width="220" height="120" fill="#f1f5f9"/>
-    <text class="title" x="980" y="628" text-anchor="middle">docker-compose</text>
-    <text class="sub" x="980" y="652" text-anchor="middle">Dockerfile.site</text>
-    <text class="sub" x="980" y="670" text-anchor="middle">Dockerfile.dashboard</text>
-    <text class="sub" x="980" y="688" text-anchor="middle">Dockerfile.exploit</text>
-  </g>
+  <rect x="440" y="355" width="130" height="40" rx="5" fill="#ede9fe" stroke="#c4b5fd" stroke-width="1"/>
+  <text x="505" y="371" text-anchor="middle" font-size="10" font-weight="600" fill="#6b21a8">Flag Submit</text>
+  <text x="505" y="385" text-anchor="middle" font-size="9" fill="#7c3aed">proxy vers site</text>
 
-  <!-- ============ ARROWS ============ -->
+  <rect x="590" y="355" width="130" height="40" rx="5" fill="#ede9fe" stroke="#c4b5fd" stroke-width="1"/>
+  <text x="655" y="371" text-anchor="middle" font-size="10" font-weight="600" fill="#6b21a8">Mini-Academy</text>
+  <text x="655" y="385" text-anchor="middle" font-size="9" fill="#7c3aed">slides interactifs</text>
 
-  <!-- attacker -> client (row 1, horizontal) -->
-  <path class="edge" d="M220,165 L288,165"/>
-  <text class="edge-label" x="254" y="158" text-anchor="middle">HTTPS</text>
+  <rect x="440" y="410" width="130" height="40" rx="5" fill="#ede9fe" stroke="#c4b5fd" stroke-width="1"/>
+  <text x="505" y="426" text-anchor="middle" font-size="10" font-weight="600" fill="#6b21a8">Fix-It Mode</text>
+  <text x="505" y="440" text-anchor="middle" font-size="9" fill="#7c3aed">code vuln vs fix</text>
 
-  <!-- client <-> server (vertical between rows) -->
-  <path class="edge" d="M380,240 L380,368"/>
-  <text class="edge-label" x="346" y="306" text-anchor="middle">/api</text>
-  <path class="edge" d="M420,368 L420,240"/>
-  <text class="edge-label" x="446" y="306" text-anchor="middle">JSON</text>
+  <rect x="590" y="410" width="130" height="40" rx="5" fill="#ede9fe" stroke="#c4b5fd" stroke-width="1"/>
+  <text x="655" y="426" text-anchor="middle" font-size="10" font-weight="600" fill="#6b21a8">Challenges</text>
+  <text x="655" y="440" text-anchor="middle" font-size="9" fill="#7c3aed">unlock progressif</text>
 
-  <!-- attacker -> exploit (route under client via channel y=300, no overlap) -->
-  <path class="edge edge-dash" d="M130,240 L130,300 L690,300 L690,242"/>
-  <text class="edge-label" x="410" y="294" text-anchor="middle">login + soumission flags + payload XSS exfiltre cookie → /log</text>
+  <!-- Exploit data -->
+  <rect x="440" y="465" width="280" height="30" rx="5" fill="#faf5ff" stroke="#d8b4fe" stroke-width="1"/>
+  <text x="580" y="485" text-anchor="middle" font-size="10" fill="#7c3aed">webhook-requests.json (volume persistant)</text>
 
-  <!-- exploit -> dashboard (row 1, horizontal) -->
-  <path class="edge" d="M800,170 L868,170"/>
-  <text class="edge-label" x="834" y="162" text-anchor="middle">capture / hint / register</text>
+  <text x="580" y="502" text-anchor="middle" font-size="10" fill="#94a3b8" font-style="italic">:400N</text>
 
-  <!-- server -> dashboard (route via right channel x=830, then up to dashboard bottom) -->
-  <path class="edge" d="M510,420 L830,420 L830,242"/>
-  <text class="edge-label" x="670" y="412" text-anchor="middle">POST /api/capture  •  POST /api/teams/register</text>
+  <!-- ══════ DASHBOARD ══════ -->
+  <rect x="800" y="170" width="360" height="420" rx="8" fill="#dcfce7" stroke="#22c55e" stroke-width="1.5"/>
+  <text x="980" y="196" text-anchor="middle" font-size="14" font-weight="700" fill="#166534">Dashboard (central)</text>
+  <text x="980" y="216" text-anchor="middle" font-size="11" fill="#22c55e">Express + WebSocket (ws) + React</text>
+  <text x="980" y="236" text-anchor="middle" font-size="10" fill="#64748b">dashboard/ &mdash; scoreboard projeté</text>
 
-  <!-- shared -> server (vertical, col 2) -->
-  <path class="edge edge-dash" d="M260,640 L370,640 L370,532"/>
-  <text class="edge-label" x="282" y="632">require</text>
+  <!-- Dashboard sub-blocks -->
+  <rect x="820" y="255" width="150" height="40" rx="5" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
+  <text x="895" y="271" text-anchor="middle" font-size="10" font-weight="600" fill="#166534">Scoreboard WS</text>
+  <text x="895" y="285" text-anchor="middle" font-size="9" fill="#15803d">broadcast temps réel</text>
 
-  <!-- shared -> exploit (route along bottom y=720 then up the right channel x=580) -->
-  <path class="edge edge-dash" d="M260,680 L560,680 L560,242"/>
-  <text class="edge-label" x="408" y="672" text-anchor="middle">require</text>
+  <rect x="990" y="255" width="150" height="40" rx="5" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
+  <text x="1065" y="271" text-anchor="middle" font-size="10" font-weight="600" fill="#166534">Timer</text>
+  <text x="1065" y="285" text-anchor="middle" font-size="9" fill="#15803d">countdown configurable</text>
 
-  <!-- ============ Legend ============ -->
-  <g transform="translate(290,600)">
-    <rect class="box" x="0" y="0" width="560" height="120" fill="#ffffff"/>
-    <text class="group-label" x="16" y="24">Légende</text>
-    <line x1="20" y1="48" x2="60" y2="48" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow)"/>
-    <text class="legend" x="70" y="52">trafic HTTP / WebSocket en fonctionnement normal</text>
-    <line x1="20" y1="72" x2="60" y2="72" stroke="#475569" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
-    <text class="legend" x="70" y="76">événement ponctuel (boot, exploit) / dépendance de code</text>
-    <rect x="20" y="90" width="14" height="14" fill="#fecaca" stroke="#334155"/>
-    <text class="legend" x="42" y="102">code intentionnellement vulnérable</text>
-    <rect x="280" y="90" width="14" height="14" fill="#dcfce7" stroke="#334155"/>
-    <text class="legend" x="302" y="102">infrastructure CTF (scores)</text>
-  </g>
+  <rect x="820" y="310" width="150" height="40" rx="5" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
+  <text x="895" y="326" text-anchor="middle" font-size="10" font-weight="600" fill="#166534">First Blood</text>
+  <text x="895" y="340" text-anchor="middle" font-size="9" fill="#15803d">+5 pts bonus</text>
+
+  <rect x="990" y="310" width="150" height="40" rx="5" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
+  <text x="1065" y="326" text-anchor="middle" font-size="10" font-weight="600" fill="#166534">Freeze Mode</text>
+  <text x="1065" y="340" text-anchor="middle" font-size="9" fill="#15803d">geler le classement</text>
+
+  <rect x="820" y="365" width="150" height="40" rx="5" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
+  <text x="895" y="381" text-anchor="middle" font-size="10" font-weight="600" fill="#166534">Annonces</text>
+  <text x="895" y="395" text-anchor="middle" font-size="9" fill="#15803d">broadcast global</text>
+
+  <rect x="990" y="365" width="150" height="40" rx="5" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
+  <text x="1065" y="381" text-anchor="middle" font-size="10" font-weight="600" fill="#166534">Admin Panel</text>
+  <text x="1065" y="395" text-anchor="middle" font-size="9" fill="#15803d">protégé par mdp</text>
+
+  <rect x="820" y="420" width="150" height="40" rx="5" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
+  <text x="895" y="436" text-anchor="middle" font-size="10" font-weight="600" fill="#166534">Export JSON/CSV</text>
+  <text x="895" y="450" text-anchor="middle" font-size="9" fill="#15803d">résultats complets</text>
+
+  <rect x="990" y="420" width="150" height="40" rx="5" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
+  <text x="1065" y="436" text-anchor="middle" font-size="10" font-weight="600" fill="#166534">Certificats</text>
+  <text x="1065" y="450" text-anchor="middle" font-size="9" fill="#15803d">HTML imprimable</text>
+
+  <!-- Dashboard config -->
+  <rect x="820" y="475" width="320" height="35" rx="5" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
+  <text x="980" y="492" text-anchor="middle" font-size="10" fill="#15803d">x-event-config: ADMIN_PASSWORD, EVENT_TITLE, HINT_PENALTY</text>
+
+  <!-- Dashboard data -->
+  <rect x="820" y="525" width="320" height="30" rx="5" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
+  <text x="980" y="545" text-anchor="middle" font-size="10" fill="#15803d">scoreboard.json (volume persistant)</text>
+
+  <text x="980" y="578" text-anchor="middle" font-size="10" fill="#94a3b8" font-style="italic">:5000</text>
+
+  <!-- ══════ SHARED ══════ -->
+  <rect x="70" y="650" width="300" height="70" rx="8" fill="#e0f2fe" stroke="#0ea5e9" stroke-width="1.2"/>
+  <text x="220" y="676" text-anchor="middle" font-size="12" font-weight="700" fill="#0369a1">shared/</text>
+  <text x="220" y="696" text-anchor="middle" font-size="10" fill="#0284c7">flags.json (14 challenges) &mdash; register-team.js</text>
+
+  <!-- ══════ SETUP ══════ -->
+  <rect x="420" y="650" width="320" height="70" rx="8" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.2"/>
+  <text x="580" y="676" text-anchor="middle" font-size="12" font-weight="700" fill="#92400e">setup.sh</text>
+  <text x="580" y="696" text-anchor="middle" font-size="10" fill="#b45309">Génère docker-compose.yml + credentials.json + credentials.html</text>
+
+  <!-- ══════ NAVIGATEUR ══════ -->
+  <rect x="800" y="650" width="360" height="70" rx="8" fill="#fef9c3" stroke="#eab308" stroke-width="1.5"/>
+  <text x="980" y="672" text-anchor="middle" font-size="13" font-weight="700" fill="#854d0e">Navigateur étudiant</text>
+  <text x="980" y="692" text-anchor="middle" font-size="10" fill="#a16207">DevTools + Burp Suite &mdash; accès site (:300N) + exploit (:400N)</text>
+  <text x="980" y="708" text-anchor="middle" font-size="10" fill="#a16207">Dashboard projeté (:5000) sur écran formateur</text>
+
+  <!-- ══════════════════════ ARROWS / DATA FLOWS ══════════════════════ -->
+
+  <!-- Client -> Server (API calls) -->
+  <line x1="220" y1="330" x2="220" y2="368" stroke="#3b82f6" stroke-width="2" marker-end="url(#arr)"/>
+  <text x="235" y="352" font-size="9" fill="#3b82f6" font-weight="600">/api/*</text>
+
+  <!-- Server -> Client (JSON responses) -->
+  <line x1="190" y1="368" x2="190" y2="332" stroke="#94a3b8" stroke-width="1.2" marker-end="url(#arr)" stroke-dasharray="4 3"/>
+  <text x="150" y="352" font-size="9" fill="#94a3b8">JSON</text>
+
+  <!-- Server -> SQLite -->
+  <line x1="160" y1="520" x2="160" y2="558" stroke="#f97316" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Server -> Dashboard (POST /api/capture + /api/teams/register) -->
+  <path d="M370,420 L780,420 L780,350 L818,350" fill="none" stroke="#22c55e" stroke-width="2" marker-end="url(#arr-green)"/>
+  <text x="570" y="412" font-size="9" fill="#22c55e" font-weight="600">POST /api/capture &amp; /api/teams/register</text>
+
+  <!-- Exploit -> Site (proxy flag submit) -->
+  <line x1="420" y1="375" x2="372" y2="375" stroke="#a855f7" stroke-width="1.5" marker-end="url(#arr-purple)"/>
+  <text x="396" y="368" font-size="8" fill="#a855f7" text-anchor="middle">proxy</text>
+
+  <!-- Exploit -> Dashboard (POST /api/capture cookie theft + /api/hint) -->
+  <path d="M740,310 L780,310 L780,290 L818,290" fill="none" stroke="#22c55e" stroke-width="1.8" marker-end="url(#arr-green)"/>
+  <text x="780" y="282" font-size="8" fill="#22c55e" font-weight="600" text-anchor="middle">capture/hint</text>
+
+  <!-- Dashboard -> Exploit (WS announcements) -->
+  <path d="M818,385 L780,385 L780,460 L742,460" fill="none" stroke="#f59e0b" stroke-width="1.8" marker-end="url(#arr-amber)" stroke-dasharray="5 3"/>
+  <text x="780" y="436" font-size="8" fill="#f59e0b" font-weight="600" text-anchor="middle">WS annonces</text>
+
+  <!-- Browser -> Site -->
+  <path d="M900,650 L900,630 L320,630 L320,332" fill="none" stroke="#eab308" stroke-width="1.8" marker-end="url(#arr-amber)"/>
+  <text x="610" y="624" font-size="9" fill="#a16207" font-weight="600">HTTP :300N</text>
+
+  <!-- Browser -> Exploit -->
+  <path d="M960,650 L960,630 L680,630 L680,510" fill="none" stroke="#eab308" stroke-width="1.8" marker-end="url(#arr-amber)"/>
+  <text x="820" y="624" font-size="9" fill="#a16207" font-weight="600">HTTP :400N</text>
+
+  <!-- Browser -> Dashboard -->
+  <line x1="1020" y1="650" x2="1020" y2="590" stroke="#eab308" stroke-width="1.8" marker-end="url(#arr-amber)"/>
+  <text x="1035" y="624" font-size="9" fill="#a16207" font-weight="600">WS :5000</text>
+
+  <!-- XSS cookie theft flow -->
+  <path d="M370,280 Q410,280 410,250 Q410,220 500,220 L500,218" fill="none" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-red)"/>
+  <text x="420" y="212" font-size="8" fill="#ef4444" font-weight="600">XSS exfiltre cookie vers /log</text>
+
+  <!-- Shared -> Server -->
+  <path d="M170,650 L170,522" fill="none" stroke="#0ea5e9" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+  <text x="130" y="600" font-size="8" fill="#0ea5e9">require</text>
+
+  <!-- Shared -> Exploit -->
+  <path d="M370,680 L418,680 L418,510" fill="none" stroke="#0ea5e9" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+  <text x="410" y="600" font-size="8" fill="#0ea5e9">require</text>
+
+  <!-- ══════════════════════ LEGEND ══════════════════════ -->
+  <rect x="20" y="830" width="1160" height="75" rx="8" fill="white" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="40" y="852" font-size="12" font-weight="700" fill="#334155">Légende</text>
+
+  <!-- Color boxes -->
+  <rect x="40" y="862" width="14" height="14" rx="3" fill="#fecaca" stroke="#ef4444"/>
+  <text x="60" y="874" font-size="10" fill="#475569">Code vulnérable (intentionnel)</text>
+
+  <rect x="250" y="862" width="14" height="14" rx="3" fill="#f3e8ff" stroke="#a855f7"/>
+  <text x="270" y="874" font-size="10" fill="#475569">Outils équipe (exploit server)</text>
+
+  <rect x="470" y="862" width="14" height="14" rx="3" fill="#dcfce7" stroke="#22c55e"/>
+  <text x="490" y="874" font-size="10" fill="#475569">Infrastructure CTF (dashboard)</text>
+
+  <rect x="700" y="862" width="14" height="14" rx="3" fill="#dbeafe" stroke="#3b82f6"/>
+  <text x="720" y="874" font-size="10" fill="#475569">Frontend React</text>
+
+  <!-- Arrow types -->
+  <line x1="40" y1="893" x2="75" y2="893" stroke="#475569" stroke-width="1.8" marker-end="url(#arr)"/>
+  <text x="82" y="897" font-size="10" fill="#475569">Flux HTTP / WebSocket</text>
+
+  <line x1="300" y1="893" x2="335" y2="893" stroke="#475569" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+  <text x="342" y="897" font-size="10" fill="#475569">Dépendance code / événement ponctuel</text>
+
+  <line x1="600" y1="893" x2="635" y2="893" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-red)"/>
+  <text x="642" y="897" font-size="10" fill="#475569">Flux d'attaque (XSS / cookie theft)</text>
 </svg>
