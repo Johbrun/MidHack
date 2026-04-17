@@ -241,6 +241,86 @@ done
 
 ok "docker-compose.yml généré"
 
+# ─────────────────────────── Generate credentials files ───────────────────────────
+
+# JSON
+CREDS_JSON="credentials.json"
+echo "[" > "$CREDS_JSON"
+for i in $(seq 1 "$TEAMS"); do
+  NAME=${NAMES[$((i - 1))]}
+  COMMA=","
+  [ "$i" -eq "$TEAMS" ] && COMMA=""
+  cat >> "$CREDS_JSON" <<EOF
+  {
+    "team": $i,
+    "name": "$NAME",
+    "password": "${PASSWORDS[$i]}",
+    "site_url": "http://localhost:$((3000 + i))",
+    "exploit_url": "http://localhost:$((4000 + i))"
+  }${COMMA}
+EOF
+done
+echo "]" >> "$CREDS_JSON"
+ok "credentials.json généré"
+
+# HTML (printable cards)
+CREDS_HTML="credentials.html"
+cat > "$CREDS_HTML" <<'HTMLHEAD'
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Identifiants CTF</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: system-ui, sans-serif; background: #f3f4f6; padding: 20px; }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; max-width: 800px; margin: 0 auto; }
+  .card {
+    border: 2px dashed #9ca3af; border-radius: 12px; padding: 24px;
+    background: white; page-break-inside: avoid; text-align: center;
+  }
+  .card h2 { font-size: 1.5rem; margin-bottom: 12px; color: #1f2937; }
+  .card .team-emoji { font-size: 2rem; margin-bottom: 8px; }
+  .card .field { margin: 8px 0; font-size: 0.9rem; color: #4b5563; }
+  .card .field strong { color: #1f2937; }
+  .card .password {
+    display: inline-block; margin-top: 8px; padding: 8px 20px;
+    background: #fef3c7; border: 2px solid #f59e0b; border-radius: 8px;
+    font-family: monospace; font-size: 1.3rem; font-weight: bold; letter-spacing: 2px;
+  }
+  .scissors { text-align: center; color: #9ca3af; font-size: 0.8rem; margin: 12px 0; }
+  @media print {
+    body { background: white; padding: 0; }
+    .scissors { display: none; }
+    .card { border: 2px dashed #ccc; }
+  }
+</style>
+</head>
+<body>
+<div class="grid">
+HTMLHEAD
+
+for i in $(seq 1 "$TEAMS"); do
+  NAME=${NAMES[$((i - 1))]}
+  cat >> "$CREDS_HTML" <<EOF
+  <div class="card">
+    <div class="team-emoji">🍌</div>
+    <h2>Team $NAME</h2>
+    <div class="field"><strong>Site:</strong> http://localhost:$((3000 + i))</div>
+    <div class="field"><strong>Exploit Server:</strong> http://localhost:$((4000 + i))</div>
+    <div class="field"><strong>Mot de passe:</strong></div>
+    <div class="password">${PASSWORDS[$i]}</div>
+  </div>
+EOF
+done
+
+cat >> "$CREDS_HTML" <<'HTMLFOOT'
+</div>
+</body>
+</html>
+HTMLFOOT
+ok "credentials.html généré (ouvrir dans un navigateur pour imprimer)"
+
 # ─────────────────────────── Summary ───────────────────────────
 
 echo ""
