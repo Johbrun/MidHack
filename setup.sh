@@ -159,6 +159,8 @@ services:
       retries: 3
       start_period: 10s
     mem_limit: 256m
+    volumes:
+      - dashboard-data:/app/dashboard/data
 EOF
 
 # Pre-generate random passwords (5 alphanumeric chars)
@@ -218,6 +220,22 @@ for i in $(seq 1 "$TEAMS"); do
       retries: 3
       start_period: 10s
     mem_limit: 128m
+    volumes:
+      - exploit-team${i}-data:/app/exploit-server/data
+EOF
+done
+
+# ─────────────────────────── Volumes ───────────────────────────
+
+cat >> "$FILE" <<EOF
+
+volumes:
+  dashboard-data:
+EOF
+
+for i in $(seq 1 "$TEAMS"); do
+  cat >> "$FILE" <<EOF
+  exploit-team${i}-data:
 EOF
 done
 
