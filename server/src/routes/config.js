@@ -5,7 +5,7 @@ const router = express.Router();
 
 // GET /api/config
 // VULNERABLE: Sensitive Data Exposure - leaks secrets and credentials
-router.get('/config', (req, res) => {
+router.get('/', (req, res) => {
   res.json({
     appName: 'BananaShop',
     version: '1.0.0',
