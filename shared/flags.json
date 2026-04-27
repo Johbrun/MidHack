@@ -17,7 +17,7 @@
     { "flagId": "ZERO_RATING",     "enabled": true,  "name": "Review nulle",   "difficulty": "Facile",    "category": "other",     "hint": "Qui contrôle la note donnée ?" },
     { "flagId": "REFLECTED_XSS",   "enabled": true,  "name": "Reflected XSS", "difficulty": "Facile",    "category": "injection", "hint": "La recherche serait-elle un miroir ?" },
     { "flagId": "MASS_ASSIGNMENT", "enabled": true,  "name": "Go admin",       "difficulty": "Moyen",     "category": "authz",     "hint": "Un champ en trop dans l'update de profil ?" },
-    { "flagId": "JWT_FORGING",     "enabled": true,  "name": "Go superadmin",  "difficulty": "Moyen",     "category": "authz",     "hint": "Sommes nous sûr de la robustesse du secret JWT? (jwt.io)" },
+    { "flagId": "JWT_FORGING",     "enabled": true,  "name": "Go superadmin",  "difficulty": "Moyen",     "category": "authz",     "hint": "Sommes nous sûr de la robustesse du secret JWT OU la validation des claims alg ? (jwt.io)" },
     { "flagId": "SQLI",            "enabled": true,  "name": "SQL Injection (Login Bypass)",  "difficulty": "Moyen",     "category": "injection", "hint": "Quelle requête SQL pour se connecter ? " },
     { "flagId": "BUSINESS_LOGIC",  "enabled": true,  "name": "1000 crédits",   "difficulty": "Moyen",     "category": "other",     "hint": "Augmenter ses crédits en exploitant les LIMITES du système." },
     { "flagId": "CSRF",            "enabled": false, "name": "CSRF",           "difficulty": "Moyen",     "category": "other",     "hint": "Un script exécuté coté client pour effectuer une action" },
