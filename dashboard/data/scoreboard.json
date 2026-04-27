@@ -48,7 +48,15 @@
   },
   {
     "name": "Unknown Team",
-    "captures": [],
+    "captures": [
+      {
+        "flag": "ASY{r3ch3rch3_p13g33_p4r_l3_scr1pt}",
+        "flagId": "REFLECTED_XSS",
+        "points": 15,
+        "firstBlood": false,
+        "capturedAt": "2026-04-27T20:04:21.789Z"
+      }
+    ],
     "hints": []
   }
 ]

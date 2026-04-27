@@ -28,6 +28,11 @@ router.post('/:productId/reviews', authenticate, (req, res) => {
     return res.status(400).json({ error: 'Review content is required' });
   }
 
+  // Naive XSS filter - only blocks <script> tags (bypassable via other vectors)
+  if (/<script/i.test(content)) {
+    return res.status(400).json({ error: "Tu peux essayer de ne pas pirater le site stp ? Les scripts ne sont pas autorisés. Tu ne veux pas acheter des bananes plutôt ? " });
+  }
+
   const product = db.prepare('SELECT id FROM products WHERE id = ?').get(productId);
   if (!product) {
     return res.status(404).json({ error: 'Product not found' });
@@ -57,6 +62,12 @@ router.post('/:productId/reviews', authenticate, (req, res) => {
   if (safeRating === 0) {
     response.flag = FLAGS.ZERO_RATING;
     response.message = 'Une note de 0 ? Vous avez trouvé une faille de validation !';
+  }
+
+  // Flag revealed when the review content contains an XSS payload (event handler or javascript: URI)
+  if (/on\w+\s*=/i.test(content) || /javascript\s*:/i.test(content)) {
+    response.flag = FLAGS.STORED_XSS;
+    response.message = 'Vous avez contourné le filtre et injecté une payload XSS !';
   }
 
   res.json(response);

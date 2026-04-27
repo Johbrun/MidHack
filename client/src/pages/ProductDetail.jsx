@@ -15,6 +15,8 @@ export default function ProductDetail() {
   const [reviewContent, setReviewContent] = useState('');
   const [rating, setRating] = useState(5);
   const [message, setMessage] = useState(null);
+  const [reviewError, setReviewError] = useState(null);
+  const [reviewSuccess, setReviewSuccess] = useState(null);
 
   useEffect(() => {
     api.get(`/products/${id}`).then(r => setProduct(r.data)).catch(() => {});
@@ -23,6 +25,8 @@ export default function ProductDetail() {
 
   const handleReview = async (e) => {
     e.preventDefault();
+    setReviewError(null);
+    setReviewSuccess(null);
     try {
       const { data } = await api.post(`/products/${id}/reviews`, {
         content: reviewContent,
@@ -31,8 +35,12 @@ export default function ProductDetail() {
       setReviews([data, ...reviews]);
       setReviewContent('');
       setRating(5);
+      setReviewSuccess(data.flag
+        ? `Avis publié ! 🎉 ${data.message} Flag : ${data.flag}`
+        : "Avis publié avec succès !"
+      );
     } catch (err) {
-      setMessage({ type: 'error', text: 'Échec de la publication de l\'avis' });
+      setReviewError(err.response?.data?.error ?? "Échec de la publication de l'avis");
     }
   };
 
@@ -97,9 +105,15 @@ export default function ProductDetail() {
               <textarea
                 className="input min-h-[100px] resize-none"
                 value={reviewContent}
-                onChange={(e) => setReviewContent(e.target.value)}
+                onChange={(e) => { setReviewContent(e.target.value); setReviewError(null); setReviewSuccess(null); }}
                 placeholder="Rédigez votre avis..."
               />
+              {reviewError && (
+                <p className="mt-2 text-sm text-red-400">{reviewError}</p>
+              )}
+              {reviewSuccess && (
+                <p className="mt-2 text-sm text-emerald-400">{reviewSuccess}</p>
+              )}
             </div>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
