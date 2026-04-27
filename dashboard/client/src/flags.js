@@ -3,6 +3,6 @@
 import data from '../../../shared/flags.json';
 
 export const CATEGORIES = data.CATEGORIES;
-export const FLAGS = data.CHALLENGES;
+export const FLAGS = data.CHALLENGES.filter(c => c.enabled);
 export const MAX_SCORE = FLAGS.reduce((s, f) => s + f.points, 0);
 export const HINT_PENALTY = 3;
