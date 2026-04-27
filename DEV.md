@@ -399,7 +399,7 @@ Classement : score DESC, puis nombre de captures DESC, puis date de première ca
 
 14 challenges répartis en 4 catégories : `authz` (violet), `injection` (rouge), `misconfig` (bleu), `other` (gris).
 
-Chaque challenge a : `flagId`, `name`, `points` (10-20), `difficulty` (Facile/Moyen/Difficile), `category`, `hint`.
+Chaque challenge a : `flagId`, `name`, `difficulty` (Facile/Moyen/Difficile), `category`, `hint`, `enabled`. Les points sont dérivés de la difficulté via `DIFFICULTY_POINTS` (Facile=10, Moyen=15, Difficile=25).
 
 ### Déverrouillage progressif (client-side)
 
@@ -438,14 +438,14 @@ httpOnly: false
 // CORS permissif
 origin: true, credentials: true
 
-// JWT : secret faible + accepte alg:none
+// JWT : secret faible hardcodé (HS256 uniquement)
 ```
 
 ---
 
 ## Ajouter un nouveau challenge
 
-1. **Ajouter le flag** dans `server/src/flags.js` : clé dans `FLAGS`, nom dans `FLAG_NAMES`, points dans `FLAG_POINTS`, explication dans `FLAG_EXPLANATIONS`
+1. **Ajouter le flag** dans `server/src/flags.js` : clé dans `FLAGS`, nom dans `FLAG_NAMES`, explication dans `FLAG_EXPLANATIONS` (les points sont auto-dérivés de la difficulté via `shared/flags.json`)
 2. **Implémenter la vulnérabilité** dans la route appropriée de `server/src/routes/`
 3. **Ajouter au catalogue** dans `shared/flags.json` (flagId, name, points, difficulty, category, hint)
 4. **Tester** : vérifier que la soumission du flag via l'exploit-server fonctionne et que le dashboard l'enregistre

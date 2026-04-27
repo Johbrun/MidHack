@@ -22,8 +22,8 @@
     { "flagId": "BUSINESS_LOGIC",  "enabled": true,  "name": "1000 crédits",   "difficulty": "Moyen",     "category": "other",     "hint": "Augmenter ses crédits en exploitant les LIMITES du système." },
     { "flagId": "CSRF",            "enabled": false, "name": "CSRF",           "difficulty": "Moyen",     "category": "other",     "hint": "Un script exécuté coté client pour effectuer une action" },
     { "flagId": "SQLI_UNION",      "enabled": true,  "name": "SQL Injection (UNION)",         "difficulty": "Difficile", "category": "injection", "hint": "Voir l'academy et https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/SQL%20Injection/SQLite%20Injection.md" },
-    { "flagId": "STORED_XSS",      "enabled": false, "name": "Stored XSS",     "difficulty": "Difficile", "category": "injection", "hint": "Et si on enregistrait du script dans la BD ?" },
+    { "flagId": "STORED_XSS",      "enabled": true, "name": "Stored XSS",     "difficulty": "Difficile", "category": "injection", "hint": "Et si on enregistrait du script dans la BD ?" },
     { "flagId": "SSRF",            "enabled": false, "name": "SSRF",           "difficulty": "Difficile", "category": "injection", "hint": "XXXXX" },
-    { "flagId": "COOKIE_THEFT",    "enabled": false, "name": "Vol de cookie",  "difficulty": "Difficile", "category": "injection", "hint": "Un script exécuté coté client peut permettre de lire et exfiltrer un token ;)" }
+    { "flagId": "COOKIE_THEFT",    "enabled": true, "name": "Vol de cookie",  "difficulty": "Difficile", "category": "injection", "hint": "Un script exécuté coté client peut permettre de lire et exfiltrer un token ;)" }
   ]
 }
