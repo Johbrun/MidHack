@@ -234,7 +234,7 @@ Auto-POST vers Dashboard /api/capture avec flag COOKIE_THEFT
 | Variable | Défaut | Description |
 |----------|--------|-------------|
 | `PORT` | 4000 | Port Express |
-| `TEAM_PASSWORD` | team-default | Mot de passe de l'équipe |
+| `TEAM_PASSWORD` | team | Mot de passe de l'équipe |
 | `SITE_URL` | http://localhost:3001 | URL du site BananaShop |
 | `DASHBOARD_URL` | http://localhost:5000 | URL du dashboard |
 | `TEAM_NAME` | Unknown Team | Nom de l'équipe |

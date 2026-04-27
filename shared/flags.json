@@ -7,18 +7,18 @@
   },
   "CHALLENGES": [
     { "flagId": "IDOR",            "name": "Fuite PII",                    "points": 10, "difficulty": "Facile",    "category": "authz",     "hint": "Changer un id pour... d'autres données ?" },
+    { "flagId": "DATA_EXPOSURE",   "name": "Sensitive Data Exposure",      "points": 10, "difficulty": "Facile",    "category": "misconfig", "hint": "XXXXX" },
+    { "flagId": "PATH_TRAVERSAL",  "name": "Exploration fichiers",         "points": 10, "difficulty": "Facile",    "category": "misconfig", "hint": "Les chemins mènent parfois plus loin que prévu." },
+    { "flagId": "ZERO_RATING",     "name": "Review nulle",                 "points": 10, "difficulty": "Facile",    "category": "other",     "hint": "Qui contrôle la note donnée ?" },
     { "flagId": "MASS_ASSIGNMENT", "name": "Go admin",                     "points": 15, "difficulty": "Moyen",     "category": "authz",     "hint": "Un champ en trop dans l'update de profil ?" },
     { "flagId": "JWT_FORGING",     "name": "Go superadmin",                "points": 15, "difficulty": "Moyen",     "category": "authz",     "hint": "Sommes nous sûr de la robustesse du secret JWT? (jwt.io)" },
     { "flagId": "REFLECTED_XSS",   "name": "Reflected XSS",                "points": 15, "difficulty": "Moyen",     "category": "injection", "hint": "La recherche serait-elle un miroir ?" },
     { "flagId": "SQLI",            "name": "SQL Injection (Login Bypass)", "points": 15, "difficulty": "Moyen",     "category": "injection", "hint": "Quelle requête SQL pour se connecter ? " },
+    { "flagId": "BUSINESS_LOGIC",  "name": "1000 crédits",                 "points": 15, "difficulty": "Moyen",     "category": "other",     "hint": "Augmenter ses crédits en exploitant les LIMITES du système." },
+    { "flagId": "CSRF",            "name": "CSRF",                         "points": 15, "difficulty": "Moyen",     "category": "other",     "hint": "Un script exécuté coté client pour effectuer une action" },
     { "flagId": "SQLI_UNION",      "name": "SQL Injection (UNION)",        "points": 20, "difficulty": "Difficile", "category": "injection", "hint": "Les requêtes UNION, ça vous parle ?" },
     { "flagId": "STORED_XSS",      "name": "Stored XSS",                   "points": 20, "difficulty": "Difficile", "category": "injection", "hint": "Et si on enregistrait du script dans la BD ?" },
     { "flagId": "SSRF",            "name": "SSRF",                         "points": 20, "difficulty": "Difficile", "category": "injection", "hint": "XXXXX" },
-    { "flagId": "COOKIE_THEFT",    "name": "Vol de cookie",                "points": 20, "difficulty": "Difficile", "category": "injection", "hint": "Un script exécuté coté client peut permettre de lire et exfiltrer un token ;)" },
-    { "flagId": "DATA_EXPOSURE",   "name": "Sensitive Data Exposure",      "points": 10, "difficulty": "Facile",    "category": "misconfig", "hint": "XXXXX" },
-    { "flagId": "PATH_TRAVERSAL",  "name": "Exploration fichiers",         "points": 10, "difficulty": "Facile",    "category": "misconfig", "hint": "Les chemins mènent parfois plus loin que prévu." },
-    { "flagId": "ZERO_RATING",     "name": "Review nulle",                 "points": 10, "difficulty": "Facile",    "category": "other",     "hint": "Qui contrôle la note donnée ?" },
-    { "flagId": "BUSINESS_LOGIC",  "name": "1000 crédits",                 "points": 15, "difficulty": "Moyen",     "category": "other",     "hint": "Augmenter ses crédits en exploitant les LIMITES du système." },
-    { "flagId": "CSRF",            "name": "CSRF",                         "points": 15, "difficulty": "Moyen",     "category": "other",     "hint": "Un script exécuté coté client pour effectuer une action" }
+    { "flagId": "COOKIE_THEFT",    "name": "Vol de cookie",                "points": 20, "difficulty": "Difficile", "category": "injection", "hint": "Un script exécuté coté client peut permettre de lire et exfiltrer un token ;)" }
   ]
 }
