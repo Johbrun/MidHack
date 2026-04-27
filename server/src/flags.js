@@ -32,22 +32,24 @@ const FLAG_NAMES = {
   [FLAGS.COOKIE_THEFT]: 'Cookie Theft (XSS)',
 };
 
-const FLAG_POINTS = {
-  [FLAGS.DATA_EXPOSURE]: { points: 10, difficulty: 'Facile' },
-  [FLAGS.IDOR]: { points: 10, difficulty: 'Facile' },
-  [FLAGS.REFLECTED_XSS]: { points: 15, difficulty: 'Moyen' },
-  [FLAGS.SQLI]: { points: 15, difficulty: 'Moyen' },
-  [FLAGS.SQLI_UNION]: { points: 20, difficulty: 'Difficile' },
-  [FLAGS.BUSINESS_LOGIC]: { points: 15, difficulty: 'Moyen' },
-  [FLAGS.JWT_FORGING]: { points: 15, difficulty: 'Moyen' },
-  [FLAGS.STORED_XSS]: { points: 20, difficulty: 'Difficile' },
-  [FLAGS.ZERO_RATING]: { points: 10, difficulty: 'Facile' },
-  [FLAGS.MASS_ASSIGNMENT]: { points: 15, difficulty: 'Moyen' },
-  [FLAGS.CSRF]: { points: 15, difficulty: 'Moyen' },
-  [FLAGS.PATH_TRAVERSAL]: { points: 10, difficulty: 'Facile' },
-  [FLAGS.SSRF]: { points: 20, difficulty: 'Difficile' },
-  [FLAGS.COOKIE_THEFT]: { points: 20, difficulty: 'Difficile' },
+const { DIFFICULTY_POINTS, CHALLENGES } = require('../../shared/flags.json');
+
+// Derive points from difficulty — single source of truth in shared/flags.json
+const _diffPoints = (flagId) => {
+  const ch = CHALLENGES.find(c => c.flagId === flagId);
+  return ch ? (DIFFICULTY_POINTS[ch.difficulty] ?? 0) : 0;
 };
+const _diff = (flagId) => {
+  const ch = CHALLENGES.find(c => c.flagId === flagId);
+  return ch ? ch.difficulty : 'Unknown';
+};
+
+const FLAG_POINTS = Object.fromEntries(
+  Object.entries(FLAGS).map(([id, flagValue]) => [
+    flagValue,
+    { points: _diffPoints(id), difficulty: _diff(id) },
+  ])
+);
 
 const FLAG_EXPLANATIONS = {
   [FLAGS.DATA_EXPOSURE]: {
