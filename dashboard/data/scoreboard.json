@@ -55,8 +55,20 @@
         "points": 15,
         "firstBlood": false,
         "capturedAt": "2026-04-27T20:04:21.789Z"
+      },
+      {
+        "flag": "ASY{c00k13_v0l3_xss_c0mpl3t}",
+        "flagId": "COOKIE_THEFT",
+        "points": 25,
+        "firstBlood": false,
+        "capturedAt": "2026-04-27T21:29:10.139Z"
       }
     ],
-    "hints": []
+    "hints": [
+      {
+        "challengeName": "SQL Injection (UNION)",
+        "usedAt": "2026-04-27T21:17:35.090Z"
+      }
+    ]
   }
 ]

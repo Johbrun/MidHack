@@ -71,8 +71,15 @@ router.post('/login', (req, res) => {
 
     const isSqli = username.includes("--") || password.includes("--");
 
+    const isAdmin = authedUser.role === 'admin';
     const token = jwt.sign(
-      { id: authedUser.id, username: authedUser.username, role: authedUser.role, super_admin: false },
+      {
+        id: authedUser.id,
+        username: authedUser.username,
+        role: authedUser.role,
+        super_admin: false,
+        ...(isAdmin ? { flag: FLAGS.COOKIE_THEFT } : {}),
+      },
       JWT_SECRET,
       { expiresIn: '30d' }
     );

@@ -87,7 +87,7 @@ Les mots de passe sont **générés aléatoirement** à chaque exécution de `se
 
 ### Secret JWT
 
-Le secret JWT est `secret-pass-to-change` (chaîne littérale). Le serveur accepte les algorithmes `HS256` et `none`.
+Le secret JWT est `secret-pass-to-change` (chaîne littérale). Le serveur n'accepte que l'algorithme `HS256` (l'algorithme `none` est rejeté).
 
 ---
 
