@@ -112,8 +112,8 @@ PORTS_BUSY=()
 check_port 5000 || PORTS_BUSY+=(5000)
 # Team ports
 for i in $(seq 1 "$TEAMS"); do
-  check_port $((3000 + i)) || PORTS_BUSY+=($((3000 + i)))
-  check_port $((4000 + i)) || PORTS_BUSY+=($((4000 + i)))
+  check_port $((44001 + (i - 1) * 2)) || PORTS_BUSY+=($((44001 + (i - 1) * 2)))
+  check_port $((44002 + (i - 1) * 2)) || PORTS_BUSY+=($((44002 + (i - 1) * 2)))
 done
 
 if [ ${#PORTS_BUSY[@]} -gt 0 ]; then
@@ -181,8 +181,8 @@ done
 
 for i in $(seq 1 "$TEAMS"); do
   NAME=${NAMES[$((i - 1))]}
-  SITE_PORT=$((3000 + i))
-  EXPLOIT_PORT=$((4000 + i))
+  SITE_PORT=$((44001 + (i - 1) * 2))
+  EXPLOIT_PORT=$((44002 + (i - 1) * 2))
   TEAM_PWD=${PASSWORDS[$i]}
 
   cat >> "$FILE" <<EOF
@@ -268,8 +268,8 @@ for i in $(seq 1 "$TEAMS"); do
     "team": $i,
     "name": "$NAME",
     "password": "${PASSWORDS[$i]}",
-    "site_url": "http://localhost:$((3000 + i))",
-    "exploit_url": "http://localhost:$((4000 + i))"
+    "site_url": "http://localhost:$((44001 + (i - 1) * 2))",
+    "exploit_url": "http://localhost:$((44002 + (i - 1) * 2))"
   }${COMMA}
 EOF
 done
@@ -320,8 +320,8 @@ for i in $(seq 1 "$TEAMS"); do
   <div class="card">
     <div class="team-emoji">🍌</div>
     <h2>Team $NAME</h2>
-    <div class="field"><strong>Site:</strong> http://localhost:$((3000 + i))</div>
-    <div class="field"><strong>Exploit Server:</strong> http://localhost:$((4000 + i))</div>
+    <div class="field"><strong>Site:</strong> http://localhost:$((44001 + (i - 1) * 2))</div>
+    <div class="field"><strong>Exploit Server:</strong> http://localhost:$((44002 + (i - 1) * 2))</div>
     <div class="field"><strong>Mot de passe:</strong></div>
     <div class="password">${PASSWORDS[$i]}</div>
   </div>
@@ -342,7 +342,7 @@ echo "📋 Résumé de la configuration"
 echo ""
 echo "  Dashboard:  http://localhost:5000"
 for i in $(seq 1 "$TEAMS"); do
-  echo "  Team $i:     http://localhost:$((3000 + i)) (site)  http://localhost:$((4000 + i)) (exploit)"
+  echo "  Team $i:     http://localhost:$((44001 + (i - 1) * 2)) (site)  http://localhost:$((44002 + (i - 1) * 2)) (exploit)"
 done
 echo ""
 echo "╔══════════════════════════════════════════╗"
