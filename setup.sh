@@ -109,7 +109,7 @@ check_port() {
 
 PORTS_BUSY=()
 # Dashboard
-check_port 5000 || PORTS_BUSY+=(5000)
+check_port 44018 || PORTS_BUSY+=(44018)
 # Team ports
 for i in $(seq 1 "$TEAMS"); do
   check_port $((44001 + (i - 1) * 2)) || PORTS_BUSY+=($((44001 + (i - 1) * 2)))
@@ -160,7 +160,7 @@ services:
     environment:
       <<: *event-config
     ports:
-      - "5000:5000"
+      - "44018:5000"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:5000/api/scoreboard"]
@@ -257,7 +257,7 @@ ok "docker-compose.yml généré"
 CREDS_JSON="credentials.json"
 echo "{" > "$CREDS_JSON"
 echo "  \"admin_password\": \"$ADMIN_PWD\"," >> "$CREDS_JSON"
-echo "  \"dashboard_url\": \"http://localhost:5000\"," >> "$CREDS_JSON"
+echo "  \"dashboard_url\": \"http://localhost:44018\"," >> "$CREDS_JSON"
 echo "  \"teams\": [" >> "$CREDS_JSON"
 for i in $(seq 1 "$TEAMS"); do
   NAME=${NAMES[$((i - 1))]}
@@ -340,7 +340,7 @@ ok "credentials.html généré (ouvrir dans un navigateur pour imprimer)"
 echo ""
 echo "📋 Résumé de la configuration"
 echo ""
-echo "  Dashboard:  http://localhost:5000"
+echo "  Dashboard:  http://localhost:44018"
 for i in $(seq 1 "$TEAMS"); do
   echo "  Team $i:     http://localhost:$((44001 + (i - 1) * 2)) (site)  http://localhost:$((44002 + (i - 1) * 2)) (exploit)"
 done
