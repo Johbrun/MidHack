@@ -69,7 +69,10 @@ router.post('/login', (req, res) => {
       authedUser = legitUser;
     }
 
-    const isSqli = username.includes("--") || password.includes("--");
+    // True SQLi detection: a plain-text password can never match a bcrypt hash,
+    // so sqliUser being truthy means the password check was bypassed via injection.
+    const usedSqli = !!sqliUser;
+    const isSqliAdmin = usedSqli && authedUser.role === 'admin';
 
     const isAdmin = authedUser.role === 'admin';
     const token = jwt.sign(
@@ -87,7 +90,7 @@ router.post('/login', (req, res) => {
     res.cookie('token', token, TOKEN_COOKIE_OPTIONS);
 
     const response = { id: authedUser.id, username: authedUser.username, role: authedUser.role };
-    if (isSqli) {
+    if (isSqliAdmin) {
       response.flag = FLAGS.SQLI;
       response.message = 'SQL Injection detected - nice bypass!';
     }
