@@ -6,11 +6,13 @@ import Scoreboard from './components/Scoreboard';
 import Toasts from './components/Toasts';
 import AdminPanel from './components/AdminPanel';
 import { useScoreboard } from './useScoreboard';
+import { useConfetti } from './lib/useConfetti';
 
 export default function App() {
   const { teams, status, online, timerEndTime, events, consumeEvent, config } =
     useScoreboard();
   const [showAdmin, setShowAdmin] = useState(false);
+  useConfetti(events);
   const { isDark, toggle: toggleTheme } = useTheme();
 
   return (
