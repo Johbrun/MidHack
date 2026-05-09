@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { CATEGORIES, FLAGS, MAX_SCORE } from '../flags';
 
 const DIFF_COLORS = { Facile: '#10B981', Moyen: '#FABB5C', Difficile: '#f87171' };
@@ -49,6 +50,36 @@ export default function Scoreboard({ teams, hintPenalty = 3 }) {
   );
 }
 
+function TimeSinceLastFlag({ captures }) {
+  const lastTs =
+    captures.length > 0
+      ? Math.max(...captures.map((c) => new Date(c.capturedAt).getTime()))
+      : null;
+
+  const [now, setNow] = useState(Date.now());
+
+  useEffect(() => {
+    if (!lastTs) return;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [lastTs]);
+
+  if (!lastTs) return null;
+
+  const elapsed = now - lastTs;
+  const totalSeconds = Math.floor(elapsed / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  const isRed = elapsed > 10 * 60 * 1000;
+  const formatted = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+  return (
+    <div className={`text-sm font-mono font-semibold mt-0.5 ${isRed ? 'text-red-400 timer-alert' : 'text-white/60'}`}>
+      ⏱ {formatted}
+    </div>
+  );
+}
+
 function TeamRow({ team, rank, hintPenalty = 3 }) {
   const hints = team.hints || [];
   const score =
@@ -67,21 +98,24 @@ function TeamRow({ team, rank, hintPenalty = 3 }) {
         {rank}
       </td>
       <td className="py-4 px-2 border-b border-white/5">
-        <span
-          className={`font-heading font-bold text-lg ${
-            rank === 1 ? 'text-accent' : ''
-          }`}
-        >
-          {team.name}
-        </span>
-        {hints.length > 0 && (
+        <div>
           <span
-            className="ml-2 text-[0.65rem] text-accent/50"
-            title={`${hints.length} indice(s) utilisé(s) (-${hints.length * hintPenalty}pts)`}
+            className={`font-heading font-bold text-lg ${
+              rank === 1 ? 'text-accent' : ''
+            }`}
           >
-            💡{hints.length}
+            {team.name}
           </span>
-        )}
+          {hints.length > 0 && (
+            <span
+              className="ml-2 text-[0.65rem] text-accent/50"
+              title={`${hints.length} indice(s) utilisé(s) (-${hints.length * hintPenalty}pts)`}
+            >
+              💡{hints.length}
+            </span>
+          )}
+        </div>
+        <TimeSinceLastFlag captures={team.captures} />
       </td>
       <td className="py-4 px-2 text-center border-b border-white/5">
         <span className="font-heading font-black text-2xl text-accent">
