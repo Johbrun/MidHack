@@ -11,6 +11,7 @@ export function useScoreboard() {
   const [config, setConfig] = useState({ hintPenalty: 3, eventTitle: 'BananaShop CTF' });
   const eventIdRef = useRef(0);
   const reconnectTimerRef = useRef(null);
+  const wsRef = useRef(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -25,6 +26,7 @@ export function useScoreboard() {
       if (cancelled) return;
       const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
       const ws = new WebSocket(`${protocol}//${location.host}/ws`);
+      wsRef.current = ws;
 
       ws.onopen = () => {
         setOnline(true);
@@ -73,6 +75,7 @@ export function useScoreboard() {
 
     return () => {
       cancelled = true;
+      if (wsRef.current) { wsRef.current.close(); wsRef.current = null; }
       if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
     };
   }, []);

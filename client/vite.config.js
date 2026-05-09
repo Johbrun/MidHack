@@ -8,6 +8,7 @@ export default defineConfig({
     allowedHosts: ['here.local'],
     proxy: {
       '/api': 'http://localhost:3001',
+      '/events': 'http://localhost:3001',
     },
   },
 });
