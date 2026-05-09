@@ -75,6 +75,21 @@ html:not(.dark) {
   }
 }
 
+/* ─── Bouton login admin ─── */
+.btn-login {
+  background: rgba(250,187,92,0.2);
+  border: 1px solid rgba(250,187,92,0.4);
+  color: #FABB5C;
+}
+.btn-login:hover { background: rgba(250,187,92,0.3); }
+
+html:not(.dark) .btn-login {
+  background: #c48a20;
+  border: 1px solid #a87018;
+  color: #fff;
+}
+html:not(.dark) .btn-login:hover { background: #a87018; }
+
 /* ─── Light mode ─── */
 html:not(.dark) body { background: #f5f3f0 !important; color: #1a1a1a; }
 
@@ -91,6 +106,8 @@ html:not(.dark) [class*="text-white/30"] { color: #888 !important; }
 html:not(.dark) [class*="text-white/20"] { color: #aaa !important; }
 html:not(.dark) [class*="text-white/15"] { color: #c4c4c4 !important; }
 html:not(.dark) [class*="text-white/10"] { color: #ccc !important; }
+
+html:not(.dark) .timer-alert { color: #b91c1c !important; }
 
 html:not(.dark) .text-accent, html:not(.dark) [class*="text-accent"] { color: #c48a20 !important; }
 html:not(.dark) .text-cyan,   html:not(.dark) [class*="text-cyan"]   { color: #047384 !important; }

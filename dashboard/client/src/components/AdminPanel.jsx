@@ -73,7 +73,7 @@ export default function AdminPanel({ onClose }) {
   if (!authenticated) {
     return (
       <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-        <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl p-8 max-w-md w-full mx-4">
+        <div className="bg-[rgb(var(--color-bg-secondary))] border border-white/10 rounded-2xl p-8 max-w-md w-full mx-4">
           <div className="flex justify-between items-center mb-6">
             <h2 className="font-heading font-bold text-xl text-accent">Admin Dashboard</h2>
             <button onClick={onClose} className="text-white/30 hover:text-white text-xl">&times;</button>
@@ -88,7 +88,7 @@ export default function AdminPanel({ onClose }) {
           />
           <button
             onClick={login}
-            className="w-full py-3 bg-accent/20 border border-accent/40 rounded-lg text-accent font-heading font-bold hover:bg-accent/30 transition"
+            className="btn-login w-full py-3 rounded-lg font-heading font-bold transition"
           >
             Connexion
           </button>
@@ -100,7 +100,7 @@ export default function AdminPanel({ onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 overflow-y-auto">
-      <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl p-8 max-w-2xl w-full mx-4 my-8">
+      <div className="bg-[rgb(var(--color-bg-secondary))] border border-white/10 rounded-2xl p-8 max-w-2xl w-full mx-4 my-8">
         <div className="flex justify-between items-center mb-6">
           <h2 className="font-heading font-bold text-xl text-accent">Admin Dashboard</h2>
           <button onClick={onClose} className="text-white/30 hover:text-white text-xl">&times;</button>
@@ -210,14 +210,7 @@ export default function AdminPanel({ onClose }) {
             >
               Export CSV
             </a>
-            <a
-              href={`/api/certificates?token=${token}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-admin bg-purple-500/20 border-purple-500/40 text-purple-400 hover:bg-purple-500/30 no-underline"
-            >
-              Certificats
-            </a>
+
           </div>
         </Section>
 
