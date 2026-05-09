@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
+import { ThemeProvider } from './context/ThemeContext';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
@@ -17,6 +18,7 @@ import AdminDashboard from './pages/AdminDashboard';
 
 export default function App() {
   return (
+    <ThemeProvider>
     <BrowserRouter>
       <AuthProvider>
         <CartProvider>
@@ -40,5 +42,6 @@ export default function App() {
         </CartProvider>
       </AuthProvider>
     </BrowserRouter>
+    </ThemeProvider>
   );
 }

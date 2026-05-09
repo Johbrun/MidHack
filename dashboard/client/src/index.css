@@ -2,6 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Theme variables ─── */
+:root {
+  --color-bg: 14 11 17;
+  --color-bg-secondary: 22 18 34;
+}
+
+html:not(.dark) {
+  --color-bg: 245 243 240;
+  --color-bg-secondary: 235 232 228;
+}
+
 @layer base {
   html, body, #root {
     height: 100%;
@@ -62,4 +73,48 @@
   .btn-admin {
     @apply font-heading font-bold text-xs uppercase tracking-wider px-4 py-2 border rounded-lg transition cursor-pointer;
   }
+}
+
+/* ─── Light mode ─── */
+html:not(.dark) body { background: #f5f3f0 !important; color: #1a1a1a; }
+
+/* Text — du plus général au plus spécifique (cascade order) */
+html:not(.dark) .text-white              { color: #1a1a1a !important; }
+html:not(.dark) [class*="text-white/"]   { color: #333 !important; }
+html:not(.dark) [class*="text-white/80"] { color: #2a2a2a !important; }
+html:not(.dark) [class*="text-white/85"] { color: #222 !important; }
+html:not(.dark) [class*="text-white/70"] { color: #444 !important; }
+html:not(.dark) [class*="text-white/60"] { color: #555 !important; }
+html:not(.dark) [class*="text-white/50"] { color: #666 !important; }
+html:not(.dark) [class*="text-white/40"] { color: #777 !important; }
+html:not(.dark) [class*="text-white/30"] { color: #888 !important; }
+html:not(.dark) [class*="text-white/20"] { color: #aaa !important; }
+html:not(.dark) [class*="text-white/15"] { color: #c4c4c4 !important; }
+html:not(.dark) [class*="text-white/10"] { color: #ccc !important; }
+
+html:not(.dark) .text-accent, html:not(.dark) [class*="text-accent"] { color: #c48a20 !important; }
+html:not(.dark) .text-cyan,   html:not(.dark) [class*="text-cyan"]   { color: #047384 !important; }
+
+/* Cadenas et éléments à faible opacité */
+html:not(.dark) .opacity-\[0\.15\]   { opacity: 0.5 !important; }
+html:not(.dark) .opacity-60          { opacity: 0.8 !important; }
+
+/* Backgrounds */
+html:not(.dark) [class*="bg-white/"]  { background-color: rgba(0,0,0,0.05) !important; }
+html:not(.dark) [class*="bg-accent/"] { background-color: rgba(250,187,92,0.14) !important; }
+html:not(.dark) [class*="bg-cyan/"]   { background-color: rgba(5,147,167,0.1) !important; }
+
+/* Borders */
+html:not(.dark) [class*="border-white/"]  { border-color: rgba(0,0,0,0.12) !important; }
+html:not(.dark) [class*="border-accent/"] { border-color: rgba(196,138,32,0.3) !important; }
+html:not(.dark) [class*="border-cyan/"]   { border-color: rgba(4,115,132,0.25) !important; }
+
+/* Table rows et container */
+html:not(.dark) table { color: #1a1a1a; }
+html:not(.dark) tbody tr { background: rgba(255,255,255,0.55); }
+html:not(.dark) tbody tr:hover { background: rgba(255,255,255,0.85) !important; }
+
+/* Headers de colonnes avec inline style color → filtre pour assombrir */
+html:not(.dark) thead th[style*="color"] {
+  filter: brightness(0.6) saturate(1.3);
 }

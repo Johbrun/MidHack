@@ -1,7 +1,7 @@
 import Timer from './Timer';
 import { NantesHackLogo } from '../lib/branding';
 
-export default function Header({ online, status, timerEndTime, eventTitle, onAdmin }) {
+export default function Header({ online, status, timerEndTime, eventTitle, onAdmin, isDark, onToggleTheme }) {
   return (
     <div className="flex items-center justify-between mb-12">
       <div className="flex items-center gap-4">
@@ -17,6 +17,22 @@ export default function Header({ online, status, timerEndTime, eventTitle, onAdm
       <Timer endTime={timerEndTime} />
 
       <div className="flex items-center gap-4">
+        <button
+          onClick={onToggleTheme}
+          className="p-2 text-white/40 hover:text-accent transition-colors"
+          title={isDark ? 'Mode jour' : 'Mode nuit'}
+        >
+          {isDark ? (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="4"/>
+              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+            </svg>
+          ) : (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+          )}
+        </button>
         <button
           onClick={onAdmin}
           className="font-heading font-bold text-xs uppercase tracking-wider px-4 py-2 border border-accent/40 rounded-lg bg-accent/10 text-accent hover:bg-accent/25 hover:border-accent/60 transition"

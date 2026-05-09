@@ -2,6 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Theme variables ─── */
+:root {
+  --color-bg: 14 11 17;          /* #0E0B11 dark */
+  --color-bg-secondary: 22 18 34; /* #161222 */
+}
+
+html:not(.dark) {
+  --color-bg: 245 243 240;        /* #f5f3f0 warm off-white */
+  --color-bg-secondary: 235 232 228;
+}
+
 @layer base {
   body {
     @apply bg-dark text-white font-body antialiased;
@@ -19,9 +30,10 @@
 
 @layer components {
   .btn-primary {
-    @apply bg-white text-dark font-heading font-semibold px-6 h-[50px] rounded-md
+    @apply bg-white font-heading font-semibold px-6 h-[50px] rounded-md
            transition-all duration-300 hover:bg-accent hover:text-dark
            flex items-center justify-center gap-2 text-sm uppercase tracking-wider;
+    color: #1C1527;
   }
 
   .btn-secondary {
@@ -88,7 +100,59 @@
   }
 }
 
-/* Background geometric shapes */
+/* ─── Light mode ─── */
+html:not(.dark) body { background: #f5f3f0 !important; color: #1a1a1a; }
+
+html:not(.dark) .geo-bg::before { border-color: rgba(250,187,92,0.12); }
+html:not(.dark) .geo-bg::after  { border-color: rgba(5,147,167,0.10); }
+
+html:not(.dark) .card      { background: rgba(255,255,255,0.75) !important; border-color: rgba(0,0,0,0.08) !important; }
+html:not(.dark) .card-hover:hover { background: rgba(255,255,255,0.95) !important; border-color: rgba(0,0,0,0.14) !important; }
+
+/* Titres h3 dans les cards (couleur texte principale) */
+html:not(.dark) .card h3,
+html:not(.dark) .card-hover h3 { color: #1a1a1a !important; }
+
+html:not(.dark) .input {
+  background: rgba(255,255,255,0.7) !important;
+  border-color: rgba(0,0,0,0.12) !important;
+  color: #1a1a1a !important;
+}
+html:not(.dark) .input::placeholder { color: rgba(0,0,0,0.35) !important; }
+html:not(.dark) .label { color: rgba(0,0,0,0.55) !important; }
+
+/* Text */
+html:not(.dark) .text-white                { color: #1a1a1a !important; }
+html:not(.dark) [class*="text-white/"]     { color: #333 !important; }
+html:not(.dark) [class*="text-white/30"]   { color: #888 !important; }
+html:not(.dark) [class*="text-white/40"]   { color: #777 !important; }
+html:not(.dark) [class*="text-white/50"]   { color: #666 !important; }
+html:not(.dark) [class*="text-white/60"]   { color: #555 !important; }
+html:not(.dark) [class*="text-white/70"]   { color: #444 !important; }
+html:not(.dark) [class*="text-white/80"]   { color: #333 !important; }
+html:not(.dark) .text-dark                 { color: #1a1a1a !important; }
+
+/* Accent/Cyan darkened for readability on light */
+html:not(.dark) .text-accent, html:not(.dark) [class*="text-accent"] { color: #c48a20 !important; }
+html:not(.dark) .text-cyan,   html:not(.dark) [class*="text-cyan"]   { color: #047384 !important; }
+
+/* Textes très atténués → un peu plus visibles en mode jour */
+html:not(.dark) [class*="text-white/20"] { color: #aaa !important; }
+html:not(.dark) [class*="text-white/10"] { color: #bbb !important; }
+
+/* Backgrounds */
+html:not(.dark) [class*="bg-white/"]   { background-color: rgba(0,0,0,0.06) !important; }
+html:not(.dark) [class*="bg-accent/"]  { background-color: rgba(250,187,92,0.14) !important; }
+html:not(.dark) [class*="bg-cyan/"]    { background-color: rgba(5,147,167,0.1) !important; }
+html:not(.dark) [class*="bg-red-500/"] { background-color: rgba(239,68,68,0.08) !important; }
+
+/* Borders — un peu plus visibles pour que les boutons "ghost" soient lisibles */
+html:not(.dark) [class*="border-white/"] { border-color: rgba(0,0,0,0.18) !important; }
+html:not(.dark) [class*="border-accent/"] { border-color: rgba(196,138,32,0.35) !important; }
+html:not(.dark) [class*="border-cyan/"]   { border-color: rgba(4,115,132,0.3) !important; }
+html:not(.dark) [class*="border-red-500/"] { border-color: rgba(220,38,38,0.25) !important; }
+
+/* ─── Background geometric shapes ─── */
 .geo-bg {
   position: fixed;
   inset: 0;
@@ -109,6 +173,10 @@
   transform: rotate(15deg);
 }
 
+html:not(.dark) .geo-bg::before {
+  border-color: rgba(250, 187, 92, 0.12);
+}
+
 .geo-bg::after {
   content: '';
   position: absolute;
@@ -120,27 +188,27 @@
   transform: rotate(-30deg);
 }
 
-/* Scrollbar styling */
-::-webkit-scrollbar {
-  width: 6px;
+html:not(.dark) .geo-bg::after {
+  border-color: rgba(5, 147, 167, 0.12);
 }
 
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar { width: 6px; }
+
 ::-webkit-scrollbar-track {
-  background: #0E0B11;
+  background: rgb(var(--color-bg));
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(128, 128, 128, 0.2);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(128, 128, 128, 0.35);
 }
 
-/* ─── CTF Pages (Instructions & Scoreboard) ─── */
-/* These pages break from the premium dark theme to feel like a separate terminal/hacker interface */
-
+/* ─── CTF Pages — kept always dark (terminal aesthetic) ─── */
 .ctf-page {
   min-height: 100vh;
   background: #050808;

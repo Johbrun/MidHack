@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Header from './components/Header';
+import { useTheme } from './lib/useTheme';
 import Legend from './components/Legend';
 import Scoreboard from './components/Scoreboard';
 import Toasts from './components/Toasts';
@@ -10,6 +11,7 @@ export default function App() {
   const { teams, status, online, timerEndTime, events, consumeEvent, config } =
     useScoreboard();
   const [showAdmin, setShowAdmin] = useState(false);
+  const { isDark, toggle: toggleTheme } = useTheme();
 
   return (
     <>
@@ -20,6 +22,8 @@ export default function App() {
           timerEndTime={timerEndTime}
           eventTitle={config.eventTitle}
           onAdmin={() => setShowAdmin(true)}
+          isDark={isDark}
+          onToggleTheme={toggleTheme}
         />
         <Legend />
         <div className="bg-white/[0.02] border border-white/5 rounded-2xl overflow-x-hidden">
