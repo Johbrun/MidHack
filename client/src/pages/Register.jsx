@@ -26,7 +26,7 @@ export default function Register() {
       <div className="card w-full max-w-md p-8">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-heading font-extrabold mb-2">Créer un compte</h1>
-          <p className="text-white/40 text-sm">Rejoignez BananaShop et commencez à échanger</p>
+          <p className="text-white/40 text-sm">Rejoignez BananaShop et commencez à déguster</p>
         </div>
 
         {error && (
