@@ -122,7 +122,8 @@ html:not(.dark) [class*="bg-accent/"] { background-color: rgba(250,187,92,0.14) 
 html:not(.dark) [class*="bg-cyan/"]   { background-color: rgba(5,147,167,0.1) !important; }
 
 /* Borders */
-html:not(.dark) [class*="border-white/"]  { border-color: rgba(0,0,0,0.12) !important; }
+html:not(.dark) [class*="border-white/"]:not(thead th) { border-color: rgba(0,0,0,0.12) !important; }
+html:not(.dark) thead th[class*="border-white/"]        { border-bottom-color: rgba(0,0,0,0.12) !important; }
 html:not(.dark) [class*="border-accent/"] { border-color: rgba(196,138,32,0.3) !important; }
 html:not(.dark) [class*="border-cyan/"]   { border-color: rgba(4,115,132,0.25) !important; }
 
