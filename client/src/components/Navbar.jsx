@@ -38,7 +38,8 @@ export default function Navbar() {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-dark/80 backdrop-blur-md border-b border-white/[0.08]">
-      <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+      {/* Barre principale */}
+      <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-3 group">
           <NantesHackLogo className="h-8 w-auto" />
           <span className="text-2xl">🍌</span>
@@ -48,42 +49,10 @@ export default function Navbar() {
         </Link>
 
         <div className="flex items-center gap-1">
-          <Link
-            to="/shop"
-            className="px-4 py-2 text-sm text-white/60 hover:text-cyan transition-colors font-body"
-          >
-            Boutique
-          </Link>
-
-          {user ? (
-            <>
-              <Link
-                to="/dashboard"
-                className="px-4 py-2 text-sm text-white/60 hover:text-cyan transition-colors font-body"
-              >
-                Tableau de bord
-              </Link>
-              <Link
-                to="/subscription"
-                className="px-4 py-2 text-sm text-white/60 hover:text-accent transition-colors font-body"
-              >
-                Abonnement
-              </Link>
-              {user.role === 'admin' && (
-                <Link
-                  to="/admin"
-                  className="px-4 py-2 text-sm text-accent hover:text-accent/80 transition-colors font-heading font-semibold"
-                >
-                  Admin
-                </Link>
-              )}
-            </>
-          ) : null}
-
           <ThemeToggle />
 
           {/* Cart */}
-          <Link to="/cart" className="relative px-3 py-2 text-white/60 hover:text-accent transition-colors">
+          <Link to="/cart" className="relative p-2 text-white/60 hover:text-accent transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
               <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
@@ -119,6 +88,40 @@ export default function Navbar() {
           )}
         </div>
       </div>
+
+      {/* Sous-barre contextuelle — uniquement connecté */}
+      {user && (
+        <div className="border-t border-white/[0.05] bg-white/[0.02]">
+          <div className="max-w-6xl mx-auto px-6 h-9 flex items-center gap-1">
+            <Link
+              to="/shop"
+              className="px-3 py-1 text-xs text-white/50 hover:text-cyan transition-colors font-body rounded hover:bg-white/[0.05]"
+            >
+              Boutique
+            </Link>
+            <Link
+              to="/dashboard"
+              className="px-3 py-1 text-xs text-white/50 hover:text-cyan transition-colors font-body rounded hover:bg-white/[0.05]"
+            >
+              Tableau de bord
+            </Link>
+            <Link
+              to="/subscription"
+              className="px-3 py-1 text-xs text-white/50 hover:text-accent transition-colors font-body rounded hover:bg-white/[0.05]"
+            >
+              Abonnement
+            </Link>
+            {user.role === 'admin' && (
+              <Link
+                to="/admin"
+                className="px-3 py-1 text-xs text-accent hover:text-accent/80 transition-colors font-heading font-semibold rounded hover:bg-accent/[0.08]"
+              >
+                ⚡ Admin
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
     </nav>
   );
 }
