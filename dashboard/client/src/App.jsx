@@ -9,7 +9,7 @@ import { useScoreboard } from './useScoreboard';
 import { useConfetti } from './lib/useConfetti';
 
 export default function App() {
-  const { teams, status, online, timerEndTime, events, consumeEvent, config } =
+  const { teams, status, online, frozen, timerEndTime, events, consumeEvent, config } =
     useScoreboard();
   const [showAdmin, setShowAdmin] = useState(false);
   useConfetti(events);
@@ -17,6 +17,7 @@ export default function App() {
 
   return (
     <>
+      {frozen && <div className="fixed inset-0 bg-blue-500/10 pointer-events-none z-0 transition-all duration-700" />}
       <div className="max-w-[1600px] mx-auto px-4 py-10 relative z-10">
         <Header
           online={online}
@@ -29,7 +30,7 @@ export default function App() {
         />
         <Legend />
         <div className="bg-white/[0.02] border border-white/5 rounded-2xl overflow-x-hidden">
-          <Scoreboard teams={teams} hintPenalty={config.hintPenalty} />
+          <Scoreboard teams={teams} hintPenalty={config.hintPenalty} frozen={frozen} />
         </div>
       </div>
       <Toasts events={events} consumeEvent={consumeEvent} />

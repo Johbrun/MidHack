@@ -6,6 +6,7 @@ export function useScoreboard() {
   const [teams, setTeams] = useState([]);
   const [status, setStatus] = useState('Connexion...');
   const [online, setOnline] = useState(false);
+  const [frozen, setFrozen] = useState(false);
   const [timerEndTime, setTimerEndTime] = useState(null);
   const [events, setEvents] = useState([]); // { id, type, payload }
   const [config, setConfig] = useState({ hintPenalty: 3, eventTitle: 'BananaShop CTF' });
@@ -58,6 +59,7 @@ export function useScoreboard() {
         } else if (data.type === 'announcement') {
           pushEvent('announcement', data);
         } else if (data.type === 'freeze') {
+          setFrozen(data.frozen);
           pushEvent('freeze', data);
         }
       };
@@ -84,5 +86,5 @@ export function useScoreboard() {
     setEvents((prev) => prev.filter((e) => e.id !== id));
   }
 
-  return { teams, status, online, timerEndTime, events, consumeEvent, config };
+  return { teams, status, online, frozen, timerEndTime, events, consumeEvent, config };
 }

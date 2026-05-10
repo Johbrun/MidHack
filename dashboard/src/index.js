@@ -78,6 +78,8 @@ app.post('/api/teams/register', (req, res) => {
 
 // Record a capture
 app.post('/api/capture', (req, res) => {
+  if (frozen) return res.status(423).json({ error: 'Le scoreboard est gelé. Votre flag sera pris en compte après le dégel.' });
+
   const { teamName, flag, flagId, flagName, points } = req.body;
   if (!teamName || !flag) return res.status(400).json({ error: 'teamName and flag required' });
 
@@ -272,7 +274,8 @@ if (fs.existsSync(CLIENT_DIST)) {
 
 // WebSocket
 wss.on('connection', (ws) => {
-  ws.send(JSON.stringify({ type: 'scoreboard', teams: getScoreboardData(), config: { hintPenalty: HINT_PENALTY, eventTitle: EVENT_TITLE } }));
+  ws.send(JSON.stringify({ type: 'scoreboard', teams: getScoreboardData(), config: { hintPenalty: HINT_PENALTY, eventTitle: EVENT_TITLE }, frozen }));
+  if (frozen) ws.send(JSON.stringify({ type: 'freeze', frozen: true }));
 });
 
 function broadcast(data) {

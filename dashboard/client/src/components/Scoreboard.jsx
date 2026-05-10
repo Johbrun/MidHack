@@ -3,7 +3,7 @@ import { CATEGORIES, FLAGS, MAX_SCORE } from '../flags';
 
 const DIFF_COLORS = { Facile: '#10B981', Moyen: '#FABB5C', Difficile: '#f87171' };
 
-export default function Scoreboard({ teams, hintPenalty = 3 }) {
+export default function Scoreboard({ teams, hintPenalty = 3, frozen = false }) {
   if (teams.length === 0) {
     return (
       <div className="text-center py-20 text-white/15">
@@ -14,6 +14,13 @@ export default function Scoreboard({ teams, hintPenalty = 3 }) {
   }
 
   return (
+    <>
+      {frozen && (
+        <div className="flex items-center gap-3 px-6 py-3 bg-blue-500/10 border-b border-blue-500/30 text-blue-400 text-sm font-heading font-bold uppercase tracking-wider">
+          <span className="text-xl">🧊</span>
+          Scoreboard gelé — les scores affichés sont figés
+        </div>
+      )}
     <table className="w-full border-collapse table-fixed">
       <thead>
         <tr>
@@ -47,6 +54,7 @@ export default function Scoreboard({ teams, hintPenalty = 3 }) {
         ))}
       </tbody>
     </table>
+    </>
   );
 }
 

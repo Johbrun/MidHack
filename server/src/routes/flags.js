@@ -7,7 +7,7 @@ const DASHBOARD_URL = process.env.DASHBOARD_URL || 'http://localhost:5000';
 const TEAM_NAME = process.env.TEAM_NAME || 'Unknown Team';
 
 // POST /api/flags/submit
-router.post('/submit', (req, res) => {
+router.post('/submit', async (req, res) => {
   const { flag } = req.body;
 
   if (!flag) {
@@ -22,14 +22,20 @@ router.post('/submit', (req, res) => {
   const flagId = FLAG_IDS[flag] || 'UNKNOWN';
   const flagInfo = FLAG_POINTS[flag] || { points: 0, difficulty: 'Unknown' };
 
-  // Notify the central dashboard
-  fetch(`${DASHBOARD_URL}/api/capture`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ teamName: TEAM_NAME, flag, flagId, flagName, points: flagInfo.points }),
-  }).catch(() => {
-    // Dashboard might not be running in dev mode
-  });
+  // Notify the central dashboard and respect its response (e.g. frozen state)
+  try {
+    const dashRes = await fetch(`${DASHBOARD_URL}/api/capture`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ teamName: TEAM_NAME, flag, flagId, flagName, points: flagInfo.points }),
+    });
+    if (!dashRes.ok) {
+      const dashData = await dashRes.json().catch(() => ({}));
+      return res.status(dashRes.status).json({ error: dashData.error || 'Erreur du dashboard', valid: false });
+    }
+  } catch {
+    // Dashboard might not be running in dev mode — continue anyway
+  }
 
   const explanation = FLAG_EXPLANATIONS[flag] || null;
 

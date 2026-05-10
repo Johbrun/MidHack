@@ -126,6 +126,32 @@ html:not(.dark) [class*="border-white/"]  { border-color: rgba(0,0,0,0.12) !impo
 html:not(.dark) [class*="border-accent/"] { border-color: rgba(196,138,32,0.3) !important; }
 html:not(.dark) [class*="border-cyan/"]   { border-color: rgba(4,115,132,0.25) !important; }
 
+/* ─── Admin panel – light mode ─── */
+/* Boutons colorés : fonds et bordures plus opaques */
+html:not(.dark) [class*="bg-emerald-"]   { background-color: rgba(16,185,129,0.22) !important; }
+html:not(.dark) [class*="border-emerald-"] { border-color: rgba(16,185,129,0.55) !important; }
+html:not(.dark) .text-emerald-400        { color: #059669 !important; }
+html:not(.dark) [class*="bg-red-"]       { background-color: rgba(239,68,68,0.18) !important; }
+html:not(.dark) [class*="border-red-"]   { border-color: rgba(239,68,68,0.50) !important; }
+html:not(.dark) .text-red-400            { color: #dc2626 !important; }
+html:not(.dark) [class*="bg-blue-"]      { background-color: rgba(59,130,246,0.18) !important; }
+html:not(.dark) [class*="border-blue-"]  { border-color: rgba(59,130,246,0.50) !important; }
+html:not(.dark) .text-blue-400           { color: #2563eb !important; }
+html:not(.dark) [class*="bg-amber-"]     { background-color: rgba(245,158,11,0.20) !important; }
+html:not(.dark) [class*="border-amber-"] { border-color: rgba(245,158,11,0.55) !important; }
+html:not(.dark) .text-amber-400          { color: #b45309 !important; }
+html:not(.dark) [class*="bg-purple-"]    { background-color: rgba(168,85,247,0.15) !important; }
+html:not(.dark) [class*="border-purple-"]{ border-color: rgba(168,85,247,0.50) !important; }
+html:not(.dark) .text-purple-400         { color: #7c3aed !important; }
+/* Input dans la modale admin : fond et bordure lisibles */
+html:not(.dark) .fixed input,
+html:not(.dark) .fixed select {
+  background-color: rgba(255,255,255,0.85) !important;
+  border-color: rgba(0,0,0,0.20) !important;
+  color: #1a1a1a !important;
+}
+html:not(.dark) .fixed input::placeholder { color: #999 !important; }
+
 /* Table rows et container */
 html:not(.dark) table { color: #1a1a1a; }
 html:not(.dark) tbody tr { background: rgba(255,255,255,0.55); }
