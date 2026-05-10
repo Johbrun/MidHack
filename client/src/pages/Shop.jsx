@@ -143,11 +143,11 @@ export default function Shop() {
       {/* Products Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
         {displayProducts.map(product => (
-          <div key={product.id} className="group relative bg-white/[0.03] border border-white/[0.06] rounded-xl overflow-hidden flex flex-col hover:border-white/[0.14] hover:bg-white/[0.05] transition-all duration-200">
+          <div key={product.id} className="product-card group relative bg-white/[0.03] border border-white/[0.06] rounded-xl overflow-hidden flex flex-col hover:border-white/[0.14] hover:bg-white/[0.05] transition-all duration-200">
             <div className={`absolute inset-0 bg-gradient-to-b ${tierColors[product.tier] || 'from-white/5 to-white/0'} opacity-40 pointer-events-none`} />
             <Link to={`/product/${product.id}`} className="relative flex-1 block p-3">
               {/* Image zone */}
-              <div className="relative mb-3 flex justify-center items-center h-24 bg-white/[0.03] rounded-lg overflow-hidden">
+              <div className="product-card-img relative mb-3 flex justify-center items-center h-24 bg-white/[0.03] rounded-lg overflow-hidden">
                 {product.stock === 0 && (
                   <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
                     <span className="text-[10px] font-heading font-bold text-red-400/80 uppercase tracking-wider">Rupture</span>

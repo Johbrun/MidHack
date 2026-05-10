@@ -152,6 +152,62 @@ html:not(.dark) [class*="border-accent/"] { border-color: rgba(196,138,32,0.35) 
 html:not(.dark) [class*="border-cyan/"]   { border-color: rgba(4,115,132,0.3) !important; }
 html:not(.dark) [class*="border-red-500/"] { border-color: rgba(220,38,38,0.25) !important; }
 
+/* Cartes produits en mode jour — fond blanc, ombre portée, image sur fond clair */
+html:not(.dark) .product-card {
+  background: #ffffff !important;
+  border-color: rgba(0,0,0,0.09) !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+html:not(.dark) .product-card:hover {
+  border-color: rgba(196,138,32,0.4) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+  background: #ffffff !important;
+}
+html:not(.dark) .product-card .product-card-img {
+  background: #f8f6f2 !important;
+}
+html:not(.dark) .product-card h3 {
+  color: #1a1a1a !important;
+}
+html:not(.dark) .product-card button:not(:disabled) {
+  background: rgba(250,187,92,0.15) !important;
+  border-color: rgba(196,138,32,0.35) !important;
+  color: #7a5a10 !important;
+}
+html:not(.dark) .product-card button:not(:disabled):hover {
+  background: rgba(250,187,92,0.3) !important;
+  border-color: rgba(196,138,32,0.6) !important;
+  color: #5a4008 !important;
+}
+
+/* Boutons en mode jour — fond jaune pâle, bordure accent, texte sombre */
+html:not(.dark) .btn-primary {
+  background: rgba(250,187,92,0.18) !important;
+  border: 1px solid rgba(196,138,32,0.45) !important;
+  color: #1a1a1a !important;
+}
+html:not(.dark) .btn-primary:hover {
+  background: rgba(250,187,92,0.35) !important;
+  border-color: rgba(196,138,32,0.7) !important;
+}
+html:not(.dark) .btn-secondary {
+  background: rgba(250,187,92,0.12) !important;
+  border-color: rgba(196,138,32,0.4) !important;
+  color: #1a1a1a !important;
+}
+html:not(.dark) .btn-secondary:hover {
+  background: rgba(250,187,92,0.25) !important;
+  border-color: rgba(196,138,32,0.65) !important;
+}
+html:not(.dark) .btn-danger {
+  background: rgba(239,68,68,0.08) !important;
+  border-color: rgba(220,38,38,0.35) !important;
+  color: #b91c1c !important;
+}
+html:not(.dark) .btn-danger:hover {
+  background: rgba(239,68,68,0.18) !important;
+}
+
 /* ─── Background geometric shapes ─── */
 .geo-bg {
   position: fixed;
