@@ -125,6 +125,9 @@ router.post('/buy-batch', authenticate, (req, res) => {
   let totalCost = 0;
   const resolvedItems = [];
   for (const item of items) {
+    if (!Number.isInteger(item.qty) || item.qty <= 0) {
+      return res.status(400).json({ error: 'La quantité doit être un entier positif' });
+    }
     const product = db.prepare('SELECT * FROM products WHERE id = ?').get(item.id);
     if (!product) {
       return res.status(404).json({ error: `Produit introuvable (id: ${item.id})` });

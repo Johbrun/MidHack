@@ -25,7 +25,7 @@ const FLAG_NAMES = {
   [FLAGS.JWT_FORGING]: 'JWT Forging',
   [FLAGS.STORED_XSS]: 'Stored XSS',
   [FLAGS.ZERO_RATING]: 'Zero Rating',
-  [FLAGS.MASS_ASSIGNMENT]: 'Mass Assignment',
+  [FLAGS.MASS_ASSIGNMENT]: 'Go Premium',
   [FLAGS.CSRF]: 'CSRF',
   [FLAGS.PATH_TRAVERSAL]: 'Path Traversal',
   [FLAGS.SSRF]: 'SSRF',
@@ -116,11 +116,11 @@ const FLAG_EXPLANATIONS = {
     fixedCode: `const ratingValue = parseInt(rating);\nif (isNaN(ratingValue) || ratingValue < 1 || ratingValue > 5) {\n  return res.status(400).json({ error: 'Rating must be 1-5' });\n}`,
   },
   [FLAGS.MASS_ASSIGNMENT]: {
-    danger: "Un utilisateur peut s'auto-promouvoir admin en ajoutant le champ 'role' dans une requête de mise à jour de profil.",
+    danger: "Un utilisateur peut s'abonner au plan Premium sans payer en ajoutant le champ 'subscription' dans une requête de mise à jour de profil.",
     fix: "Utiliser une whitelist de champs modifiables. Ne jamais propager aveuglément req.body dans une requête SQL.",
     owasp: 'A04:2021 - Insecure Design',
-    vulnerableCode: `const { email, bio, username, role } = req.body;\n// role vient du client, pas de vérification !`,
-    fixedCode: `const { email, bio, username } = req.body;\n// Ne PAS extraire 'role' du body\n// Seuls les admins peuvent modifier les rôles`,
+    vulnerableCode: `const { email, bio, username, subscription } = req.body;\n// subscription vient du client sans paiement !`,
+    fixedCode: `const { email, bio, username } = req.body;\n// Ne PAS extraire 'subscription' du body\n// Utiliser l'endpoint dédié PUT /users/:id/subscription\n// qui vérifie le solde avant de débiter`,
   },
   [FLAGS.CSRF]: {
     danger: "Un site malveillant peut forcer le navigateur de la victime à effectuer des actions (transfert de crédits) sans son consentement.",

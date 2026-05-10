@@ -1,13 +1,23 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api';
+import { useAuth } from '../context/AuthContext';
 
 export default function Home() {
+  const { user } = useAuth();
   const [products, setProducts] = useState([]);
+  const [subscription, setSubscription] = useState(null);
 
   useEffect(() => {
     api.get('/products').then(r => setProducts(r.data.products)).catch(() => { });
   }, []);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    api.get(`/users/${user.id}/subscription`)
+      .then(r => setSubscription(r.data.subscription || 'free'))
+      .catch(() => setSubscription('free'));
+  }, [user?.id]);
 
   const tierColors = {
     'Organic Banana': 'from-emerald-500/20 to-emerald-900/10',
@@ -83,6 +93,47 @@ export default function Home() {
               </div>
             </Link>
           ))}
+        </div>
+      </section>
+
+      {/* Subscription Promo */}
+      <section className="max-w-4xl mx-auto px-6 pb-16">
+        <div className="relative overflow-hidden rounded-2xl border border-accent/30 bg-gradient-to-br from-accent/10 to-terracotta/5 p-10">
+          <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-accent/5 -translate-y-1/2 translate-x-1/3 pointer-events-none" />
+          <div className="relative flex flex-col md:flex-row items-center justify-between gap-6">
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="px-3 py-1 rounded-full bg-accent/20 border border-accent/40 text-accent text-xs font-heading font-bold uppercase tracking-wider">
+                  Premium
+                </span>
+                <span className="text-white/30 text-xs">50 🥭 / mois</span>
+              </div>
+              {subscription === 'premium' ? (
+                <>
+                  <h2 className="text-2xl font-heading font-extrabold mb-2">
+                    Vous êtes abonné <span className="text-accent">Premium</span> 🍌
+                  </h2>
+                  <p className="text-white/40 text-sm max-w-md">
+                    Profitez de vos avantages exclusifs et de réductions sur tous vos achats.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h2 className="text-2xl font-heading font-extrabold mb-2">
+                    Passez au <span className="text-accent">Premium</span>
+                  </h2>
+                  <p className="text-white/40 text-sm max-w-md">
+                    Débloquez des réductions exclusives, des bananes réservées aux membres et une livraison prioritaire en 24h.
+                  </p>
+                </>
+              )}
+            </div>
+            <div className="flex-shrink-0">
+              <Link to="/subscription" className="btn-primary !px-8 whitespace-nowrap">
+                {subscription === 'premium' ? 'Gérer mon abonnement' : 'Découvrir le Premium'}
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
 

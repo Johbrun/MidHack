@@ -56,6 +56,12 @@ db.exec(`
   );
 `);
 
+// Add subscription column if it doesn't exist yet (idempotent migration)
+const cols = db.prepare("PRAGMA table_info(users)").all();
+if (!cols.find(c => c.name === 'subscription')) {
+  db.exec("ALTER TABLE users ADD COLUMN subscription TEXT DEFAULT 'free'");
+}
+
 // Seed data (only if empty)
 const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get().count;
 if (userCount === 0) {

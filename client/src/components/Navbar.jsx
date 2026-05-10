@@ -58,16 +58,16 @@ export default function Navbar() {
           {user ? (
             <>
               <Link
-                to="/me"
+                to="/dashboard"
                 className="px-4 py-2 text-sm text-white/60 hover:text-cyan transition-colors font-body"
               >
-                Voir mon profil
+                Tableau de bord
               </Link>
               <Link
-                to="/send"
-                className="px-4 py-2 text-sm text-white/60 hover:text-cyan transition-colors font-body"
+                to="/subscription"
+                className="px-4 py-2 text-sm text-white/60 hover:text-accent transition-colors font-body"
               >
-                Envoyer des crédits
+                Abonnement
               </Link>
               {user.role === 'admin' && (
                 <Link
@@ -99,6 +99,12 @@ export default function Navbar() {
           {user ? (
             <div className="ml-2 pl-3 border-l border-white/10 flex items-center gap-3">
               <span className="text-sm font-mono text-accent">{user.username}</span>
+              <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-accent/10 border border-accent/20">
+                <span className="text-accent/60 text-xs leading-none">◈</span>
+                <span className="text-xs font-mono font-semibold text-accent/80">
+                  {user.balance != null ? Math.floor(user.balance) : '—'} cr
+                </span>
+              </span>
               <button
                 onClick={handleLogout}
                 className="text-sm text-white/40 hover:text-red-400 transition-colors"

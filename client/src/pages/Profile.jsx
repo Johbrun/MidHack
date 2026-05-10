@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api';
 
@@ -11,6 +12,7 @@ export default function Profile() {
   const [email, setEmail] = useState('');
   const [bio, setBio] = useState('');
   const [message, setMessage] = useState('');
+  const [subscription, setSubscription] = useState(null);
 
   useEffect(() => {
     api.get(`/users/${id}`).then(r => {
@@ -19,6 +21,13 @@ export default function Profile() {
       setEmail(r.data.email || '');
       setBio(r.data.bio || '');
     }).catch(() => {});
+  }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
+    api.get(`/users/${id}/subscription`)
+      .then(r => setSubscription(r.data.subscription || 'free'))
+      .catch(() => setSubscription('free'));
   }, [id]);
 
   const handleSave = async () => {
@@ -97,6 +106,21 @@ export default function Profile() {
             <p className="text-2xl font-heading font-extrabold text-accent">
               {profile.balance?.toFixed(2)} <span className="text-sm text-white/30">crédits</span>
             </p>
+          </div>
+
+          <div>
+            <label className="label">Abonnement</label>
+            <div className="flex items-center justify-between">
+              <span className={`px-3 py-1 rounded-full text-xs font-heading font-bold uppercase tracking-wider
+                ${subscription === 'premium'
+                  ? 'bg-accent/20 border border-accent/40 text-accent'
+                  : 'bg-white/10 border border-white/20 text-white/50'}`}>
+                {subscription === 'premium' ? 'Premium' : 'Gratuit'}
+              </span>
+              <Link to="/subscription" className="btn-secondary !text-xs !py-1.5 !px-4 !h-auto">
+                Changer de plan
+              </Link>
+            </div>
           </div>
 
           <div>

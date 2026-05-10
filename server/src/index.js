@@ -34,6 +34,7 @@ require('./db');
 
 // API Routes
 app.use('/api/auth', require('./routes/auth'));
+app.use('/api/users', require('./routes/subscriptions'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/credits', require('./routes/credits'));
 app.use('/api/products', require('./routes/products'));

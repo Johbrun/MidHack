@@ -25,8 +25,11 @@ export function AuthProvider({ children }) {
     const token = getCookie('token');
     if (token) {
       const decoded = parseJwt(token);
-      if (decoded) {
+      if (decoded?.id) {
         setUser(decoded);
+        api.get(`/users/${decoded.id}`)
+          .then(r => setUser(u => u ? { ...u, balance: r.data.balance } : u))
+          .catch(() => {});
       }
     }
     setLoading(false);
@@ -36,7 +39,13 @@ export function AuthProvider({ children }) {
     const { data } = await api.post('/auth/login', { username, password });
     const token = getCookie('token');
     const decoded = token ? parseJwt(token) : data;
-    setUser(decoded || data);
+    const userData = decoded || data;
+    setUser(userData);
+    if (userData?.id) {
+      api.get(`/users/${userData.id}`)
+        .then(r => setUser(u => u ? { ...u, balance: r.data.balance } : u))
+        .catch(() => {});
+    }
     return data;
   };
 
