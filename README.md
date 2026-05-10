@@ -7,10 +7,14 @@ Plateforme CTF (Capture The Flag) pour un atelier d'initiation à la sécurité 
 L'atelier se décompose en **trois parties** :
 
 1. **Le site BananaShop** - une application e-commerce React + Express contenant 14 vulnérabilités à exploiter
-2. **Le serveur d'exploit** - un espace par équipe avec webhook, générateur CSRF, outils d'exploitation et soumission de flags
+2. **Le serveur d'exploit** - un espace par équipe avec webhook, outils d'exploitation et soumission de flags
 3. **Le dashboard live** - un tableau de scores en temps réel (WebSocket) à projeter, affichant la progression de chaque équipe
 
 Une **mini-académie** intégrée au serveur d'exploit propose des slides interactives couvrant les phases du pentest et chaque type de vulnérabilité (explication, détection, exemples de code, remédiation).
+
+## Guide animateur
+
+Voir [ANIMATEUR.md](ANIMATEUR.md) pour les instructions de setup, le déroulement de l'atelier, les comptes et secrets, et la gestion du panel admin.
 
 ## Aperçu
 
@@ -132,7 +136,7 @@ midhack/
 ## Scoring
 
 - Chaque flag rapporte des points selon sa difficulté (Facile=10 / Moyen=15 / Difficile=25)
-- Utiliser un indice coûte des points (configurable via `HINT_PENALTY`, défaut : 5)
+- Utiliser un indice coûte des points (configurable via `HINT_PENALTY`, défaut : 3)
 - En cas d'égalité : nombre de flags > temps de première capture
 
 ## Déroulement suggéré (2h)
@@ -148,3 +152,7 @@ midhack/
 - **Burp Suite Community** pour intercepter et forger des requêtes HTTP
 - L'extension **JWT** de Burp Suite pour décoder et modifier des tokens JWT
 - L'onglet **Académie** du serveur d'exploit pour apprendre les techniques
+
+---
+
+Développé par Johan Brun pour [Nantes@Hack](https://www.meetup.com/nantesathack/).

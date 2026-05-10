@@ -1,6 +1,6 @@
-# Guide Formateur - MidHack BananaShop CTF
+# Guide Animateur - MidHack BananaShop CTF
 
-Document réservé aux formateurs. **Ne pas partager avec les participants.**
+Document réservé aux animateurs. **Ne pas partager avec les participants.**
 
 ## Avant l'atelier
 
@@ -107,7 +107,6 @@ Le mot de passe admin est affiché lors du `setup.sh` et sauvegardé dans `crede
 | **Dégeler le scoreboard** | Révéler le classement final |
 | **Réinitialiser les scores** | Remet tous les scores à zéro |
 | **Export JSON/CSV** | Télécharger les résultats complets |
-| **Certificats** | Générer une page HTML imprimable avec un certificat par équipe (rang, score, challenges résolus) |
 
 ### Contrôle du timer via curl (alternative)
 
@@ -115,12 +114,10 @@ Le mot de passe admin est affiché lors du `setup.sh` et sauvegardé dans `crede
 # Démarrer le timer (ex: 90 minutes)
 curl -X POST http://localhost:5000/api/timer/start \
   -H "Content-Type: application/json" \
-  -H "X-Admin-Token: MOT_DE_PASSE_ADMIN" \
   -d '{"duration": 90}'
 
 # Arrêter le timer
-curl -X POST http://localhost:5000/api/timer/stop \
-  -H "X-Admin-Token: MOT_DE_PASSE_ADMIN"
+curl -X POST http://localhost:5000/api/timer/stop
 
 # Voir l'état du timer
 curl http://localhost:5000/api/timer
@@ -148,7 +145,7 @@ curl -X POST http://localhost:5000/api/announce \
    - Chaque flag trouvé rapporte des points
    - Les indices coûtent -3 pts (configurable)
    - **First Blood** : +5 pts bonus pour la première équipe à capturer un flag
-   - Les challenges se déverrouillent progressivement (2 Faciles → Moyens, 2 Moyens → Difficiles)
+   - Si `VITE_PROGRESSIVE_UNLOCK=true` : les challenges se déverrouillent progressivement (2 Faciles → Moyens, 2 Moyens → Difficiles)
 5. **Lancer le timer** depuis le panel admin du dashboard
 
 ### Phase 2 - CTF libre (1h30)
@@ -166,7 +163,6 @@ curl -X POST http://localhost:5000/api/announce \
 - Walkthrough de chaque vulnérabilité avec les participants
 - Montrer le code vulnérable vs. le code corrigé via le bouton **Fix-It** sur la page Challenges (disponible pour chaque flag capturé)
 - Discuter des remédiations et bonnes pratiques
-- **Exporter les certificats** depuis le panel admin et les distribuer
 
 ### Phase 4 - Démo CSRF en live (5-10 min)
 
@@ -193,7 +189,7 @@ Terminer l'atelier par une démonstration concrète d'attaque CSRF pour marquer 
 
 ### Déverrouillage progressif des challenges
 
-Les challenges ne sont pas tous visibles dès le départ :
+Activé via `VITE_PROGRESSIVE_UNLOCK=true` dans le `docker-compose.yml` (désactivé par défaut). Quand actif, les challenges ne sont pas tous visibles dès le départ :
 - **Facile** : toujours visibles
 - **Moyen** : se débloquent après avoir capturé 2 flags Faciles
 - **Difficile** : se débloquent après avoir capturé 2 flags Moyens
