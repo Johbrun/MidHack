@@ -7,7 +7,6 @@ export default function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [flag, setFlag] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -15,12 +14,8 @@ export default function Login() {
     e.preventDefault();
     setError('');
     try {
-      const data = await login(username, password);
-      if (data?.flag) {
-        setFlag(data.flag);
-      } else {
-        navigate('/dashboard');
-      }
+      await login(username, password);
+      navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.error || 'Échec de la connexion');
     }
@@ -37,16 +32,6 @@ export default function Login() {
         {error && (
           <div className="mb-6 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
             {error}
-          </div>
-        )}
-
-        {flag && (
-          <div className="mb-6 p-4 rounded-lg bg-cyan/10 border border-cyan/30">
-            <p className="text-xs text-white/40 mb-1">Flag trouvé !</p>
-            <p className="font-mono text-cyan text-lg break-all">{flag}</p>
-            <button onClick={() => navigate('/dashboard')} className="btn-primary mt-3 w-full">
-              Continuer
-            </button>
           </div>
         )}
 

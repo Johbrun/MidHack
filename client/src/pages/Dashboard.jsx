@@ -51,6 +51,18 @@ export default function Dashboard() {
         <p className="text-white/40 text-sm">Bon retour, {user?.username}</p>
       </div>
 
+      {/* SQLI Flag — visible only for admin */}
+      {user?.role === 'admin' && (
+        <div className="mb-6 p-5 rounded-xl border-2 border-cyan/60 bg-cyan/80">
+          <p className="text-black text-xs font-heading font-bold uppercase tracking-wider mb-2">
+            🚩 SQL Injection - Vous avez réussi à vous connecter en admin en utilisant une injection SQL !
+          </p>
+          <p className="font-mono text-sm text-black break-all select-all">
+            ASY{'{'}4dm1n_s4ns_m0t_d3_p4ss3{'}'}
+          </p>
+        </div>
+      )}
+
       {/* Balance Card */}
       <div className="card p-8 mb-6 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full -translate-y-1/2 translate-x-1/2" />
