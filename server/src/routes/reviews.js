@@ -5,6 +5,22 @@ const { FLAGS } = require('../flags');
 
 const router = express.Router();
 
+// GET /api/products/reviews/recent?limit=N
+router.get('/reviews/recent', (req, res) => {
+  const limit = Math.min(parseInt(req.query.limit) || 6, 20);
+  const reviews = db.prepare(`
+    SELECT r.id, r.content, r.rating, r.created_at,
+      u.username,
+      p.name as product_name, p.id as product_id
+    FROM reviews r
+    JOIN users u ON r.user_id = u.id
+    JOIN products p ON r.product_id = p.id
+    ORDER BY r.created_at DESC
+    LIMIT ?
+  `).all(limit);
+  res.json(reviews);
+});
+
 // GET /api/products/:id/reviews
 router.get('/:productId/reviews', (req, res) => {
   const reviews = db.prepare(`

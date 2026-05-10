@@ -34,7 +34,14 @@ router.get('/', (req, res) => {
     return res.json({ products, searchTerm: reflected });
   }
 
-  products = db.prepare('SELECT * FROM products').all();
+  products = db.prepare(`
+    SELECT p.*,
+      ROUND(AVG(r.rating), 1) as avg_rating,
+      COUNT(r.id) as review_count
+    FROM products p
+    LEFT JOIN reviews r ON r.product_id = p.id
+    GROUP BY p.id
+  `).all();
   res.json({ products });
 });
 
