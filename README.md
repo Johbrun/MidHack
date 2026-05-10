@@ -12,6 +12,8 @@ L'atelier se décompose en **trois parties** :
 
 Une **mini-académie** intégrée au serveur d'exploit propose des slides interactives couvrant les phases du pentest et chaque type de vulnérabilité (explication, détection, exemples de code, remédiation).
 
+Un **parcours d'onboarding guidé** s'affiche automatiquement à la première connexion sur le Hacking QG et sur le site BananaShop, pour s'assurer que les participants lisent les instructions et configurent Burp Suite avant de commencer.
+
 ## Guide animateur
 
 Voir [ANIMATEUR.md](ANIMATEUR.md) pour les instructions de setup, le déroulement de l'atelier, les comptes et secrets, et la gestion du panel admin.
@@ -138,6 +140,20 @@ midhack/
 - Chaque flag rapporte des points selon sa difficulté (Facile=10 / Moyen=15 / Difficile=25)
 - Utiliser un indice coûte des points (configurable via `HINT_PENALTY`, défaut : 3)
 - En cas d'égalité : nombre de flags > temps de première capture
+
+## Onboarding des participants
+
+À la première connexion, une **modale bloquante** s'affiche sur le Hacking QG et sur le site BananaShop. Elle guide les participants en 5 étapes avant de leur donner accès aux outils :
+
+1. **Présentation** — introduction à l'onboarding et à l'outil Burp Suite
+2. **Guide Burp** — lien vers le guide d'installation (`/installation-burp.html`)
+3. **Exercice Burp** — envoyer une requête et la retrouver dans l'historique HTTP pour la rejouer dans le Repeater avec la bonne valeur, ce qui révèle le flag de démarrage
+4. **Déroulement du CTF** — process de recherche de vulnérabilités suggéré
+5. **Flag** — saisie du flag de démarrage pour déverrouiller l'interface
+
+Le flag de démarrage est renvoyé par la route `POST /hello-my-flag` lorsque le participant envoie la bonne valeur dans le corps de la requête (exercice guidé à l'étape 03). Une fois le flag soumis, tous les menus du QG et du BananaShop se déverrouillent. L'état est persisté en `localStorage`.
+
+**Pour réinitialiser l'onboarding d'un participant** : vider le `localStorage` de son navigateur (clé `midhack_unlocked`).
 
 ## Déroulement suggéré (2h)
 

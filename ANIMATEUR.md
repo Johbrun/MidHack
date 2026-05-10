@@ -141,12 +141,13 @@ curl -X POST http://localhost:5000/api/announce \
 1. Présenter le contexte : sécurité offensive, OWASP Top 10
 2. Montrer les outils : DevTools, Burp Suite, extension JWT de Burp
 3. Distribuer les cartes d'accès imprimées (`credentials.html`) à chaque équipe
-4. Expliquer les règles :
+4. Demander aux équipes de **se connecter sur leur Hacking QG** — la modale d'onboarding s'affiche automatiquement et les guide à travers l'installation de Burp, un premier exercice d'interception, et la saisie du flag de démarrage qui déverrouille l'interface
+5. Expliquer les règles :
    - Chaque flag trouvé rapporte des points
    - Les indices coûtent -3 pts (configurable)
    - **First Blood** : +5 pts bonus pour la première équipe à capturer un flag
    - Si `VITE_PROGRESSIVE_UNLOCK=true` : les challenges se déverrouillent progressivement (2 Faciles → Moyens, 2 Moyens → Difficiles)
-5. **Lancer le timer** depuis le panel admin du dashboard
+6. **Lancer le timer** depuis le panel admin du dashboard
 
 ### Phase 2 - CTF libre (1h30)
 

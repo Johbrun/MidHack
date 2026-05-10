@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
+import { useOnboarding } from '../context/OnboardingContext';
 import { NantesHackLogo } from '../lib/branding';
 
 function ThemeToggle() {
@@ -29,6 +30,7 @@ function ThemeToggle() {
 export default function Navbar() {
   const { user, logout } = useAuth();
   const { totalItems } = useCart();
+  const { unlocked } = useOnboarding();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -93,31 +95,47 @@ export default function Navbar() {
       {user && (
         <div className="border-t border-white/[0.05] bg-white/[0.02]">
           <div className="max-w-6xl mx-auto px-6 h-9 flex items-center gap-1">
-            <Link
-              to="/shop"
-              className="px-3 py-1 text-xs text-white/50 hover:text-cyan transition-colors font-body rounded hover:bg-white/[0.05]"
-            >
-              Boutique
-            </Link>
-            <Link
-              to="/dashboard"
-              className="px-3 py-1 text-xs text-white/50 hover:text-cyan transition-colors font-body rounded hover:bg-white/[0.05]"
-            >
-              Tableau de bord
-            </Link>
-            <Link
-              to="/subscription"
-              className="px-3 py-1 text-xs text-white/50 hover:text-accent transition-colors font-body rounded hover:bg-white/[0.05]"
-            >
-              Abonnement
-            </Link>
-            {user.role === 'admin' && (
-              <Link
-                to="/admin"
-                className="px-3 py-1 text-xs text-accent hover:text-accent/80 transition-colors font-heading font-semibold rounded hover:bg-accent/[0.08]"
-              >
-                ⚡ Admin
-              </Link>
+            {unlocked ? (
+              <>
+                <Link
+                  to="/shop"
+                  className="px-3 py-1 text-xs text-white/50 hover:text-cyan transition-colors font-body rounded hover:bg-white/[0.05]"
+                >
+                  Boutique
+                </Link>
+                <Link
+                  to="/dashboard"
+                  className="px-3 py-1 text-xs text-white/50 hover:text-cyan transition-colors font-body rounded hover:bg-white/[0.05]"
+                >
+                  Tableau de bord
+                </Link>
+                <Link
+                  to="/subscription"
+                  className="px-3 py-1 text-xs text-white/50 hover:text-accent transition-colors font-body rounded hover:bg-white/[0.05]"
+                >
+                  Abonnement
+                </Link>
+                {user.role === 'admin' && (
+                  <Link
+                    to="/admin"
+                    className="px-3 py-1 text-xs text-accent hover:text-accent/80 transition-colors font-heading font-semibold rounded hover:bg-accent/[0.08]"
+                  >
+                    ⚡ Admin
+                  </Link>
+                )}
+              </>
+            ) : (
+              <>
+                {['Boutique', 'Tableau de bord', 'Abonnement'].map((label) => (
+                  <span
+                    key={label}
+                    title="Complète les étapes de démarrage pour débloquer"
+                    className="px-3 py-1 text-xs text-white/20 font-body rounded cursor-not-allowed select-none"
+                  >
+                    {label}
+                  </span>
+                ))}
+              </>
             )}
           </div>
         </div>

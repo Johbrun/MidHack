@@ -5,6 +5,8 @@ import { ThemeProvider } from './context/ThemeContext';
 import Navbar from './components/Navbar';
 import AnnouncementBanner from './components/AnnouncementBanner';
 import ProtectedRoute from './components/ProtectedRoute';
+import OnboardingModal from './components/OnboardingModal';
+import { OnboardingProvider } from './context/OnboardingContext';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -22,8 +24,10 @@ export default function App() {
   return (
     <ThemeProvider>
     <BrowserRouter>
+      <OnboardingProvider>
       <AuthProvider>
         <CartProvider>
+          <OnboardingModal />
           <AnnouncementBanner />
           <div className="geo-bg" />
           <Navbar />
@@ -45,6 +49,7 @@ export default function App() {
           </div>
         </CartProvider>
       </AuthProvider>
+      </OnboardingProvider>
     </BrowserRouter>
     </ThemeProvider>
   );
