@@ -266,6 +266,7 @@ x-event-config: &event-config
 services:
   # Central live dashboard (to project on screen)
   dashboard:
+    image: midhack-dashboard:latest
     build:
       context: .
       dockerfile: Dockerfile.dashboard
@@ -299,14 +300,34 @@ EOF
     local EXPLOIT_PORT=$((TEAM_PORT_BASE + 1 + (i - 1) * 2))
     local TEAM_PWD=${PASSWORDS[$i]}
 
+    # Toutes les équipes partagent la même image (seules les variables
+    # d'environnement runtime diffèrent). Seule la team 1 porte la directive
+    # build: ; les autres réutilisent l'image déjà construite (pull_policy: never).
+    local SITE_BUILD EXPLOIT_BUILD
+    if [ "$i" -eq 1 ]; then
+      SITE_BUILD="    build:
+      context: .
+      dockerfile: Dockerfile.site
+      args: *build-args"
+      EXPLOIT_BUILD="    build:
+      context: .
+      dockerfile: Dockerfile.exploit
+      args:
+        VITE_NANTES_HACK: \"$NANTES_HACK\"
+        VITE_PROGRESSIVE_UNLOCK: \"$PROGRESSIVE_UNLOCK\"
+        VITE_UNLOCK_THRESHOLD: \"$UNLOCK_THRESHOLD\"
+        VITE_HINT_PENALTY: \"$HINT_PENALTY\""
+    else
+      SITE_BUILD="    pull_policy: never"
+      EXPLOIT_BUILD="    pull_policy: never"
+    fi
+
     cat >> "$FILE" <<EOF
 
   # ──────────────────────── Team $i ────────────────────────
   site-team${i}:
-    build:
-      context: .
-      dockerfile: Dockerfile.site
-      args: *build-args
+    image: midhack-site:latest
+${SITE_BUILD}
     environment:
       - TEAM_NAME=$NAME
       - DASHBOARD_URL=http://dashboard:5000
@@ -325,14 +346,8 @@ EOF
     mem_limit: 256m
 
   exploit-team${i}:
-    build:
-      context: .
-      dockerfile: Dockerfile.exploit
-      args:
-        VITE_NANTES_HACK: "$NANTES_HACK"
-        VITE_PROGRESSIVE_UNLOCK: "$PROGRESSIVE_UNLOCK"
-        VITE_UNLOCK_THRESHOLD: "$UNLOCK_THRESHOLD"
-        VITE_HINT_PENALTY: "$HINT_PENALTY"
+    image: midhack-exploit:latest
+${EXPLOIT_BUILD}
     environment:
       - TEAM_NAME=$NAME
       - TEAM_PASSWORD=$TEAM_PWD
