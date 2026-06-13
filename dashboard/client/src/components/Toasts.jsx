@@ -92,7 +92,7 @@ function buildToast(evt) {
   }
   if (evt.type === 'freeze') {
     return {
-      msg: evt.payload.frozen ? '🧊 Scoreboard gelé !' : '🔓 Scoreboard dégelé !',
+      msg: evt.payload.frozen ? '🧊 CTF gelé !' : '🔓 CTF dégelé !',
       kind: 'hint',
     };
   }

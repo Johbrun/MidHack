@@ -49,6 +49,31 @@ function saveState() {
 
 loadState();
 
+// ─── Feedbacks (participant retros on the event) ───
+const FEEDBACK_FILE = path.join(__dirname, '..', 'data', 'feedbacks.json');
+let feedbacks = [];
+let nextFeedbackId = 1;
+
+function loadFeedbacks() {
+  try {
+    if (fs.existsSync(FEEDBACK_FILE)) {
+      feedbacks = JSON.parse(fs.readFileSync(FEEDBACK_FILE, 'utf-8'));
+      nextFeedbackId = feedbacks.reduce((m, f) => Math.max(m, f.id || 0), 0) + 1;
+      console.log(`Loaded ${feedbacks.length} feedbacks from disk`);
+    }
+  } catch { feedbacks = []; }
+}
+
+function saveFeedbacks() {
+  try {
+    const dir = path.dirname(FEEDBACK_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(FEEDBACK_FILE, JSON.stringify(feedbacks, null, 2));
+  } catch (err) { console.error('Failed to save feedbacks:', err.message); }
+}
+
+loadFeedbacks();
+
 // CORS
 app.use((req, res, next) => {
   const origin = req.headers.origin;
@@ -78,7 +103,7 @@ app.post('/api/teams/register', (req, res) => {
 
 // Record a capture
 app.post('/api/capture', (req, res) => {
-  if (frozen) return res.status(423).json({ error: 'Le scoreboard est gelé. Votre flag sera pris en compte après le dégel.' });
+  if (frozen) return res.status(423).json({ error: 'Le CTF est gelé. Votre flag sera pris en compte après le dégel.' });
 
   const { teamName, flag, flagId, flagName, points } = req.body;
   if (!teamName || !flag) return res.status(400).json({ error: 'teamName and flag required' });
@@ -194,14 +219,14 @@ let frozen = false;
 
 app.post('/api/scoreboard/freeze', requireAdmin, (req, res) => {
   frozen = true;
-  console.log('FREEZE: Scoreboard frozen');
+  console.log('FREEZE: CTF frozen');
   broadcast({ type: 'freeze', frozen: true });
   res.json({ ok: true, frozen });
 });
 
 app.post('/api/scoreboard/unfreeze', requireAdmin, (req, res) => {
   frozen = false;
-  console.log('UNFREEZE: Scoreboard unfrozen');
+  console.log('UNFREEZE: CTF unfrozen');
   broadcast({ type: 'freeze', frozen: false });
   broadcastScoreboard();
   res.json({ ok: true, frozen });
@@ -214,6 +239,62 @@ app.post('/api/announce', requireAdmin, (req, res) => {
   console.log(`ANNOUNCE: ${message}`);
   broadcast({ type: 'announcement', message, timestamp: new Date().toISOString() });
   res.json({ ok: true });
+});
+
+// ─── Feedbacks ───
+// Submit a feedback (sent by a team's Hacking QG, no admin auth required)
+app.post('/api/feedback', (req, res) => {
+  const { teamName, answers } = req.body;
+  if (!Array.isArray(answers) || !answers.some((a) => a && String(a.answer).trim())) {
+    return res.status(400).json({ error: 'answers required' });
+  }
+  const cleanAnswers = answers
+    .filter((a) => a && String(a.answer).trim())
+    .map((a) => ({
+      id: a.id || null,
+      question: String(a.question || '').slice(0, 500),
+      answer: String(a.answer).trim().slice(0, 4000),
+    }));
+  const entry = {
+    id: nextFeedbackId++,
+    teamName: teamName || 'Anonyme',
+    answers: cleanAnswers,
+    createdAt: new Date().toISOString(),
+  };
+  feedbacks.unshift(entry);
+  saveFeedbacks();
+  console.log(`FEEDBACK from ${entry.teamName} (${cleanAnswers.length} réponse(s))`);
+  res.json({ ok: true });
+});
+
+// List all feedbacks (admin only)
+app.get('/api/feedback', requireAdmin, (req, res) => {
+  res.json({ feedbacks });
+});
+
+// Export all feedbacks as a plain text file (admin only)
+app.get('/api/feedback/export', requireAdmin, (req, res) => {
+  const sep = '═'.repeat(60);
+  const lines = [
+    `Feedbacks — ${EVENT_TITLE}`,
+    `Exporté le ${new Date().toLocaleString('fr-FR')}`,
+    `${feedbacks.length} feedback(s)`,
+    '',
+  ];
+  for (const f of feedbacks) {
+    lines.push(sep);
+    lines.push(`Équipe : ${f.teamName}`);
+    lines.push(`Date   : ${new Date(f.createdAt).toLocaleString('fr-FR')}`);
+    lines.push('');
+    for (const a of f.answers || []) {
+      lines.push(`Q: ${a.question}`);
+      lines.push(`R: ${a.answer}`);
+      lines.push('');
+    }
+  }
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  res.setHeader('Content-Disposition', 'attachment; filename="feedbacks.txt"');
+  res.send(lines.join('\n'));
 });
 
 // ─── Admin info ───

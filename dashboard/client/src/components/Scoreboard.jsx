@@ -18,7 +18,7 @@ export default function Scoreboard({ teams, hintPenalty = 3, frozen = false }) {
       {frozen && (
         <div className="flex items-center gap-3 px-6 py-3 bg-blue-500/10 border-b border-blue-500/30 text-blue-400 text-sm font-heading font-bold uppercase tracking-wider">
           <span className="text-xl">🧊</span>
-          Scoreboard gelé — les scores affichés sont figés
+          CTF gelé — les scores affichés sont figés
         </div>
       )}
     <table className="w-full border-collapse table-fixed">

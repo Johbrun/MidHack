@@ -8,6 +8,8 @@ export default function AdminPanel({ onClose }) {
   const [announcement, setAnnouncement] = useState('');
   const [timerDuration, setTimerDuration] = useState(90);
   const [status, setStatus] = useState(null);
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [showFeedbacks, setShowFeedbacks] = useState(false);
 
   async function login() {
     try {
@@ -68,6 +70,23 @@ export default function AdminPanel({ onClose }) {
       setMessage('Erreur réseau');
     }
     setTimeout(() => setMessage(''), 3000);
+  }
+
+  async function fetchFeedbacks() {
+    try {
+      const res = await fetch(`/api/feedback?token=${token}`);
+      if (res.ok) {
+        const data = await res.json();
+        setFeedbacks(data.feedbacks || []);
+        setShowFeedbacks(true);
+      } else {
+        setMessage('Impossible de charger les feedbacks');
+        setTimeout(() => setMessage(''), 3000);
+      }
+    } catch {
+      setMessage('Erreur réseau');
+      setTimeout(() => setMessage(''), 3000);
+    }
   }
 
   if (!authenticated) {
@@ -166,10 +185,10 @@ export default function AdminPanel({ onClose }) {
         <Section title="Scoreboard">
           <div className="flex gap-3 flex-wrap">
             <button onClick={() => adminAction('/api/scoreboard/freeze')} className="btn-admin bg-blue-500/20 border-blue-500/40 text-blue-400 hover:bg-blue-500/30">
-              🧊 Geler
+              🧊 Geler le CTF
             </button>
             <button onClick={() => adminAction('/api/scoreboard/unfreeze')} className="btn-admin bg-blue-500/20 border-blue-500/40 text-blue-400 hover:bg-blue-500/30">
-              🔓 Dégeler
+              🔓 Dégeler le CTF
             </button>
             <button
               onClick={() => {
@@ -184,7 +203,7 @@ export default function AdminPanel({ onClose }) {
           </div>
           {status && (
             <div className="mt-3 text-sm text-white/40">
-              {status.frozen && <span className="text-blue-400 font-bold mr-3">🧊 Scoreboard gelé</span>}
+              {status.frozen && <span className="text-blue-400 font-bold mr-3">🧊 CTF gelé</span>}
               {status.timer?.running && <span className="text-emerald-400 mr-3">Timer actif</span>}
               <span>{status.teamCount} équipe(s) enregistrée(s)</span>
             </div>
@@ -214,6 +233,26 @@ export default function AdminPanel({ onClose }) {
           </div>
         </Section>
 
+        {/* Feedbacks */}
+        <Section title="Feedbacks">
+          <div className="flex gap-3 flex-wrap">
+            <button
+              onClick={fetchFeedbacks}
+              className="btn-admin bg-cyan-500/20 border-cyan-500/40 text-cyan-400 hover:bg-cyan-500/30"
+            >
+              💬 Voir les feedbacks
+            </button>
+            <a
+              href={`/api/feedback/export?token=${token}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-admin bg-purple-500/20 border-purple-500/40 text-purple-400 hover:bg-purple-500/30 no-underline"
+            >
+              ⬇ Exporter (.txt)
+            </a>
+          </div>
+        </Section>
+
         <div className="mt-6 text-center">
           <button
             onClick={() => {
@@ -228,6 +267,58 @@ export default function AdminPanel({ onClose }) {
           </button>
         </div>
       </div>
+
+      {showFeedbacks && (
+        <div
+          className="fixed inset-0 bg-black/80 flex items-center justify-center z-[60] overflow-y-auto"
+          onClick={() => setShowFeedbacks(false)}
+        >
+          <div
+            className="bg-[rgb(var(--color-bg-secondary))] border border-white/10 rounded-2xl p-8 max-w-2xl w-full mx-4 my-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="font-heading font-bold text-xl text-accent">
+                Feedbacks des participants{' '}
+                <span className="text-white/30 text-base">({feedbacks.length})</span>
+              </h2>
+              <button
+                onClick={() => setShowFeedbacks(false)}
+                className="text-white/30 hover:text-white text-xl"
+              >
+                &times;
+              </button>
+            </div>
+
+            {feedbacks.length === 0 ? (
+              <p className="text-white/40 text-sm text-center py-10">
+                Aucun feedback pour le moment.
+              </p>
+            ) : (
+              <div className="flex flex-col gap-3 max-h-[60vh] overflow-y-auto pr-1">
+                {feedbacks.map((f) => (
+                  <div key={f.id} className="bg-white/[0.03] border border-white/10 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                      <span className="font-heading font-bold text-sm text-accent">{f.teamName}</span>
+                      <span className="text-white/30 text-xs">
+                        {new Date(f.createdAt).toLocaleString('fr-FR')}
+                      </span>
+                    </div>
+                    <div className="flex flex-col gap-3">
+                      {(f.answers || []).map((a, i) => (
+                        <div key={a.id || i}>
+                          <p className="text-white/40 text-xs mb-1">{a.question}</p>
+                          <p className="text-white/80 text-sm whitespace-pre-wrap break-words">{a.answer}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

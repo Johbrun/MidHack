@@ -9,6 +9,7 @@ credentials.html
 docker-compose.yml
 
 dashboard/data/scoreboard.json
+dashboard/data/feedbacks.json
 
 TODO.md
 
