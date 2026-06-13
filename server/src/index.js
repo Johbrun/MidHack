@@ -51,10 +51,16 @@ app.get('/api/internal/flag', (req, res) => {
 
 // SSE endpoint for admin announcements
 const sseClients = [];
+// Mirrors the dashboard scoreboard freeze state (received over the dashboard WS).
+// When frozen, the BananaShop front locks access.
+let frozen = false;
 app.get('/events', (req, res) => {
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
+  // Push the current freeze state immediately so a fresh page load locks
+  // right away if the scoreboard is already frozen.
+  res.write(`data: ${JSON.stringify({ type: 'freeze', frozen })}\n\n`);
   sseClients.push(res);
   req.on('close', () => {
     const idx = sseClients.indexOf(res);
@@ -86,6 +92,10 @@ function connectDashboardWs() {
         const data = JSON.parse(raw);
         if (data.type === 'announcement') {
           const payload = `data: ${JSON.stringify({ type: 'announcement', message: data.message })}\n\n`;
+          for (const client of sseClients) client.write(payload);
+        } else if (data.type === 'freeze') {
+          frozen = data.frozen;
+          const payload = `data: ${JSON.stringify({ type: 'freeze', frozen })}\n\n`;
           for (const client of sseClients) client.write(payload);
         }
       } catch { /* ignore parse errors */ }

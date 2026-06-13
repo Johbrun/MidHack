@@ -4,6 +4,7 @@ import { CartProvider } from './context/CartContext';
 import { ThemeProvider } from './context/ThemeContext';
 import Navbar from './components/Navbar';
 import AnnouncementBanner from './components/AnnouncementBanner';
+import FreezeOverlay from './components/FreezeOverlay';
 import ProtectedRoute from './components/ProtectedRoute';
 import OnboardingModal from './components/OnboardingModal';
 import { OnboardingProvider } from './context/OnboardingContext';
@@ -29,6 +30,7 @@ export default function App() {
         <CartProvider>
           <OnboardingModal />
           <AnnouncementBanner />
+          <FreezeOverlay />
           <div className="geo-bg" />
           <Navbar />
           <div className="relative z-10">
