@@ -4,3 +4,12 @@ dist/
 .env
 credentials.json
 credentials.html
+
+# généré par setup.sh
+docker-compose.yml
+
+dashboard/data/scoreboard.json
+
+TODO.md
+
+banana_shop.db*

@@ -6,9 +6,10 @@ Document réservé aux animateurs. **Ne pas partager avec les participants.**
 
 ### Prérequis techniques
 
-- Docker et Docker Compose (plugin) installés
+- VPS 2GB RAM + 512MB RAM / équipe
+- Docker et Docker Compose  installés
 - Un écran/projecteur pour le dashboard live
-- Chaque équipe a besoin d'un navigateur avec Burp Suite Community installé
+- Chaque équipe a besoin d'un navigateur + Burp Suite Community installé. inutile d'installer FoxyProxy ou proxy intégré, les participants utiliseront le navigateur intégré à Burp. 
 
 ### Installation et lancement
 
@@ -44,7 +45,7 @@ docker compose up --build -d
 Les paramètres de l'événement sont déclarés dans le `docker-compose.yml` généré, dans le bloc `x-event-config` en haut du fichier. Modifiez-les **avant** de lancer `docker compose up` :
 
 ```yaml
-# Variables partagées pour le dashboard (modifiables ici)
+# Variables partagées pour le dashboard (modifiables dans le fichier setup.sh)
 x-event-config: &event-config
   ADMIN_PASSWORD: "aBcD1234"       # Mot de passe du panel admin
   EVENT_TITLE: "BananaShop CTF"    # Titre affiché sur le dashboard
@@ -91,99 +92,6 @@ Le secret JWT est `secret-pass-to-change` (chaîne littérale). Le serveur n'acc
 
 ---
 
-## Commandes utiles
-
-Aide-mémoire des commandes les plus fréquentes. Toutes sont à lancer depuis la racine du projet.
-
-### Générer / démarrer
-
-```bash
-# Afficher l'aide complète du script (toutes les options)
-./setup.sh -h
-
-# Générer la configuration pour N équipes (sans démarrer)
-./setup.sh 6
-
-# Générer + démarrer (build des images puis lancement)
-./setup.sh 6 --deploy
-
-# Choisir le port de départ (dashboard=1000, team1 site=1001, exploit=1002, ...)
-./setup.sh 6 --port 1000 --deploy
-
-# Personnaliser titre, pénalité d'indice et branding Nantes@Hack
-./setup.sh 6 --title "Nantes@Hack CTF" --hint-penalty 5 --nantes-hack 1 --deploy
-
-# Démarrer manuellement (si la config est déjà générée, sans --deploy)
-docker compose up --build -d
-```
-
-### Afficher les mots de passe
-
-```bash
-# Réafficher les mots de passe (équipes + admin) SANS rien régénérer
-./setup.sh --passwords      # alias : -p
-
-# Voir le fichier brut
-cat credentials.json
-
-# Rouvrir les cartes imprimables
-xdg-open credentials.html   # ou ouvrir le fichier dans un navigateur
-```
-
-> ⚠️ Relancer `./setup.sh` **régénère de nouveaux mots de passe**. Pour seulement les revoir, utilisez `--passwords`.
-
-### Suivre l'état et les logs
-
-```bash
-# État de tous les conteneurs (healthy / running)
-docker compose ps
-
-# Logs en direct de tous les services
-docker compose logs -f
-
-# Logs d'un service précis
-docker compose logs -f dashboard
-docker compose logs -f site-team1
-```
-
-### Mettre à jour
-
-```bash
-# Récupérer la dernière version du code puis reconstruire et relancer
-git pull
-docker compose up --build -d
-
-# Mise à jour complète "propre" (reconstruit tout depuis zéro)
-git pull
-docker compose down
-./setup.sh 6 --deploy
-```
-
-### Redémarrer / arrêter
-
-```bash
-# Redémarrer un service
-docker compose restart dashboard
-
-# Arrêter sans supprimer (les données persistent)
-docker compose stop
-
-# Relancer après un stop
-docker compose start
-```
-
-### Nettoyage
-
-```bash
-# Reset complet : supprime conteneurs, volumes et fichiers générés
-./setup.sh --reset
-
-# Puis régénérer
-./setup.sh 6 --deploy
-```
-
----
-
 ## Panel d'administration
 
 Le dashboard dispose d'un panneau d'administration accessible via le bouton **Admin** en haut à droite du scoreboard.
@@ -200,30 +108,6 @@ Le mot de passe admin est affiché lors du `setup.sh` et sauvegardé dans `crede
 | **Dégeler le scoreboard** | Révéler le classement final |
 | **Réinitialiser les scores** | Remet tous les scores à zéro |
 | **Export JSON/CSV** | Télécharger les résultats complets |
-
-### Contrôle du timer via curl (alternative)
-
-```bash
-# Démarrer le timer (ex: 90 minutes)
-curl -X POST http://localhost:5000/api/timer/start \
-  -H "Content-Type: application/json" \
-  -d '{"duration": 90}'
-
-# Arrêter le timer
-curl -X POST http://localhost:5000/api/timer/stop
-
-# Voir l'état du timer
-curl http://localhost:5000/api/timer
-```
-
-### Annonces via curl
-
-```bash
-curl -X POST http://localhost:5000/api/announce \
-  -H "Content-Type: application/json" \
-  -H "X-Admin-Token: MOT_DE_PASSE_ADMIN" \
-  -d '{"message": "Plus que 30 minutes !"}'
-```
 
 ---
 
@@ -245,9 +129,10 @@ curl -X POST http://localhost:5000/api/announce \
 ### Phase 2 - CTF libre (1h30)
 
 - Les équipes exploitent les vulnérabilités à leur rythme
-- Le dashboard projète le scoreboard en temps réel
+- Le dashboard projète le scoreboard en temps réel.
 - Les participants peuvent consulter l'Académie dans leur serveur d'exploit
 - Circuler entre les équipes pour débloquer si besoin (donner des indices oraux)
+- Le dashboard indique si une équipe n'a pas trouvé de flag depuis 10 minutes. C'est un bon indicateur pour aller les aider. 
 - Utiliser les **annonces** pour donner des indices globaux ou marquer les étapes ("Plus que 30 min !")
 - **Geler le scoreboard** 15 minutes avant la fin pour maintenir le suspense
 
@@ -369,5 +254,5 @@ npm run dev
 | Les flags ne sont pas validés | Vérifier la connexion entre exploit-server et dashboard (réseau Docker) |
 | Les annonces ne s'affichent pas chez les équipes | Vérifier que l'exploit-server est connecté au WebSocket du dashboard (voir les logs) |
 | Port déjà utilisé | `./setup.sh --reset` puis relancer |
-| Mots de passe perdus | Lancer `./setup.sh --passwords` (réaffiche sans régénérer) ou consulter `credentials.json`. ⚠️ Relancer `./setup.sh` régénère de nouveaux mots de passe |
+| Mots de passe perdus | Consulter `credentials.json` ou relancer `./setup.sh` (attention : régénère de nouveaux mots de passe) |
 | Données perdues après redémarrage | Les volumes Docker persistent les données. Un `docker compose down -v` les supprime |
