@@ -51,11 +51,11 @@ cp .env.example .env   # créer la config, puis l'éditer (nombre d'équipes, po
 
 Vérifier l'état des conteneurs avec `docker compose ps` et suivre les logs avec `docker compose logs -f`.
 
-Les ports exposés sont attribués de façon contiguë à partir de `START_PORT` (défaut `44000`, configurable dans `.env`) :
+Les ports exposés sont attribués de façon contiguë à partir de `START_PORT` (défaut `44001`, configurable dans `.env`) :
 
 | Service        | Port exposé             |
 | -------------- | ----------------------- |
-| Dashboard live | `START_PORT` (ex 44000) |
+| Dashboard live | `START_PORT` (ex 44001) |
 | Site Team N    | `START_PORT + 2N − 1`   |
 | Exploit Team N | `START_PORT + 2N`       |
 
@@ -164,4 +164,6 @@ Texte légal complet : voir le fichier [LICENSE](LICENSE).
 
 ---
 
-Développé par Johan Brun pour [Nantes@Hack](https://www.meetup.com/nantesathack/).
+Développé par Johan Brun
+
+Utilisé dans le cadre des initations à la sécurité offensive de l'association [Nantes@Hack](https://www.meetup.com/nantesathack/).

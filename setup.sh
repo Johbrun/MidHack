@@ -37,7 +37,7 @@ load_config() {
 
   # Valeurs par défaut si une clé manque dans le .env
   TEAMS="${TEAMS:-4}"
-  START_PORT="${START_PORT:-44000}"
+  START_PORT="${START_PORT:-44001}"
   EVENT_TITLE="${EVENT_TITLE:-BananaShop CTF}"
   HINT_PENALTY="${HINT_PENALTY:-3}"
   NANTES_HACK="${VITE_NANTES_HACK:-1}"

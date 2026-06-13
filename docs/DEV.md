@@ -338,7 +338,7 @@ Toute la configuration vit dans le `.env` — `setup.sh` n'a **plus** de flags d
 |------------|--------|-------------|
 | `TEAMS` | 4 | Nombre d'équipes (1 → nombre de noms dans `TEAM_NAMES`) |
 | `TEAM_NAMES` | Alpha Bravo … | Noms d'équipes (séparés par des espaces) |
-| `START_PORT` | 44000 | Port de départ exposé sur l'hôte (allocation contiguë, voir ci-dessous) |
+| `START_PORT` | 44001 | Port de départ exposé sur l'hôte (allocation contiguë, voir ci-dessous) |
 | `EVENT_TITLE` | BananaShop CTF | Titre affiché sur le dashboard |
 | `HINT_PENALTY` | 3 | Points retirés par indice utilisé |
 | `VITE_NANTES_HACK` | 1 | Active/désactive le branding Nantes@Hack (0/1) |
@@ -356,7 +356,7 @@ Le `docker-compose.yml` généré inclut :
 
 ### Attribution des ports exposés
 
-Les ports exposés sur l'hôte sont attribués de façon contiguë à partir du port de départ (`START_PORT` dans le `.env`, défaut `44000`) :
+Les ports exposés sur l'hôte sont attribués de façon contiguë à partir du port de départ (`START_PORT` dans le `.env`, défaut `44001`) :
 
 | Service | Port exposé |
 |---------|-------------|

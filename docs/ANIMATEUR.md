@@ -58,7 +58,7 @@ TEAMS=4                                  # nombre d'équipes
 TEAM_NAMES="Alpha Bravo Charlie Delta"   # noms (le nombre de noms = max d'équipes)
 
 # ── Réseau ──
-START_PORT=44000                         # port de départ exposé (allocation contiguë)
+START_PORT=44001                         # port de départ exposé (allocation contiguë)
 
 # ── Dashboard ──
 EVENT_TITLE="BananaShop CTF"             # titre affiché sur le dashboard
