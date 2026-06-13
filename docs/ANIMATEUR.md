@@ -13,51 +13,64 @@ Document réservé aux animateurs. **Ne pas partager avec les participants.**
 
 ### Installation et lancement
 
-```bash
-# Générer la configuration pour N équipes (défaut : 4)
-./setup.sh 6
+**Toute la configuration se fait dans le fichier `.env`.** Copiez le modèle, ajustez-le, puis déployez :
 
-# Ou tout-en-un : générer + lancer
-./setup.sh 6 --deploy
+```bash
+# 1. Créer la config à partir du modèle
+cp .env.example .env
+
+# 2. Éditer .env (nombre d'équipes, port de départ, titre, pénalité, branding…)
+nano .env
+
+# 3. Générer et lancer
+./setup.sh deploy
 ```
 
-Le script vérifie automatiquement :
+`setup.sh` est un script d'**actions** (un argument est obligatoire) :
+
+| Commande | Effet |
+|----------|-------|
+| `./setup.sh deploy` | Génère `docker-compose.yml` + credentials, puis build & démarre |
+| `./setup.sh passwords` | Réaffiche les mots de passe générés (lus depuis `credentials.json`) |
+| `./setup.sh reset` | Arrête et supprime conteneurs, volumes et fichiers générés |
+| `./setup.sh --help` | Aide complète |
+
+Le déploiement vérifie automatiquement :
 - Présence de Docker et Docker Compose
 - Que le daemon Docker tourne
 - RAM et espace disque suffisants
 - Disponibilité des ports nécessaires
 
-Après exécution, le script génère :
+Puis génère :
 - `docker-compose.yml` avec healthchecks, limites mémoire et volumes persistants
 - `credentials.json` — identifiants au format JSON
 - `credentials.html` — cartes imprimables à découper (ouvrir dans un navigateur, imprimer)
 
 Le mot de passe admin du dashboard est affiché dans le résumé et sauvegardé dans `credentials.json`.
 
-Si vous n'utilisez pas `--deploy`, lancez manuellement :
+### Configuration de l'événement
+
+Tous les paramètres se règlent dans le fichier **`.env`** (modèle : `.env.example`). Modifiez-les **avant** `./setup.sh deploy` :
 
 ```bash
-docker compose up --build -d
+# ── Équipes ──
+TEAMS=4                                  # nombre d'équipes
+TEAM_NAMES="Alpha Bravo Charlie Delta"   # noms (le nombre de noms = max d'équipes)
+
+# ── Réseau ──
+START_PORT=44000                         # port de départ exposé (allocation contiguë)
+
+# ── Dashboard ──
+EVENT_TITLE="BananaShop CTF"             # titre affiché sur le dashboard
+HINT_PENALTY=3                           # points retirés par indice
+
+# ── Branding / gameplay (rebuild nécessaire) ──
+VITE_NANTES_HACK=1                       # 1 = branding Nantes@Hack activé, 0 = désactivé
+VITE_PROGRESSIVE_UNLOCK=false            # true = déblocage progressif des niveaux
+VITE_UNLOCK_THRESHOLD=2                  # captures requises par palier
 ```
 
-### Configuration avancée
-
-Les paramètres de l'événement sont déclarés dans le `docker-compose.yml` généré, dans le bloc `x-event-config` en haut du fichier. Modifiez-les **avant** de lancer `docker compose up` :
-
-```yaml
-# Variables partagées pour le dashboard (modifiables dans le fichier setup.sh)
-x-event-config: &event-config
-  ADMIN_PASSWORD: "aBcD1234"       # Mot de passe du panel admin
-  EVENT_TITLE: "BananaShop CTF"    # Titre affiché sur le dashboard
-  HINT_PENALTY: "3"               # Points retirés par indice utilisé
-```
-
-Pour le branding Nantes@Hack, modifier `x-build-args` (nécessite un rebuild) :
-
-```yaml
-x-build-args: &build-args
-  VITE_NANTES_HACK: "0"   # "0" = désactivé, "1" = activé
-```
+> Le `docker-compose.yml` est **auto-généré** à partir du `.env` : ne l'éditez pas à la main. Pour changer un paramètre, modifiez le `.env` puis relancez `./setup.sh deploy`.
 
 ### Vérification des services
 
@@ -168,7 +181,7 @@ Terminer l'atelier par une démonstration concrète d'attaque CSRF pour marquer 
 
 ### Déverrouillage progressif des challenges
 
-Activé via `VITE_PROGRESSIVE_UNLOCK=true` dans le `docker-compose.yml` (désactivé par défaut). Quand actif, les challenges ne sont pas tous visibles dès le départ :
+Activé via `VITE_PROGRESSIVE_UNLOCK=true` dans le `.env` (désactivé par défaut). Quand actif, les challenges ne sont pas tous visibles dès le départ :
 - **Facile** : toujours visibles
 - **Moyen** : se débloquent après avoir capturé 2 flags Faciles
 - **Difficile** : se débloquent après avoir capturé 2 flags Moyens
@@ -199,10 +212,10 @@ Une animation confetti se déclenche à chaque soumission de flag réussie pour 
 
 ```bash
 # Supprime conteneurs, volumes et fichiers générés
-./setup.sh --reset
+./setup.sh reset
 
-# Puis relancer
-./setup.sh 4 --deploy
+# Puis relancer (selon le .env)
+./setup.sh deploy
 ```
 
 ### Réinitialiser une équipe (base de données)
@@ -231,7 +244,7 @@ Les données suivantes survivent à un `docker compose restart` grâce aux volum
 - `dashboard-data` : scoreboard
 - `exploit-teamN-data` : logs webhook par équipe
 
-Un `docker compose down -v` ou `./setup.sh --reset` supprime ces volumes.
+Un `docker compose down -v` ou `./setup.sh reset` supprime ces volumes.
 
 ### Réinitialisation en développement local
 
@@ -253,6 +266,6 @@ npm run dev
 | Le timer ne se lance pas | Utiliser le panel admin (bouton Admin sur le dashboard) ou vérifier le mot de passe admin |
 | Les flags ne sont pas validés | Vérifier la connexion entre exploit-server et dashboard (réseau Docker) |
 | Les annonces ne s'affichent pas chez les équipes | Vérifier que l'exploit-server est connecté au WebSocket du dashboard (voir les logs) |
-| Port déjà utilisé | `./setup.sh --reset` puis relancer |
-| Mots de passe perdus | Consulter `credentials.json` ou relancer `./setup.sh` (attention : régénère de nouveaux mots de passe) |
+| Port déjà utilisé | Changer `START_PORT` dans `.env`, ou `./setup.sh reset` puis relancer |
+| Mots de passe perdus | `./setup.sh passwords` (ou consulter `credentials.json`). ⚠️ `./setup.sh deploy` régénère de nouveaux mots de passe |
 | Données perdues après redémarrage | Les volumes Docker persistent les données. Un `docker compose down -v` les supprime |

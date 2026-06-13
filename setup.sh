@@ -1,39 +1,16 @@
 #!/usr/bin/env bash
-# Generate docker-compose.yml with N teams and optionally deploy.
-# Run "./setup.sh -h" for full usage documentation.
+# Script d'actions du CTF BananaShop.
+#
+# Toute la CONFIGURATION vit dans le fichier .env (voir .env.example).
+# Ce script ne fait que des ACTIONS :
+#   deploy     génère docker-compose.yml + credentials puis build & démarre
+#   passwords  réaffiche les mots de passe générés (credentials.json)
+#   reset      arrête et supprime conteneurs, volumes et fichiers générés
+#
+# Un argument est obligatoire — sans argument, l'aide s'affiche.
+# Lancez "./setup.sh --help" pour le détail.
 
 set -e
-
-# ╔══════════════════════════════════════════════════════════════╗
-# ║                     CONFIGURATION                              ║
-# ║   Modifiez ces variables pour personnaliser l'événement.      ║
-# ╚══════════════════════════════════════════════════════════════╝
-
-# Nombre d'équipes par défaut (surchargé par l'argument numérique)
-DEFAULT_TEAMS=4
-
-# Titre affiché sur le dashboard
-EVENT_TITLE="BananaShop CTF"
-
-# Pénalité de score appliquée à l'utilisation d'un indice
-HINT_PENALTY="3"
-
-# Branding Nantes@Hack sur tous les services ("0" = désactivé, "1" = activé)
-# Peut aussi être défini via la variable d'environnement VITE_NANTES_HACK
-NANTES_HACK=${VITE_NANTES_HACK:-1}
-
-# Port de départ exposé sur l'hôte (surchargé par l'option --port N)
-# Les ports sont attribués de façon contiguë à partir de cette valeur :
-#   dashboard      = START_PORT
-#   team1 site     = START_PORT + 1
-#   team1 exploit  = START_PORT + 2
-#   team2 site     = START_PORT + 3, etc.
-START_PORT=44000
-
-# Noms d'équipes (le nombre de noms détermine le maximum d'équipes possible)
-NAMES=(Alpha Bravo Charlie Delta Echo Foxtrot Golf Hotel India Juliet Kilo Lima Mike November Oscar Papa Quebec Romeo Sierra Tango)
-
-# ───────────────────────── Fin de la configuration ─────────────────────────
 
 # ─────────────────────────── Helpers ───────────────────────────
 
@@ -44,59 +21,93 @@ warn() { printf "  ${YELLOW}⚠${NC} %s\n" "$1"; }
 fail() { printf "  ${RED}✖${NC} %s\n" "$1"; exit 1; }
 info() { printf "  ${CYAN}ℹ${NC} %s\n" "$1"; }
 
+ENV_FILE=".env"
+
+# ─────────────────────────── Chargement de la config (.env) ───────────────────────────
+
+# Source le .env et expose les variables de configuration. Toutes les valeurs
+# de l'événement (équipes, ports, titre, pénalité, branding) viennent de là.
+load_config() {
+  [ -f "$ENV_FILE" ] || fail ".env introuvable — copiez le modèle : cp .env.example .env"
+
+  set -a
+  # shellcheck disable=SC1090
+  source "$ENV_FILE"
+  set +a
+
+  # Valeurs par défaut si une clé manque dans le .env
+  TEAMS="${TEAMS:-4}"
+  START_PORT="${START_PORT:-44000}"
+  EVENT_TITLE="${EVENT_TITLE:-BananaShop CTF}"
+  HINT_PENALTY="${HINT_PENALTY:-3}"
+  NANTES_HACK="${VITE_NANTES_HACK:-1}"
+  PROGRESSIVE_UNLOCK="${VITE_PROGRESSIVE_UNLOCK:-false}"
+  UNLOCK_THRESHOLD="${VITE_UNLOCK_THRESHOLD:-2}"
+  read -ra NAMES <<< "${TEAM_NAMES:-Alpha Bravo Charlie Delta}"
+
+  # ── Validation ──
+  if ! [[ "$TEAMS" =~ ^[0-9]+$ ]] || [ "$TEAMS" -lt 1 ] || [ "$TEAMS" -gt "${#NAMES[@]}" ]; then
+    fail "TEAMS invalide: '$TEAMS' (doit être entre 1 et ${#NAMES[@]} — le nombre de noms dans TEAM_NAMES)"
+  fi
+  if ! [[ "$HINT_PENALTY" =~ ^[0-9]+$ ]]; then
+    fail "HINT_PENALTY invalide: '$HINT_PENALTY' (doit être un entier positif)"
+  fi
+  if [ "$NANTES_HACK" != "0" ] && [ "$NANTES_HACK" != "1" ]; then
+    fail "VITE_NANTES_HACK invalide: '$NANTES_HACK' (doit être 0 ou 1)"
+  fi
+  if ! [[ "$START_PORT" =~ ^[0-9]+$ ]] || [ "$START_PORT" -lt 1 ] || [ "$START_PORT" -gt 65535 ]; then
+    fail "START_PORT invalide: '$START_PORT' (doit être entre 1 et 65535)"
+  fi
+
+  # Ports dérivés du port de départ (schéma contigu)
+  DASHBOARD_PORT=$START_PORT
+  TEAM_PORT_BASE=$((START_PORT + 1))
+
+  MAX_PORT=$((TEAM_PORT_BASE + TEAMS * 2 - 1))
+  if [ "$MAX_PORT" -gt 65535 ]; then
+    fail "La plage de ports dépasse 65535 (départ $START_PORT, $TEAMS équipes → max $MAX_PORT)"
+  fi
+}
+
 # ─────────────────────────── Aide ───────────────────────────
 
 usage() {
   local C=$'\033[0;36m' Y=$'\033[1;33m' N=$'\033[0m'
   cat <<EOF
-${C}setup.sh${N} — Générateur de docker-compose.yml pour le CTF ${EVENT_TITLE}
+${C}setup.sh${N} — Script d'actions du CTF BananaShop
 
 ${Y}USAGE${N}
-  ./setup.sh [nombre_d_equipes] [options]
+  ./setup.sh <commande>
 
-${Y}ARGUMENT POSITIONNEL${N}
-  nombre_d_equipes        Nombre d'équipes à générer (1 à ${#NAMES[@]}).
-                          Défaut: ${DEFAULT_TEAMS}.
+${Y}COMMANDES${N}
+  deploy            Génère docker-compose.yml + credentials, puis build &
+                    démarre les conteneurs (docker compose up --build -d).
+  passwords         Réaffiche les mots de passe (équipes + admin) lus depuis
+                    credentials.json, sans rien régénérer.
+  reset             Arrête et supprime conteneurs, volumes et fichiers générés.
+  -h, --help, help  Affiche cette aide.
 
-${Y}OPTIONS${N}
-  -h, --help              Affiche cette aide et quitte.
+${Y}CONFIGURATION${N}
+  Toute la configuration de l'événement se fait dans le fichier ${C}.env${N}
+  (copiez ${C}.env.example${N} en ${C}.env${N} puis ajustez) :
 
-  --port N                Port de départ. Les ports sont attribués de façon
-                          contiguë: dashboard=N, team1 site=N+1,
-                          team1 exploit=N+2, team2 site=N+3, etc.
-                          Défaut: ${START_PORT}.
+    TEAMS                    nombre d'équipes
+    TEAM_NAMES               noms des équipes (séparés par des espaces)
+    START_PORT               port de départ exposé sur l'hôte
+    EVENT_TITLE              titre affiché sur le dashboard
+    HINT_PENALTY             points retirés par indice
+    VITE_NANTES_HACK         branding Nantes@Hack (0/1)
+    VITE_PROGRESSIVE_UNLOCK  déblocage progressif des niveaux (true/false)
+    VITE_UNLOCK_THRESHOLD    challenges à résoudre par palier
 
-  --title "TEXTE"         Titre de l'événement affiché sur le dashboard.
-                          Défaut: "${EVENT_TITLE}".
-
-  --hint-penalty N        Pénalité de score appliquée à l'usage d'un indice.
-                          Défaut: ${HINT_PENALTY}.
-
-  --nantes-hack 0|1       Active (1) ou désactive (0) le branding Nantes@Hack
-                          sur tous les services. Défaut: ${NANTES_HACK}.
-
-  --deploy                Build & démarre les conteneurs après génération.
-
-  -p, --passwords         Réaffiche les mots de passe (équipes + admin) lus
-                          depuis credentials.json, sans rien régénérer, puis
-                          quitte.
-
-  --reset                 Arrête et supprime conteneurs, volumes et fichiers
-                          générés, puis quitte.
-
-${Y}FORMAT DES OPTIONS${N}
-  Chaque option à valeur accepte les deux formes:
-    --port 1000      ou    --port=1000
+  Les mots de passe (équipes + admin) sont générés aléatoirement à chaque
+  « deploy » et écrits dans credentials.json / credentials.html.
 
 ${Y}EXEMPLES${N}
-  ./setup.sh                          # 4 équipes, port 44000, valeurs par défaut
-  ./setup.sh 8 --deploy               # 8 équipes et déploiement immédiat
-  ./setup.sh --port 1000              # dashboard sur 1000, équipes à partir de 1001
-  ./setup.sh --passwords              # réaffiche les mots de passe générés
-  ./setup.sh --reset                  # nettoyage complet
-
-  # Commande Nantes@Hack
-  ./setup.sh 6 --title "Nantes@Hack CTF" --hint-penalty 5 --nantes-hack 1 --port 44000 --deploy
+  cp .env.example .env       # première fois : créer la config
+  ./setup.sh deploy          # générer + lancer selon le .env
+  ./setup.sh passwords       # réafficher les mots de passe générés
+  ./setup.sh reset           # nettoyage complet
 
 EOF
 }
@@ -107,7 +118,7 @@ EOF
 # sans régénérer la configuration ni toucher aux conteneurs.
 show_passwords() {
   local file="credentials.json"
-  [ -f "$file" ] || fail "credentials.json introuvable — lancez d'abord ./setup.sh pour générer la configuration."
+  [ -f "$file" ] || fail "credentials.json introuvable — lancez d'abord ./setup.sh deploy pour générer la configuration."
 
   local admin dash
   admin=$(grep -oE '"admin_password"[[:space:]]*:[[:space:]]*"[^"]*"' "$file" | sed -E 's/.*"([^"]*)"$/\1/')
@@ -134,81 +145,9 @@ show_passwords() {
   echo ""
 }
 
-# ─────────────────────────── Parse args ───────────────────────────
+# ─────────────────────────── Reset ───────────────────────────
 
-TEAMS=$DEFAULT_TEAMS
-DEPLOY=false
-RESET=false
-
-# Affecte la valeur d'une option à la variable nommée, gérant les deux formes
-# "--opt value" et "--opt=value". Consomme l'argument suivant si nécessaire
-# (incrémente OPT_SHIFT) et échoue proprement si la valeur manque.
-OPT_SHIFT=0
-set_opt() {
-  local var="$1" arg="$2" next="$3" has_next="$4"
-  OPT_SHIFT=0
-  case "$arg" in
-    *=*)
-      printf -v "$var" '%s' "${arg#*=}"
-      ;;
-    *)
-      [ "$has_next" = "1" ] || fail "L'option ${arg%%=*} attend une valeur (ex: ${arg%%=*} <valeur>)"
-      printf -v "$var" '%s' "$next"
-      OPT_SHIFT=1
-      ;;
-  esac
-}
-
-while [ $# -gt 0 ]; do
-  arg="$1"
-  has_next=0; [ $# -ge 2 ] && has_next=1
-  case "$arg" in
-    -h|--help)
-      usage
-      exit 0
-      ;;
-    -p|--passwords|--show-passwords)
-      show_passwords
-      exit 0
-      ;;
-    --deploy) DEPLOY=true ;;
-    --reset)  RESET=true ;;
-    --port|--port=*)         set_opt START_PORT   "$arg" "${2-}" "$has_next"; shift "$OPT_SHIFT" ;;
-    --title|--title=*)       set_opt EVENT_TITLE  "$arg" "${2-}" "$has_next"; shift "$OPT_SHIFT" ;;
-    --hint-penalty|--hint-penalty=*) set_opt HINT_PENALTY "$arg" "${2-}" "$has_next"; shift "$OPT_SHIFT" ;;
-    --nantes-hack|--nantes-hack=*)   set_opt NANTES_HACK  "$arg" "${2-}" "$has_next"; shift "$OPT_SHIFT" ;;
-    [0-9]*) TEAMS="$arg" ;;
-    *) fail "Argument inconnu: '$arg' (voir ./setup.sh -h)" ;;
-  esac
-  shift
-done
-
-# Valide les valeurs surchargeables
-if ! [[ "$HINT_PENALTY" =~ ^[0-9]+$ ]]; then
-  fail "Pénalité d'indice invalide: '$HINT_PENALTY' (doit être un entier positif)"
-fi
-if [ "$NANTES_HACK" != "0" ] && [ "$NANTES_HACK" != "1" ]; then
-  fail "Valeur --nantes-hack invalide: '$NANTES_HACK' (doit être 0 ou 1)"
-fi
-
-# Valide le port de départ
-if ! [[ "$START_PORT" =~ ^[0-9]+$ ]] || [ "$START_PORT" -lt 1 ] || [ "$START_PORT" -gt 65535 ]; then
-  fail "Port de départ invalide: '$START_PORT' (doit être entre 1 et 65535)"
-fi
-
-# Ports dérivés du port de départ (schéma contigu)
-DASHBOARD_PORT=$START_PORT
-TEAM_PORT_BASE=$((START_PORT + 1))
-
-# Vérifie que le plus haut port ne dépasse pas 65535
-MAX_PORT=$((TEAM_PORT_BASE + TEAMS * 2 - 1))
-if [ "$MAX_PORT" -gt 65535 ]; then
-  fail "La plage de ports dépasse 65535 (départ $START_PORT, $TEAMS équipes → max $MAX_PORT)"
-fi
-
-# ─────────────────────────── Reset mode ───────────────────────────
-
-if $RESET; then
+cmd_reset() {
   echo ""
   echo "🧹 Reset de l'environnement CTF..."
   echo ""
@@ -222,55 +161,72 @@ if $RESET; then
   echo ""
   ok "Reset terminé."
   echo ""
-  exit 0
-fi
+}
 
-# ─────────────────────────── Prerequisites ───────────────────────────
+# ─────────────────────────── Prérequis ───────────────────────────
 
-echo ""
-echo "🔍 Vérification des prérequis..."
-echo ""
+check_prerequisites() {
+  echo ""
+  echo "🔍 Vérification des prérequis..."
+  echo ""
 
-# Docker
-if ! command -v docker &>/dev/null; then
-  fail "Docker n'est pas installé. Installez-le: https://docs.docker.com/engine/install/"
-fi
-ok "Docker trouvé ($(docker --version | head -c 50))"
-
-# Docker daemon
-if ! docker info &>/dev/null 2>&1; then
-  fail "Le daemon Docker ne tourne pas. Lancez: sudo systemctl start docker"
-fi
-ok "Daemon Docker actif"
-
-# Docker Compose
-if ! docker compose version &>/dev/null 2>&1; then
-  fail "Docker Compose plugin manquant. Installez-le: https://docs.docker.com/compose/install/"
-fi
-ok "Docker Compose trouvé ($(docker compose version --short 2>/dev/null))"
-
-# RAM check (recommend 512MB per team minimum)
-TOTAL_RAM_MB=$(free -m 2>/dev/null | awk '/Mem:/{print $2}' || echo 0)
-REQUIRED_RAM_MB=$(( TEAMS * 512 ))
-if [ "$TOTAL_RAM_MB" -gt 0 ]; then
-  if [ "$TOTAL_RAM_MB" -lt "$REQUIRED_RAM_MB" ]; then
-    warn "RAM disponible: ${TOTAL_RAM_MB}MB — recommandé: ${REQUIRED_RAM_MB}MB pour $TEAMS équipes"
-  else
-    ok "RAM suffisante (${TOTAL_RAM_MB}MB disponible, ${REQUIRED_RAM_MB}MB recommandé)"
+  # Docker
+  if ! command -v docker &>/dev/null; then
+    fail "Docker n'est pas installé. Installez-le: https://docs.docker.com/engine/install/"
   fi
-fi
+  ok "Docker trouvé ($(docker --version | head -c 50))"
 
-# Disk space check (need at least 2GB)
-AVAILABLE_DISK_MB=$(df -m . 2>/dev/null | awk 'NR==2{print $4}' || echo 0)
-if [ "$AVAILABLE_DISK_MB" -gt 0 ]; then
-  if [ "$AVAILABLE_DISK_MB" -lt 2048 ]; then
-    warn "Espace disque faible: ${AVAILABLE_DISK_MB}MB — recommandé: 2048MB minimum"
-  else
-    ok "Espace disque suffisant (${AVAILABLE_DISK_MB}MB disponible)"
+  # Docker daemon
+  if ! docker info &>/dev/null 2>&1; then
+    fail "Le daemon Docker ne tourne pas. Lancez: sudo systemctl start docker"
   fi
-fi
+  ok "Daemon Docker actif"
 
-# Port availability check
+  # Docker Compose
+  if ! docker compose version &>/dev/null 2>&1; then
+    fail "Docker Compose plugin manquant. Installez-le: https://docs.docker.com/compose/install/"
+  fi
+  ok "Docker Compose trouvé ($(docker compose version --short 2>/dev/null))"
+
+  # RAM check (recommend 512MB per team minimum)
+  local total_ram_mb required_ram_mb
+  total_ram_mb=$(free -m 2>/dev/null | awk '/Mem:/{print $2}' || echo 0)
+  required_ram_mb=$(( TEAMS * 512 ))
+  if [ "$total_ram_mb" -gt 0 ]; then
+    if [ "$total_ram_mb" -lt "$required_ram_mb" ]; then
+      warn "RAM disponible: ${total_ram_mb}MB — recommandé: ${required_ram_mb}MB pour $TEAMS équipes"
+    else
+      ok "RAM suffisante (${total_ram_mb}MB disponible, ${required_ram_mb}MB recommandé)"
+    fi
+  fi
+
+  # Disk space check (need at least 2GB)
+  local available_disk_mb
+  available_disk_mb=$(df -m . 2>/dev/null | awk 'NR==2{print $4}' || echo 0)
+  if [ "$available_disk_mb" -gt 0 ]; then
+    if [ "$available_disk_mb" -lt 2048 ]; then
+      warn "Espace disque faible: ${available_disk_mb}MB — recommandé: 2048MB minimum"
+    else
+      ok "Espace disque suffisant (${available_disk_mb}MB disponible)"
+    fi
+  fi
+
+  # Port availability check
+  local ports_busy=()
+  check_port $DASHBOARD_PORT || ports_busy+=($DASHBOARD_PORT)
+  local i
+  for i in $(seq 1 "$TEAMS"); do
+    check_port $((TEAM_PORT_BASE + (i - 1) * 2)) || ports_busy+=($((TEAM_PORT_BASE + (i - 1) * 2)))
+    check_port $((TEAM_PORT_BASE + 1 + (i - 1) * 2)) || ports_busy+=($((TEAM_PORT_BASE + 1 + (i - 1) * 2)))
+  done
+
+  if [ ${#ports_busy[@]} -gt 0 ]; then
+    warn "Ports déjà utilisés: ${ports_busy[*]} — les conteneurs existants seront remplacés"
+  else
+    ok "Tous les ports nécessaires sont disponibles"
+  fi
+}
+
 check_port() {
   if command -v ss &>/dev/null; then
     ss -tlnp 2>/dev/null | grep -q ":$1 " && return 1
@@ -280,44 +236,28 @@ check_port() {
   return 0
 }
 
-PORTS_BUSY=()
-# Dashboard
-check_port $DASHBOARD_PORT || PORTS_BUSY+=($DASHBOARD_PORT)
-# Team ports
-for i in $(seq 1 "$TEAMS"); do
-  check_port $((TEAM_PORT_BASE + (i - 1) * 2)) || PORTS_BUSY+=($((TEAM_PORT_BASE + (i - 1) * 2)))
-  check_port $((TEAM_PORT_BASE + 1 + (i - 1) * 2)) || PORTS_BUSY+=($((TEAM_PORT_BASE + 1 + (i - 1) * 2)))
-done
+# ─────────────────────────── Génération des fichiers ───────────────────────────
 
-if [ ${#PORTS_BUSY[@]} -gt 0 ]; then
-  warn "Ports déjà utilisés: ${PORTS_BUSY[*]} — les conteneurs existants seront remplacés"
-else
-  ok "Tous les ports nécessaires sont disponibles"
-fi
+# Variables partagées entre la génération et le résumé.
+ADMIN_PWD=""
+declare -a PASSWORDS
 
-# ─────────────────────────── Validate team count ───────────────────────────
+generate_files() {
+  echo ""
+  echo "⚙️  Génération de docker-compose.yml pour $TEAMS équipe(s)..."
+  echo ""
 
-if [ "$TEAMS" -lt 1 ] || [ "$TEAMS" -gt ${#NAMES[@]} ]; then
-  fail "Nombre d'équipes entre 1 et ${#NAMES[@]}"
-fi
+  local FILE="docker-compose.yml"
+  ADMIN_PWD=$(head -c 100 /dev/urandom | tr -dc 'a-zA-Z0-9' | head -c 8)
 
-echo ""
-echo "⚙️  Génération de docker-compose.yml pour $TEAMS équipe(s)..."
-echo ""
-
-# ─────────────────────────── Generate docker-compose.yml ───────────────────────────
-
-FILE="docker-compose.yml"
-ADMIN_PWD=$(head -c 100 /dev/urandom | tr -dc 'a-zA-Z0-9' | head -c 8)
-
-cat > "$FILE" <<EOF
-# Auto-generated by setup.sh — $TEAMS equipe(s)
-# ─── Configuration de l'événement (modifiable avant docker compose up) ───
+  cat > "$FILE" <<EOF
+# Auto-généré par setup.sh — $TEAMS equipe(s)
+# ─── Configuration issue du fichier .env (ne pas éditer ici : modifiez .env) ───
 # Branding Nantes@Hack sur tous les services ("0" = désactivé, "1" = activé)
 x-build-args: &build-args
   VITE_NANTES_HACK: "$NANTES_HACK"
 
-# Variables partagées pour le dashboard (modifiables ici)
+# Variables partagées pour le dashboard
 x-event-config: &event-config
   ADMIN_PASSWORD: "$ADMIN_PWD"
   EVENT_TITLE: "$EVENT_TITLE"
@@ -346,19 +286,20 @@ services:
       - dashboard-data:/app/dashboard/data
 EOF
 
-# Pre-generate random passwords (5 alphanumeric chars)
-declare -a PASSWORDS
-for i in $(seq 1 "$TEAMS"); do
-  PASSWORDS[$i]=$(head -c 100 /dev/urandom | tr -dc 'a-zA-Z0-9' | head -c 5)
-done
+  # Pre-generate random passwords (5 alphanumeric chars)
+  PASSWORDS=()
+  local i
+  for i in $(seq 1 "$TEAMS"); do
+    PASSWORDS[$i]=$(head -c 100 /dev/urandom | tr -dc 'a-zA-Z0-9' | head -c 5)
+  done
 
-for i in $(seq 1 "$TEAMS"); do
-  NAME=${NAMES[$((i - 1))]}
-  SITE_PORT=$((TEAM_PORT_BASE + (i - 1) * 2))
-  EXPLOIT_PORT=$((TEAM_PORT_BASE + 1 + (i - 1) * 2))
-  TEAM_PWD=${PASSWORDS[$i]}
+  for i in $(seq 1 "$TEAMS"); do
+    local NAME=${NAMES[$((i - 1))]}
+    local SITE_PORT=$((TEAM_PORT_BASE + (i - 1) * 2))
+    local EXPLOIT_PORT=$((TEAM_PORT_BASE + 1 + (i - 1) * 2))
+    local TEAM_PWD=${PASSWORDS[$i]}
 
-  cat >> "$FILE" <<EOF
+    cat >> "$FILE" <<EOF
 
   # ──────────────────────── Team $i ────────────────────────
   site-team${i}:
@@ -387,7 +328,10 @@ for i in $(seq 1 "$TEAMS"); do
     build:
       context: .
       dockerfile: Dockerfile.exploit
-      args: *build-args
+      args:
+        VITE_NANTES_HACK: "$NANTES_HACK"
+        VITE_PROGRESSIVE_UNLOCK: "$PROGRESSIVE_UNLOCK"
+        VITE_UNLOCK_THRESHOLD: "$UNLOCK_THRESHOLD"
     environment:
       - TEAM_NAME=$NAME
       - TEAM_PASSWORD=$TEAM_PWD
@@ -406,37 +350,40 @@ for i in $(seq 1 "$TEAMS"); do
     volumes:
       - exploit-team${i}-data:/app/exploit-server/data
 EOF
-done
+  done
 
-# ─────────────────────────── Volumes ───────────────────────────
-
-cat >> "$FILE" <<EOF
+  # ── Volumes ──
+  cat >> "$FILE" <<EOF
 
 volumes:
   dashboard-data:
 EOF
-
-for i in $(seq 1 "$TEAMS"); do
-  cat >> "$FILE" <<EOF
+  for i in $(seq 1 "$TEAMS"); do
+    cat >> "$FILE" <<EOF
   exploit-team${i}-data:
 EOF
-done
+  done
 
-ok "docker-compose.yml généré"
+  ok "docker-compose.yml généré"
 
-# ─────────────────────────── Generate credentials files ───────────────────────────
+  generate_credentials
+}
 
-# JSON
-CREDS_JSON="credentials.json"
-echo "{" > "$CREDS_JSON"
-echo "  \"admin_password\": \"$ADMIN_PWD\"," >> "$CREDS_JSON"
-echo "  \"dashboard_url\": \"http://localhost:$DASHBOARD_PORT\"," >> "$CREDS_JSON"
-echo "  \"teams\": [" >> "$CREDS_JSON"
-for i in $(seq 1 "$TEAMS"); do
-  NAME=${NAMES[$((i - 1))]}
-  COMMA=","
-  [ "$i" -eq "$TEAMS" ] && COMMA=""
-  cat >> "$CREDS_JSON" <<EOF
+# ─────────────────────────── Fichiers d'identifiants ───────────────────────────
+
+generate_credentials() {
+  # JSON
+  local CREDS_JSON="credentials.json"
+  echo "{" > "$CREDS_JSON"
+  echo "  \"admin_password\": \"$ADMIN_PWD\"," >> "$CREDS_JSON"
+  echo "  \"dashboard_url\": \"http://localhost:$DASHBOARD_PORT\"," >> "$CREDS_JSON"
+  echo "  \"teams\": [" >> "$CREDS_JSON"
+  local i
+  for i in $(seq 1 "$TEAMS"); do
+    local NAME=${NAMES[$((i - 1))]}
+    local COMMA=","
+    [ "$i" -eq "$TEAMS" ] && COMMA=""
+    cat >> "$CREDS_JSON" <<EOF
   {
     "team": $i,
     "name": "$NAME",
@@ -445,14 +392,14 @@ for i in $(seq 1 "$TEAMS"); do
     "exploit_url": "http://localhost:$((TEAM_PORT_BASE + 1 + (i - 1) * 2))"
   }${COMMA}
 EOF
-done
-echo "  ]" >> "$CREDS_JSON"
-echo "}" >> "$CREDS_JSON"
-ok "credentials.json généré"
+  done
+  echo "  ]" >> "$CREDS_JSON"
+  echo "}" >> "$CREDS_JSON"
+  ok "credentials.json généré"
 
-# HTML (printable cards)
-CREDS_HTML="credentials.html"
-cat > "$CREDS_HTML" <<'HTMLHEAD'
+  # HTML (printable cards)
+  local CREDS_HTML="credentials.html"
+  cat > "$CREDS_HTML" <<'HTMLHEAD'
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -487,9 +434,9 @@ cat > "$CREDS_HTML" <<'HTMLHEAD'
 <div class="grid">
 HTMLHEAD
 
-for i in $(seq 1 "$TEAMS"); do
-  NAME=${NAMES[$((i - 1))]}
-  cat >> "$CREDS_HTML" <<EOF
+  for i in $(seq 1 "$TEAMS"); do
+    local NAME=${NAMES[$((i - 1))]}
+    cat >> "$CREDS_HTML" <<EOF
   <div class="card">
     <div class="team-emoji">🍌</div>
     <h2>Team $NAME</h2>
@@ -499,38 +446,48 @@ for i in $(seq 1 "$TEAMS"); do
     <div class="password">${PASSWORDS[$i]}</div>
   </div>
 EOF
-done
+  done
 
-cat >> "$CREDS_HTML" <<'HTMLFOOT'
+  cat >> "$CREDS_HTML" <<'HTMLFOOT'
 </div>
 </body>
 </html>
 HTMLFOOT
-ok "credentials.html généré (ouvrir dans un navigateur pour imprimer)"
+  ok "credentials.html généré (ouvrir dans un navigateur pour imprimer)"
+}
 
-# ─────────────────────────── Summary ───────────────────────────
+# ─────────────────────────── Résumé ───────────────────────────
 
-echo ""
-echo "📋 Résumé de la configuration"
-echo ""
-echo "  Dashboard:  http://localhost:$DASHBOARD_PORT"
-for i in $(seq 1 "$TEAMS"); do
-  echo "  Team $i:     http://localhost:$((TEAM_PORT_BASE + (i - 1) * 2)) (site)  http://localhost:$((TEAM_PORT_BASE + 1 + (i - 1) * 2)) (exploit)"
-done
-echo ""
-echo "╔══════════════════════════════════════════╗"
-echo "║        MOTS DE PASSE DES EQUIPES        ║"
-echo "╠══════════════════════════════════════════╣"
-for i in $(seq 1 "$TEAMS"); do
-  printf "║  %-10s  mdp: %-5s               ║\n" "${NAMES[$((i - 1))]}" "${PASSWORDS[$i]}"
-done
-echo "╠══════════════════════════════════════════╣"
-printf "║  Admin dashboard:  %-20s ║\n" "$ADMIN_PWD"
-echo "╚══════════════════════════════════════════╝"
+print_summary() {
+  echo ""
+  echo "📋 Résumé de la configuration"
+  echo ""
+  echo "  Événement:  $EVENT_TITLE"
+  echo "  Dashboard:  http://localhost:$DASHBOARD_PORT"
+  local i
+  for i in $(seq 1 "$TEAMS"); do
+    echo "  Team $i:     http://localhost:$((TEAM_PORT_BASE + (i - 1) * 2)) (site)  http://localhost:$((TEAM_PORT_BASE + 1 + (i - 1) * 2)) (exploit)"
+  done
+  echo ""
+  echo "╔══════════════════════════════════════════╗"
+  echo "║        MOTS DE PASSE DES EQUIPES        ║"
+  echo "╠══════════════════════════════════════════╣"
+  for i in $(seq 1 "$TEAMS"); do
+    printf "║  %-10s  mdp: %-5s               ║\n" "${NAMES[$((i - 1))]}" "${PASSWORDS[$i]}"
+  done
+  echo "╠══════════════════════════════════════════╣"
+  printf "║  Admin dashboard:  %-20s ║\n" "$ADMIN_PWD"
+  echo "╚══════════════════════════════════════════╝"
+}
 
 # ─────────────────────────── Deploy ───────────────────────────
 
-if $DEPLOY; then
+cmd_deploy() {
+  load_config
+  check_prerequisites
+  generate_files
+  print_summary
+
   echo ""
   echo "🚀 Lancement du déploiement..."
   echo ""
@@ -542,33 +499,40 @@ if $DEPLOY; then
   sleep 5
 
   # Quick health check
-  ALL_OK=true
+  local all_ok=true
+  local i
   for i in $(seq 1 "$TEAMS"); do
     if ! docker compose ps "site-team${i}" 2>/dev/null | grep -q "running"; then
       warn "site-team${i} ne semble pas démarré"
-      ALL_OK=false
+      all_ok=false
     fi
     if ! docker compose ps "exploit-team${i}" 2>/dev/null | grep -q "running"; then
       warn "exploit-team${i} ne semble pas démarré"
-      ALL_OK=false
+      all_ok=false
     fi
   done
   if ! docker compose ps dashboard 2>/dev/null | grep -q "running"; then
     warn "dashboard ne semble pas démarré"
-    ALL_OK=false
+    all_ok=false
   fi
 
-  if $ALL_OK; then
+  if $all_ok; then
     echo ""
     ok "Tous les services sont en cours d'exécution !"
   else
     echo ""
     warn "Certains services ne sont pas encore prêts. Vérifiez: docker compose ps"
   fi
-else
   echo ""
-  echo "Lancez: docker compose up --build -d"
-  echo "   ou : ./setup.sh $TEAMS --deploy"
-fi
+}
 
-echo ""
+# ─────────────────────────── Dispatch ───────────────────────────
+
+case "${1:-}" in
+  deploy)          cmd_deploy ;;
+  passwords)       show_passwords ;;
+  reset)           cmd_reset ;;
+  -h|--help|help)  usage ;;
+  "")              usage; exit 1 ;;
+  *)               fail "Commande inconnue: '$1' (voir ./setup.sh --help)" ;;
+esac

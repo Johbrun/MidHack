@@ -17,7 +17,7 @@ La plateforme se compose de **4 services** déployés dans Docker, répliqués p
 
 En Docker, le client et le serveur BananaShop sont bundlés dans un seul conteneur (`Dockerfile.site`). En dev local, ce sont deux processus séparés (Vite :5173 + Express :3001).
 
-> Les ports **internes** (3000/4000/5000) sont fixes et utilisés pour la communication inter-conteneurs. Les ports **exposés sur l'hôte** sont entièrement configurables via `setup.sh` (option `--port`) — voir la section [Docker](#docker).
+> Les ports **internes** (3000/4000/5000) sont fixes et utilisés pour la communication inter-conteneurs. Les ports **exposés sur l'hôte** sont entièrement configurables via `START_PORT` dans le `.env` — voir la section [Docker](#docker).
 
 ---
 
@@ -82,11 +82,13 @@ midhack/
 │   ├── flags.json            # Catalogue des 14 challenges (points, hints, catégories)
 │   └── register-team.js      # Helper POST /api/teams/register
 │
-├── setup.sh                  # Génère docker-compose.yml, credentials.json/.html
+├── .env                      # Configuration de l'événement (source unique)
+├── .env.example              # Modèle de .env à copier
+├── setup.sh                  # Script d'actions : deploy / passwords / reset
 ├── Dockerfile.site           # Client build + server (multi-stage)
 ├── Dockerfile.exploit        # Client build + server (multi-stage)
 ├── Dockerfile.dashboard      # Client build + server (multi-stage)
-└── docker-compose.yml        # Auto-généré par setup.sh
+└── docker-compose.yml        # Auto-généré par setup.sh (gitignoré)
 ```
 
 ---
@@ -223,6 +225,10 @@ Auto-POST vers Dashboard /api/capture avec flag COOKIE_THEFT
 
 ## Variables d'environnement
 
+Toute la configuration de l'événement est centralisée dans le fichier **`.env`** à la racine (modèle : `.env.example`). C'est la **source unique** : `setup.sh` le lit et injecte les bonnes valeurs dans le `docker-compose.yml` généré (variables runtime + build-args). Les tableaux ci-dessous documentent les variables que chaque service lit au runtime ; les clés correspondantes du `.env` sont indiquées.
+
+> Les mots de passe (`ADMIN_PASSWORD`, `TEAM_PASSWORD`) ne sont **pas** dans le `.env` : ils sont générés aléatoirement à chaque `./setup.sh deploy` et écrits dans `credentials.json` / `credentials.html`.
+
 ### BananaShop Server
 
 | Variable | Défaut | Description |
@@ -247,14 +253,18 @@ Auto-POST vers Dashboard /api/capture avec flag COOKIE_THEFT
 |----------|--------|-------------|
 | `PORT` | 5000 | Port Express + WebSocket |
 | `ADMIN_PASSWORD` | admin | Mot de passe panel admin (généré aléatoirement par `setup.sh`) |
-| `EVENT_TITLE` | BananaShop CTF | Titre sur le scoreboard (option `--title`) |
-| `HINT_PENALTY` | 3 | Points retirés par indice (option `--hint-penalty`) |
+| `EVENT_TITLE` | BananaShop CTF | Titre sur le scoreboard (clé `EVENT_TITLE` du `.env`) |
+| `HINT_PENALTY` | 3 | Points retirés par indice (clé `HINT_PENALTY` du `.env`) |
 
 ### Build-time (Vite)
 
-| Variable | Défaut | Description |
-|----------|--------|-------------|
-| `VITE_NANTES_HACK` | 0 | Active le branding Nantes@Hack (0/1) |
+Passées comme build-args par `setup.sh` (depuis le `.env`) car intégrées dans le bundle au moment du build — un changement nécessite un rebuild.
+
+| Variable | Défaut | Description | Services |
+|----------|--------|-------------|----------|
+| `VITE_NANTES_HACK` | 0 | Active le branding Nantes@Hack (0/1) | tous |
+| `VITE_PROGRESSIVE_UNLOCK` | false | Déblocage progressif des niveaux (true/false) | exploit |
+| `VITE_UNLOCK_THRESHOLD` | 2 | Captures requises par palier | exploit |
 
 ---
 
@@ -308,43 +318,45 @@ Base image : `node:20-alpine`. Le site nécessite `python3 make g++` pour compil
 
 ### Génération
 
-`setup.sh` génère le `docker-compose.yml`, les `credentials.json` / `credentials.html` (cartes imprimables) et un mot de passe admin aléatoire.
+`setup.sh` est un **script d'actions** : il lit la configuration depuis le `.env` puis exécute la commande demandée. Un argument est obligatoire (sans argument → aide).
 
 ```bash
-./setup.sh                 # 4 équipes (défaut), valeurs par défaut
-./setup.sh 6 --deploy      # 6 équipes + docker compose up --build -d
-./setup.sh -p              # réaffiche les mots de passe générés (credentials.json)
-./setup.sh --reset         # supprime conteneurs, volumes, fichiers générés
-./setup.sh -h              # aide complète
+cp .env.example .env       # première fois : créer la config, puis l'éditer
+./setup.sh deploy          # génère docker-compose.yml + credentials, build & démarre
+./setup.sh passwords       # réaffiche les mots de passe générés (credentials.json)
+./setup.sh reset           # supprime conteneurs, volumes, fichiers générés
+./setup.sh --help          # aide complète
 ```
 
-#### Options de configuration
+`deploy` génère le `docker-compose.yml`, les `credentials.json` / `credentials.html` (cartes imprimables) et un mot de passe admin aléatoire, puis lance `docker compose up --build -d`.
 
-| Option | Défaut | Description |
-|--------|--------|-------------|
-| `--port N` | 44000 | Port de départ exposé sur l'hôte (allocation contiguë, voir ci-dessous) |
-| `--title "TEXTE"` | BananaShop CTF | Titre affiché sur le dashboard (`EVENT_TITLE`) |
-| `--hint-penalty N` | 3 | Points retirés par indice utilisé (`HINT_PENALTY`) |
-| `--nantes-hack 0\|1` | 1 | Active/désactive le branding Nantes@Hack (`VITE_NANTES_HACK`) |
-| `--deploy` | - | Build & démarre les conteneurs après génération |
+#### Configuration (fichier `.env`)
 
-Chaque option à valeur accepte les deux formes : `--port 1000` ou `--port=1000`.
+Toute la configuration vit dans le `.env` — `setup.sh` n'a **plus** de flags de surcharge.
 
-```bash
-# Exemple complet
-./setup.sh 6 --title "Nantes@Hack CTF" --hint-penalty 5 --nantes-hack 1 --port 44000 --deploy
-```
+| Clé `.env` | Défaut | Description |
+|------------|--------|-------------|
+| `TEAMS` | 4 | Nombre d'équipes (1 → nombre de noms dans `TEAM_NAMES`) |
+| `TEAM_NAMES` | Alpha Bravo … | Noms d'équipes (séparés par des espaces) |
+| `START_PORT` | 44000 | Port de départ exposé sur l'hôte (allocation contiguë, voir ci-dessous) |
+| `EVENT_TITLE` | BananaShop CTF | Titre affiché sur le dashboard |
+| `HINT_PENALTY` | 3 | Points retirés par indice utilisé |
+| `VITE_NANTES_HACK` | 1 | Active/désactive le branding Nantes@Hack (0/1) |
+| `VITE_PROGRESSIVE_UNLOCK` | false | Déblocage progressif des niveaux (true/false) |
+| `VITE_UNLOCK_THRESHOLD` | 2 | Captures requises par palier |
 
 Le `docker-compose.yml` généré inclut :
 - Health checks (`wget` sur les endpoints principaux)
 - Limites mémoire (256MB site/dashboard, 128MB exploit)
 - Volumes persistants (`dashboard-data`, `exploit-teamN-data`)
 - `restart: unless-stopped`
-- Bloc `x-build-args` (branding) et `x-event-config` (titre, pénalité, mot de passe admin) pour la configuration éditable
+- Bloc `x-build-args` (branding) et `x-event-config` (titre, pénalité, mot de passe admin) reflétant le `.env` ; le service exploit reçoit en plus `VITE_PROGRESSIVE_UNLOCK` / `VITE_UNLOCK_THRESHOLD` en build-args
+
+> Le `docker-compose.yml` est **auto-généré et gitignoré** : ne l'éditez pas à la main, modifiez le `.env` puis relancez `./setup.sh deploy`.
 
 ### Attribution des ports exposés
 
-Les ports exposés sur l'hôte sont attribués de façon contiguë à partir du port de départ (`--port`, défaut `44000`) :
+Les ports exposés sur l'hôte sont attribués de façon contiguë à partir du port de départ (`START_PORT` dans le `.env`, défaut `44000`) :
 
 | Service | Port exposé |
 |---------|-------------|

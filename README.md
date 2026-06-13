@@ -22,7 +22,7 @@ Due à la facilité des vulnérabilités, Cette plateforme se classerait dans un
 
 Bien que l'application puisse être utilisée par une personne seule, il est fortement conseillé d'utiliser la plateforme avec un public en équipe et un animateur expérimenté. 
 
-Voir [ANIMATEUR.md](ANIMATEUR.md) pour les instructions de setup, le déroulement de l'atelier, les comptes et secrets, et la gestion du panel admin.
+Voir [docs/ANIMATEUR.md](docs/ANIMATEUR.md) pour les instructions de setup, le déroulement de l'atelier, les comptes et secrets, et la gestion du panel admin.
 
 ## Aperçu
 
@@ -43,45 +43,35 @@ Prérequis sur la machine cible : `git`, `docker` et `docker compose` (plugin of
 ```bash
 git clone <url-du-repo> midhack
 cd midhack
-./setup.sh 6         # génère docker-compose.yml pour 6 équipes (1 à 20)
-docker compose up --build -d
+cp .env.example .env   # créer la config, puis l'éditer (nombre d'équipes, ports, titre…)
+./setup.sh deploy      # génère docker-compose.yml + credentials, build & démarre
 ```
 
-Le `-d` lance les containers en arrière-plan. Vérifier ensuite leur état avec `docker compose ps` et suivre les logs avec `docker compose logs -f`.
+**Toute la configuration de l'événement se fait dans le fichier `.env`** : nombre d'équipes (`TEAMS`), noms (`TEAM_NAMES`), port de départ (`START_PORT`), titre (`EVENT_TITLE`), pénalité d'indice (`HINT_PENALTY`), branding (`VITE_NANTES_HACK`)… Le script `setup.sh` ne fait que des **actions** : `deploy`, `passwords`, `reset` (voir `./setup.sh --help`). Il lit le `.env` et génère le `docker-compose.yml` en conséquence.
 
-Ports à ouvrir dans le firewall du serveur (ou dans le groupe de sécurité cloud) :
+Vérifier l'état des conteneurs avec `docker compose ps` et suivre les logs avec `docker compose logs -f`.
 
-| Port      | Rôle                          |
-| --------- | ----------------------------- |
-| 5000      | Dashboard live                |
-| 3001-3004 | Sites BananaShop (Team 1 à 4) |
-| 4001-4004 | Exploit servers (Team 1 à 4)  |
+Les ports exposés sont attribués de façon contiguë à partir de `START_PORT` (défaut `44000`, configurable dans `.env`) :
 
+| Service        | Port exposé             |
+| -------------- | ----------------------- |
+| Dashboard live | `START_PORT` (ex 44000) |
+| Site Team N    | `START_PORT + 2N − 1`   |
+| Exploit Team N | `START_PORT + 2N`       |
 
-Le script `setup.sh` génère le `docker-compose.yml` avec le nombre d'équipes souhaité. Chaque équipe obtient un site BananaShop et un exploit server sur des ports dédiés :
-
-| Service        | Ports              |
-| -------------- | ------------------ |
-| Site Team N    | `localhost:300N`   |
-| Exploit Team N | `localhost:400N`   |
-
-L'unique dashboard est lui disponible ici :
-
-| Service        | Ports              |
-| -------------- | ------------------ |
-| Dashboard live | `localhost:5000`   |
+Pensez à ouvrir ces ports dans le firewall du serveur (ou le groupe de sécurité cloud). Les URLs et mots de passe effectifs de chaque équipe sont écrits dans `credentials.json` / `credentials.html` à la génération.
 
 **Mettre à jour** après un `git pull` :
 
 ```bash
-docker compose up --build -d
+./setup.sh deploy            # régénère le docker-compose.yml et relance
 ```
 
 **Arrêter / nettoyer** :
 
 ```bash
 docker compose down          # arrête les containers
-docker compose down -v       # arrête + supprime les volumes (reset complet)
+./setup.sh reset             # arrête + supprime volumes et fichiers générés (reset complet)
 ```
 
 ### Développement local
@@ -131,7 +121,7 @@ midhack/
 ## Scoring
 
 - Chaque flag rapporte des points selon sa difficulté (Facile=10 / Moyen=15 / Difficile=25)
-- Utiliser un indice coûte des points (configurable via `HINT_PENALTY`, défaut : 3)
+- Utiliser un indice coûte des points (configurable via `HINT_PENALTY` dans le `.env`, défaut : 3)
 - En cas d'égalité : nombre de flags > temps de première capture
 
 ## Onboarding des participants
