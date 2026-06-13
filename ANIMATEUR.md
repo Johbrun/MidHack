@@ -91,6 +91,99 @@ Le secret JWT est `secret-pass-to-change` (chaîne littérale). Le serveur n'acc
 
 ---
 
+## Commandes utiles
+
+Aide-mémoire des commandes les plus fréquentes. Toutes sont à lancer depuis la racine du projet.
+
+### Générer / démarrer
+
+```bash
+# Afficher l'aide complète du script (toutes les options)
+./setup.sh -h
+
+# Générer la configuration pour N équipes (sans démarrer)
+./setup.sh 6
+
+# Générer + démarrer (build des images puis lancement)
+./setup.sh 6 --deploy
+
+# Choisir le port de départ (dashboard=1000, team1 site=1001, exploit=1002, ...)
+./setup.sh 6 --port 1000 --deploy
+
+# Personnaliser titre, pénalité d'indice et branding Nantes@Hack
+./setup.sh 6 --title "Nantes@Hack CTF" --hint-penalty 5 --nantes-hack 1 --deploy
+
+# Démarrer manuellement (si la config est déjà générée, sans --deploy)
+docker compose up --build -d
+```
+
+### Afficher les mots de passe
+
+```bash
+# Réafficher les mots de passe (équipes + admin) SANS rien régénérer
+./setup.sh --passwords      # alias : -p
+
+# Voir le fichier brut
+cat credentials.json
+
+# Rouvrir les cartes imprimables
+xdg-open credentials.html   # ou ouvrir le fichier dans un navigateur
+```
+
+> ⚠️ Relancer `./setup.sh` **régénère de nouveaux mots de passe**. Pour seulement les revoir, utilisez `--passwords`.
+
+### Suivre l'état et les logs
+
+```bash
+# État de tous les conteneurs (healthy / running)
+docker compose ps
+
+# Logs en direct de tous les services
+docker compose logs -f
+
+# Logs d'un service précis
+docker compose logs -f dashboard
+docker compose logs -f site-team1
+```
+
+### Mettre à jour
+
+```bash
+# Récupérer la dernière version du code puis reconstruire et relancer
+git pull
+docker compose up --build -d
+
+# Mise à jour complète "propre" (reconstruit tout depuis zéro)
+git pull
+docker compose down
+./setup.sh 6 --deploy
+```
+
+### Redémarrer / arrêter
+
+```bash
+# Redémarrer un service
+docker compose restart dashboard
+
+# Arrêter sans supprimer (les données persistent)
+docker compose stop
+
+# Relancer après un stop
+docker compose start
+```
+
+### Nettoyage
+
+```bash
+# Reset complet : supprime conteneurs, volumes et fichiers générés
+./setup.sh --reset
+
+# Puis régénérer
+./setup.sh 6 --deploy
+```
+
+---
+
 ## Panel d'administration
 
 Le dashboard dispose d'un panneau d'administration accessible via le bouton **Admin** en haut à droite du scoreboard.
@@ -276,5 +369,5 @@ npm run dev
 | Les flags ne sont pas validés | Vérifier la connexion entre exploit-server et dashboard (réseau Docker) |
 | Les annonces ne s'affichent pas chez les équipes | Vérifier que l'exploit-server est connecté au WebSocket du dashboard (voir les logs) |
 | Port déjà utilisé | `./setup.sh --reset` puis relancer |
-| Mots de passe perdus | Consulter `credentials.json` ou relancer `./setup.sh` (attention : régénère de nouveaux mots de passe) |
+| Mots de passe perdus | Lancer `./setup.sh --passwords` (réaffiche sans régénérer) ou consulter `credentials.json`. ⚠️ Relancer `./setup.sh` régénère de nouveaux mots de passe |
 | Données perdues après redémarrage | Les volumes Docker persistent les données. Un `docker compose down -v` les supprime |

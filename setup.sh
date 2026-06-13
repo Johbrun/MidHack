@@ -1,11 +1,39 @@
 #!/usr/bin/env bash
 # Generate docker-compose.yml with N teams and optionally deploy.
-# Usage: ./setup.sh [number_of_teams] [--deploy]
-#   --deploy   Build & start containers after generating docker-compose.yml
-#   --reset    Stop & remove containers, volumes, and generated files
-# Default: 4 teams
+# Run "./setup.sh -h" for full usage documentation.
 
 set -e
+
+# ╔══════════════════════════════════════════════════════════════╗
+# ║                     CONFIGURATION                              ║
+# ║   Modifiez ces variables pour personnaliser l'événement.      ║
+# ╚══════════════════════════════════════════════════════════════╝
+
+# Nombre d'équipes par défaut (surchargé par l'argument numérique)
+DEFAULT_TEAMS=4
+
+# Titre affiché sur le dashboard
+EVENT_TITLE="BananaShop CTF"
+
+# Pénalité de score appliquée à l'utilisation d'un indice
+HINT_PENALTY="3"
+
+# Branding Nantes@Hack sur tous les services ("0" = désactivé, "1" = activé)
+# Peut aussi être défini via la variable d'environnement VITE_NANTES_HACK
+NANTES_HACK=${VITE_NANTES_HACK:-1}
+
+# Port de départ exposé sur l'hôte (surchargé par l'option --port N)
+# Les ports sont attribués de façon contiguë à partir de cette valeur :
+#   dashboard      = START_PORT
+#   team1 site     = START_PORT + 1
+#   team1 exploit  = START_PORT + 2
+#   team2 site     = START_PORT + 3, etc.
+START_PORT=44000
+
+# Noms d'équipes (le nombre de noms détermine le maximum d'équipes possible)
+NAMES=(Alpha Bravo Charlie Delta Echo Foxtrot Golf Hotel India Juliet Kilo Lima Mike November Oscar Papa Quebec Romeo Sierra Tango)
+
+# ───────────────────────── Fin de la configuration ─────────────────────────
 
 # ─────────────────────────── Helpers ───────────────────────────
 
@@ -16,22 +44,167 @@ warn() { printf "  ${YELLOW}⚠${NC} %s\n" "$1"; }
 fail() { printf "  ${RED}✖${NC} %s\n" "$1"; exit 1; }
 info() { printf "  ${CYAN}ℹ${NC} %s\n" "$1"; }
 
+# ─────────────────────────── Aide ───────────────────────────
+
+usage() {
+  local C=$'\033[0;36m' Y=$'\033[1;33m' N=$'\033[0m'
+  cat <<EOF
+${C}setup.sh${N} — Générateur de docker-compose.yml pour le CTF ${EVENT_TITLE}
+
+${Y}USAGE${N}
+  ./setup.sh [nombre_d_equipes] [options]
+
+${Y}ARGUMENT POSITIONNEL${N}
+  nombre_d_equipes        Nombre d'équipes à générer (1 à ${#NAMES[@]}).
+                          Défaut: ${DEFAULT_TEAMS}.
+
+${Y}OPTIONS${N}
+  -h, --help              Affiche cette aide et quitte.
+
+  --port N                Port de départ. Les ports sont attribués de façon
+                          contiguë: dashboard=N, team1 site=N+1,
+                          team1 exploit=N+2, team2 site=N+3, etc.
+                          Défaut: ${START_PORT}.
+
+  --title "TEXTE"         Titre de l'événement affiché sur le dashboard.
+                          Défaut: "${EVENT_TITLE}".
+
+  --hint-penalty N        Pénalité de score appliquée à l'usage d'un indice.
+                          Défaut: ${HINT_PENALTY}.
+
+  --nantes-hack 0|1       Active (1) ou désactive (0) le branding Nantes@Hack
+                          sur tous les services. Défaut: ${NANTES_HACK}.
+
+  --deploy                Build & démarre les conteneurs après génération.
+
+  -p, --passwords         Réaffiche les mots de passe (équipes + admin) lus
+                          depuis credentials.json, sans rien régénérer, puis
+                          quitte.
+
+  --reset                 Arrête et supprime conteneurs, volumes et fichiers
+                          générés, puis quitte.
+
+${Y}FORMAT DES OPTIONS${N}
+  Chaque option à valeur accepte les deux formes:
+    --port 1000      ou    --port=1000
+
+${Y}EXEMPLES${N}
+  ./setup.sh                          # 4 équipes, port 44000, valeurs par défaut
+  ./setup.sh 8 --deploy               # 8 équipes et déploiement immédiat
+  ./setup.sh --port 1000              # dashboard sur 1000, équipes à partir de 1001
+  ./setup.sh --passwords              # réaffiche les mots de passe générés
+  ./setup.sh --reset                  # nettoyage complet
+
+  # Commande Nantes@Hack
+  ./setup.sh 6 --title "Nantes@Hack CTF" --hint-penalty 5 --nantes-hack 1 --port 44000 --deploy
+
+EOF
+}
+
+# ─────────────────────────── Affichage des mots de passe ───────────────────────────
+
+# Réaffiche les mots de passe (équipes + admin) en relisant credentials.json,
+# sans régénérer la configuration ni toucher aux conteneurs.
+show_passwords() {
+  local file="credentials.json"
+  [ -f "$file" ] || fail "credentials.json introuvable — lancez d'abord ./setup.sh pour générer la configuration."
+
+  local admin dash
+  admin=$(grep -oE '"admin_password"[[:space:]]*:[[:space:]]*"[^"]*"' "$file" | sed -E 's/.*"([^"]*)"$/\1/')
+  dash=$(grep -oE '"dashboard_url"[[:space:]]*:[[:space:]]*"[^"]*"' "$file" | sed -E 's/.*"([^"]*)"$/\1/')
+
+  local pw_names pw_pwds
+  mapfile -t pw_names < <(grep -oE '"name"[[:space:]]*:[[:space:]]*"[^"]*"' "$file"     | sed -E 's/.*"([^"]*)"$/\1/')
+  mapfile -t pw_pwds  < <(grep -oE '"password"[[:space:]]*:[[:space:]]*"[^"]*"' "$file" | sed -E 's/.*"([^"]*)"$/\1/')
+
+  echo ""
+  echo "🔑 Mots de passe (relus depuis credentials.json)"
+  [ -n "$dash" ] && echo "   Dashboard: $dash"
+  echo ""
+  echo "╔══════════════════════════════════════════╗"
+  echo "║        MOTS DE PASSE DES EQUIPES        ║"
+  echo "╠══════════════════════════════════════════╣"
+  local i
+  for i in "${!pw_names[@]}"; do
+    printf "║  %-10s  mdp: %-5s               ║\n" "${pw_names[$i]}" "${pw_pwds[$i]}"
+  done
+  echo "╠══════════════════════════════════════════╣"
+  printf "║  Admin dashboard:  %-20s ║\n" "$admin"
+  echo "╚══════════════════════════════════════════╝"
+  echo ""
+}
+
 # ─────────────────────────── Parse args ───────────────────────────
 
-TEAMS=4
+TEAMS=$DEFAULT_TEAMS
 DEPLOY=false
 RESET=false
 
-for arg in "$@"; do
+# Affecte la valeur d'une option à la variable nommée, gérant les deux formes
+# "--opt value" et "--opt=value". Consomme l'argument suivant si nécessaire
+# (incrémente OPT_SHIFT) et échoue proprement si la valeur manque.
+OPT_SHIFT=0
+set_opt() {
+  local var="$1" arg="$2" next="$3" has_next="$4"
+  OPT_SHIFT=0
   case "$arg" in
+    *=*)
+      printf -v "$var" '%s' "${arg#*=}"
+      ;;
+    *)
+      [ "$has_next" = "1" ] || fail "L'option ${arg%%=*} attend une valeur (ex: ${arg%%=*} <valeur>)"
+      printf -v "$var" '%s' "$next"
+      OPT_SHIFT=1
+      ;;
+  esac
+}
+
+while [ $# -gt 0 ]; do
+  arg="$1"
+  has_next=0; [ $# -ge 2 ] && has_next=1
+  case "$arg" in
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    -p|--passwords|--show-passwords)
+      show_passwords
+      exit 0
+      ;;
     --deploy) DEPLOY=true ;;
     --reset)  RESET=true ;;
-    [0-9]*)   TEAMS="$arg" ;;
+    --port|--port=*)         set_opt START_PORT   "$arg" "${2-}" "$has_next"; shift "$OPT_SHIFT" ;;
+    --title|--title=*)       set_opt EVENT_TITLE  "$arg" "${2-}" "$has_next"; shift "$OPT_SHIFT" ;;
+    --hint-penalty|--hint-penalty=*) set_opt HINT_PENALTY "$arg" "${2-}" "$has_next"; shift "$OPT_SHIFT" ;;
+    --nantes-hack|--nantes-hack=*)   set_opt NANTES_HACK  "$arg" "${2-}" "$has_next"; shift "$OPT_SHIFT" ;;
+    [0-9]*) TEAMS="$arg" ;;
+    *) fail "Argument inconnu: '$arg' (voir ./setup.sh -h)" ;;
   esac
+  shift
 done
 
-NANTES_HACK=${VITE_NANTES_HACK:-1}
-NAMES=(Alpha Bravo Charlie Delta Echo Foxtrot Golf Hotel India Juliet Kilo Lima Mike November Oscar Papa Quebec Romeo Sierra Tango)
+# Valide les valeurs surchargeables
+if ! [[ "$HINT_PENALTY" =~ ^[0-9]+$ ]]; then
+  fail "Pénalité d'indice invalide: '$HINT_PENALTY' (doit être un entier positif)"
+fi
+if [ "$NANTES_HACK" != "0" ] && [ "$NANTES_HACK" != "1" ]; then
+  fail "Valeur --nantes-hack invalide: '$NANTES_HACK' (doit être 0 ou 1)"
+fi
+
+# Valide le port de départ
+if ! [[ "$START_PORT" =~ ^[0-9]+$ ]] || [ "$START_PORT" -lt 1 ] || [ "$START_PORT" -gt 65535 ]; then
+  fail "Port de départ invalide: '$START_PORT' (doit être entre 1 et 65535)"
+fi
+
+# Ports dérivés du port de départ (schéma contigu)
+DASHBOARD_PORT=$START_PORT
+TEAM_PORT_BASE=$((START_PORT + 1))
+
+# Vérifie que le plus haut port ne dépasse pas 65535
+MAX_PORT=$((TEAM_PORT_BASE + TEAMS * 2 - 1))
+if [ "$MAX_PORT" -gt 65535 ]; then
+  fail "La plage de ports dépasse 65535 (départ $START_PORT, $TEAMS équipes → max $MAX_PORT)"
+fi
 
 # ─────────────────────────── Reset mode ───────────────────────────
 
@@ -109,11 +282,11 @@ check_port() {
 
 PORTS_BUSY=()
 # Dashboard
-check_port 44018 || PORTS_BUSY+=(44018)
+check_port $DASHBOARD_PORT || PORTS_BUSY+=($DASHBOARD_PORT)
 # Team ports
 for i in $(seq 1 "$TEAMS"); do
-  check_port $((44001 + (i - 1) * 2)) || PORTS_BUSY+=($((44001 + (i - 1) * 2)))
-  check_port $((44002 + (i - 1) * 2)) || PORTS_BUSY+=($((44002 + (i - 1) * 2)))
+  check_port $((TEAM_PORT_BASE + (i - 1) * 2)) || PORTS_BUSY+=($((TEAM_PORT_BASE + (i - 1) * 2)))
+  check_port $((TEAM_PORT_BASE + 1 + (i - 1) * 2)) || PORTS_BUSY+=($((TEAM_PORT_BASE + 1 + (i - 1) * 2)))
 done
 
 if [ ${#PORTS_BUSY[@]} -gt 0 ]; then
@@ -147,8 +320,8 @@ x-build-args: &build-args
 # Variables partagées pour le dashboard (modifiables ici)
 x-event-config: &event-config
   ADMIN_PASSWORD: "$ADMIN_PWD"
-  EVENT_TITLE: "BananaShop CTF"
-  HINT_PENALTY: "3"
+  EVENT_TITLE: "$EVENT_TITLE"
+  HINT_PENALTY: "$HINT_PENALTY"
 
 services:
   # Central live dashboard (to project on screen)
@@ -160,7 +333,7 @@ services:
     environment:
       <<: *event-config
     ports:
-      - "44018:5000"
+      - "${DASHBOARD_PORT}:5000"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:5000/api/scoreboard"]
@@ -181,8 +354,8 @@ done
 
 for i in $(seq 1 "$TEAMS"); do
   NAME=${NAMES[$((i - 1))]}
-  SITE_PORT=$((44001 + (i - 1) * 2))
-  EXPLOIT_PORT=$((44002 + (i - 1) * 2))
+  SITE_PORT=$((TEAM_PORT_BASE + (i - 1) * 2))
+  EXPLOIT_PORT=$((TEAM_PORT_BASE + 1 + (i - 1) * 2))
   TEAM_PWD=${PASSWORDS[$i]}
 
   cat >> "$FILE" <<EOF
@@ -257,7 +430,7 @@ ok "docker-compose.yml généré"
 CREDS_JSON="credentials.json"
 echo "{" > "$CREDS_JSON"
 echo "  \"admin_password\": \"$ADMIN_PWD\"," >> "$CREDS_JSON"
-echo "  \"dashboard_url\": \"http://localhost:44018\"," >> "$CREDS_JSON"
+echo "  \"dashboard_url\": \"http://localhost:$DASHBOARD_PORT\"," >> "$CREDS_JSON"
 echo "  \"teams\": [" >> "$CREDS_JSON"
 for i in $(seq 1 "$TEAMS"); do
   NAME=${NAMES[$((i - 1))]}
@@ -268,8 +441,8 @@ for i in $(seq 1 "$TEAMS"); do
     "team": $i,
     "name": "$NAME",
     "password": "${PASSWORDS[$i]}",
-    "site_url": "http://localhost:$((44001 + (i - 1) * 2))",
-    "exploit_url": "http://localhost:$((44002 + (i - 1) * 2))"
+    "site_url": "http://localhost:$((TEAM_PORT_BASE + (i - 1) * 2))",
+    "exploit_url": "http://localhost:$((TEAM_PORT_BASE + 1 + (i - 1) * 2))"
   }${COMMA}
 EOF
 done
@@ -320,8 +493,8 @@ for i in $(seq 1 "$TEAMS"); do
   <div class="card">
     <div class="team-emoji">🍌</div>
     <h2>Team $NAME</h2>
-    <div class="field"><strong>Site:</strong> http://localhost:$((44001 + (i - 1) * 2))</div>
-    <div class="field"><strong>Exploit Server:</strong> http://localhost:$((44002 + (i - 1) * 2))</div>
+    <div class="field"><strong>Site:</strong> http://localhost:$((TEAM_PORT_BASE + (i - 1) * 2))</div>
+    <div class="field"><strong>Exploit Server:</strong> http://localhost:$((TEAM_PORT_BASE + 1 + (i - 1) * 2))</div>
     <div class="field"><strong>Mot de passe:</strong></div>
     <div class="password">${PASSWORDS[$i]}</div>
   </div>
@@ -340,9 +513,9 @@ ok "credentials.html généré (ouvrir dans un navigateur pour imprimer)"
 echo ""
 echo "📋 Résumé de la configuration"
 echo ""
-echo "  Dashboard:  http://localhost:44018"
+echo "  Dashboard:  http://localhost:$DASHBOARD_PORT"
 for i in $(seq 1 "$TEAMS"); do
-  echo "  Team $i:     http://localhost:$((44001 + (i - 1) * 2)) (site)  http://localhost:$((44002 + (i - 1) * 2)) (exploit)"
+  echo "  Team $i:     http://localhost:$((TEAM_PORT_BASE + (i - 1) * 2)) (site)  http://localhost:$((TEAM_PORT_BASE + 1 + (i - 1) * 2)) (exploit)"
 done
 echo ""
 echo "╔══════════════════════════════════════════╗"
