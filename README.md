@@ -169,6 +169,18 @@ Le flag de démarrage est renvoyé par la route `POST /hello-my-flag` lorsque le
 - L'extension **JWT** de Burp Suite pour décoder et modifier des tokens JWT
 - L'onglet **Académie** du serveur d'exploit pour apprendre les techniques
 
+## Licence
+
+Ce projet — code source, documentation et supports pédagogiques — est distribué sous licence **[Creative Commons Attribution - Pas d'Utilisation Commerciale - Partage dans les Mêmes Conditions 4.0 International (CC BY-NC-SA 4.0)](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.fr)**.
+
+Vous êtes libre de **partager**, **réutiliser** et **modifier** ce travail, à condition de :
+
+- **Attribution (BY)** — créditer l'auteur d'origine et indiquer la provenance ;
+- **Pas d'Utilisation Commerciale (NC)** — ne pas en faire un usage commercial ;
+- **Partage dans les Mêmes Conditions (SA)** — distribuer toute version dérivée sous cette même licence.
+
+Texte légal complet : voir le fichier [LICENSE](LICENSE).
+
 ---
 
 Développé par Johan Brun pour [Nantes@Hack](https://www.meetup.com/nantesathack/).
