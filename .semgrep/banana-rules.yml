@@ -1,0 +1,56 @@
+rules:
+  # ---------------------------------------------------------------------------
+  # SQL Injection via better-sqlite3 + template literal interpolation
+  # ---------------------------------------------------------------------------
+  - id: better-sqlite3-string-interp
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >
+      Requête SQL construite par interpolation de chaîne dans db.prepare().
+      Utilise des paramètres liés (?) : db.prepare('... WHERE name LIKE ?').all('%'+x+'%').
+    metadata:
+      cwe: "CWE-89: SQL Injection"
+      owasp: "A03:2021 - Injection"
+    patterns:
+      - pattern: $DB.prepare(`...${$X}...`)
+
+  # ---------------------------------------------------------------------------
+  # DOM XSS : affectation innerHTML depuis une valeur non statique
+  # ---------------------------------------------------------------------------
+  - id: dom-innerhtml-assignment
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >
+      Affectation à .innerHTML — sink XSS DOM. Utilise textContent, ou
+      assainis le HTML (DOMPurify) avant injection.
+    metadata:
+      cwe: "CWE-79: Cross-site Scripting"
+      owasp: "A03:2021 - Injection"
+    patterns:
+      - pattern: $EL.innerHTML = $VAL
+      - metavariable-pattern:
+          metavariable: $VAL
+          patterns:
+            - pattern-not: "'...'"
+            - pattern-not: '"..."'
+
+  # ---------------------------------------------------------------------------
+  # Path Traversal : entrée requête passée à fs sans normalisation
+  # ---------------------------------------------------------------------------
+  - id: path-join-user-input-to-fs
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >
+      Chemin construit à partir d'entrée utilisateur passé à fs.* — Path Traversal.
+      Valide/normalise (path.normalize + vérif préfixe) ou utilise une whitelist.
+    metadata:
+      cwe: "CWE-22: Path Traversal"
+    mode: taint
+    pattern-sources:
+      - pattern: req.query
+      - pattern: req.params
+      - pattern: req.body
+    pattern-sinks:
+      - pattern: fs.readFileSync(...)
+      - pattern: fs.readFile(...)
+      - pattern: fs.createReadStream(...)
