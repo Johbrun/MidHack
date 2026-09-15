@@ -6,6 +6,8 @@ const { awardFlag } = require('../award');
 
 const router = express.Router();
 
+const VALID_ROLES = ['user', 'admin'];
+
 // GET /api/users/:id
 // VULNERABLE: IDOR - no check that req.user.id === params.id
 router.get('/:id', authenticate, (req, res) => {
@@ -37,6 +39,14 @@ router.put('/:id', authenticate, (req, res) => {
   // l'écraser et détruire son propre challenge (base à réinitialiser).
   const bioHoldsFlag = (user.bio || '').includes(FLAGS.IDOR);
   const nextBio = bioHoldsFlag ? null : (bio || null);
+
+  // La vulnérabilité reste entière — aucun contrôle d'autorisation n'est ajouté —
+  // mais une valeur de rôle inconnue n'est plus écrite en base : `role:
+  // "tartanpion"` laissait un compte ni user ni admin pour le reste de la
+  // session, avec une interface incohérente à la clé.
+  if (role && !VALID_ROLES.includes(role)) {
+    return res.status(400).json({ error: 'Rôle inconnu. Valeurs acceptées : user, admin' });
+  }
 
   if (username) {
     const existing = db.prepare('SELECT id FROM users WHERE username = ? AND id != ?').get(username, userId);
