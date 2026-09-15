@@ -109,6 +109,33 @@ Deux chemins mènent donc au challenge **Go superadmin** :
 
 ---
 
+## Vulnérabilités volontaires (et ce qui n'en est pas)
+
+Certains comportements ressemblent à des bugs mais sont **le challenge lui-même**.
+Un testeur comme un animateur doit pouvoir trancher sans lire le code.
+
+| Comportement observé | Statut | Challenge concerné |
+|----------------------|--------|--------------------|
+| `GET /api/users/:id` renvoie le profil et le solde de **n'importe quel** utilisateur | ✅ Volontaire | IDOR — l'absence de contrôle d'accès est la faille à trouver |
+| `GET /api/config` expose mot de passe de base et identifiants | ✅ Volontaire | Sensitive Data Exposure |
+| `PUT /api/users/:id` accepte `role` et `subscription` depuis le body | ✅ Volontaire | Go Premium / Changement de rôle |
+| Le formulaire de connexion concatène la saisie dans le SQL | ✅ Volontaire | SQL Injection (Login Bypass) |
+| La recherche produits renvoie une **erreur SQL** sur une apostrophe | ✅ Volontaire | SQL Injection (UNION) — le message est le signal de départ |
+| Le cookie `token` est lisible par `document.cookie` (pas de `httpOnly`) | ✅ Volontaire | Vol de cookie |
+| Le cookie `ctf_secret` accompagne la session | ✅ Volontaire | Vol de cookie — jeton opaque, ce n'est pas le flag |
+| `X-Frame-Options: ALLOW`, CSP permissive, `Referrer-Policy: unsafe-url` | ✅ Volontaire | En-têtes mal configurés, support de plusieurs challenges |
+| Le panneau admin permet de fixer le solde de n'importe qui | ✅ Volontaire | Conséquence d'un accès admin obtenu — ne valide **aucun** challenge |
+| Un rôle inconnu (`tartanpion`) est refusé | ⛔ Bordé | Le mass assignment reste exploitable vers `admin` uniquement |
+| `/api/internal/flag` en accès direct depuis le navigateur | ⛔ Bordé | Réservé au loopback : le flag SSRF exige une vraie SSRF |
+| Un flag obtenu sans l'exploitation attendue | ⛔ Bordé | Chaque flag exige une preuve d'acte (`server/src/award.js`) |
+
+**Deux flags sur la même requête** : impossible par construction. Si deux
+conditions se déclenchent, la plus spécifique l'emporte et l'autre challenge
+reste à trouver — la décision est tracée dans la table `challenge_events` du
+site de l'équipe.
+
+---
+
 ## Panel d'administration
 
 Le dashboard dispose d'un panneau d'administration accessible via le bouton **Admin** en haut à droite du scoreboard.
