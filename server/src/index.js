@@ -5,7 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const WebSocket = require('ws');
 const { registerTeam } = require('../../shared/register-team');
-const { FLAGS } = require('./flags');
+const { awardFlag } = require('./award');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -57,7 +57,12 @@ app.get('/api/internal/flag', (req, res) => {
   if (!LOOPBACK.has(from)) {
     return res.status(403).json({ error: 'Internal endpoint - localhost only' });
   }
-  res.json({ flag: FLAGS.SSRF, message: 'You accessed an internal endpoint via SSRF!' });
+  const response = {};
+  awardFlag(req, response, 'SSRF', {
+    proof: 'internal_endpoint_via_loopback',
+    message: 'Endpoint interne atteint depuis le serveur lui-même : SSRF réussie !',
+  });
+  res.json(response);
 });
 
 // SSE endpoint for admin announcements

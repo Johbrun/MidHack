@@ -1,7 +1,7 @@
 const express = require('express');
 const db = require('../db');
 const { authenticate, requireAdmin } = require('../middleware/auth');
-const { FLAGS } = require('../flags');
+const { awardFlag } = require('../award');
 
 const router = express.Router();
 
@@ -17,10 +17,13 @@ router.get('/dashboard', authenticate, requireAdmin, (req, res) => {
   ).all();
 
   let response = {};
-  // Flag only revealed to super_admin
+  // Le claim super_admin n'est jamais émis par le serveur : sa présence prouve
+  // que le jeton a été forgé (secret faible ou alg:none).
   if (req.user.super_admin === true) {
-    response.flag = FLAGS.JWT_FORGING;
-    response.secret_message = 'You forged a super_admin token - impressive!';
+    awardFlag(req, response, 'JWT_FORGING', {
+      proof: 'forged_super_admin_claim',
+      message: 'Jeton forgé accepté : le claim super_admin n\'a jamais été émis par le serveur !',
+    });
   }
 
 

@@ -2,6 +2,7 @@ const express = require('express');
 const db = require('../db');
 const { authenticate } = require('../middleware/auth');
 const { FLAGS } = require('../flags');
+const { awardFlag } = require('../award');
 
 const router = express.Router();
 
@@ -60,10 +61,13 @@ router.put('/:id', authenticate, (req, res) => {
 
   const response = { ...updated };
   if (gotPremium || gotAdmin) {
-    response.flag = FLAGS.MASS_ASSIGNMENT;
-    response.message = gotAdmin
-      ? 'Rôle admin obtenu via mass assignment ! Vous avez trouvé la faille.'
-      : 'Abonnement modifié via mass assignment ! Vous avez trouvé la faille.';
+    awardFlag(req, response, 'MASS_ASSIGNMENT', {
+      proof: gotAdmin ? 'mass_assignment_role' : 'mass_assignment_subscription',
+      field: gotAdmin ? 'role' : 'subscription',
+      message: gotAdmin
+        ? 'Champ « role » accepté depuis le body : élévation de privilège par mass assignment !'
+        : 'Champ « subscription » accepté depuis le body : Premium obtenu sans payer !',
+    });
   }
 
   res.json(response);

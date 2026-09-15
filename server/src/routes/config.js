@@ -1,12 +1,12 @@
 const express = require('express');
-const { FLAGS } = require('../flags');
+const { awardFlag } = require('../award');
 
 const router = express.Router();
 
 // GET /api/config
 // VULNERABLE: Sensitive Data Exposure - leaks secrets and credentials
 router.get('/', (req, res) => {
-  res.json({
+  const response = {
     appName: 'BananaShop',
     version: '1.0.0',
     environment: 'production',
@@ -15,8 +15,14 @@ router.get('/', (req, res) => {
     adminCredentials: {
       username: 'admin',
     },
-    flag: FLAGS.DATA_EXPOSURE,
+  };
+
+  awardFlag(req, response, 'DATA_EXPOSURE', {
+    proof: 'debug_endpoint_reached',
+    message: 'Endpoint de debug atteint : il expose les secrets de configuration.',
   });
+
+  res.json(response);
 });
 
 module.exports = router;

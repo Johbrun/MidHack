@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../db');
 const { JWT_SECRET } = require('../middleware/auth');
-const { FLAGS } = require('../flags');
+const { awardFlag } = require('../award');
 
 const router = express.Router();
 
@@ -93,8 +93,11 @@ router.post('/login', (req, res) => {
 
     const response = { id: authedUser.id, username: authedUser.username, role: authedUser.role };
     if (isSqliAdmin) {
-      response.flag = FLAGS.SQLI;
-      response.message = 'SQL Injection detected - nice bypass!';
+      awardFlag(req, response, 'SQLI', {
+        proof: 'auth_bypass_via_injection',
+        username,
+        message: 'Injection SQL confirmée : authentification admin sans mot de passe !',
+      });
     }
     res.json(response);
   } catch (err) {

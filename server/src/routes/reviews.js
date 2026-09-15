@@ -1,7 +1,7 @@
 const express = require('express');
 const db = require('../db');
 const { authenticate } = require('../middleware/auth');
-const { FLAGS } = require('../flags');
+const { awardFlag } = require('../award');
 
 const router = express.Router();
 
@@ -74,16 +74,22 @@ router.post('/:productId/reviews', authenticate, (req, res) => {
     created_at: new Date().toISOString(),
   };
 
-  // Flag revealed when a review with rating 0 is submitted via API
-  if (safeRating === 0) {
-    response.flag = FLAGS.ZERO_RATING;
-    response.message = 'Une note de 0 ? Vous avez trouvé une faille de validation !';
+  // Les appels sont ordonnés du plus spécifique au plus général : une payload
+  // XSS postée avec une note de 0 valide le XSS stocké, et la note invalide
+  // reste à trouver (un seul flag par requête, cf. award.js).
+  if (/on\w+\s*=/i.test(content) || /javascript\s*:/i.test(content)) {
+    awardFlag(req, response, 'STORED_XSS', {
+      proof: 'xss_payload_stored',
+      message: 'Payload XSS stockée en base : le filtre a été contourné !',
+    });
   }
 
-  // Flag revealed when the review content contains an XSS payload (event handler or javascript: URI)
-  if (/on\w+\s*=/i.test(content) || /javascript\s*:/i.test(content)) {
-    response.flag = FLAGS.STORED_XSS;
-    response.message = 'Vous avez contourné le filtre et injecté une payload XSS !';
+  if (safeRating === 0) {
+    awardFlag(req, response, 'ZERO_RATING', {
+      proof: 'rating_out_of_range',
+      rating: safeRating,
+      message: 'Note hors intervalle acceptée : la validation serveur manque !',
+    });
   }
 
   res.json(response);

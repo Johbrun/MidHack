@@ -54,6 +54,21 @@ db.exec(`
     key TEXT NOT NULL,
     value TEXT NOT NULL
   );
+
+  -- Journal des décisions d'attribution de flags (cf. server/src/award.js).
+  -- Sert à l'animateur : il donne le CHEMIN emprunté par une équipe, et pas
+  -- seulement le résultat, ce qui permet de repérer un effet de bord en direct.
+  CREATE TABLE IF NOT EXISTS challenge_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    username TEXT,
+    flag_id TEXT,
+    kind TEXT NOT NULL,
+    proof TEXT,
+    endpoint TEXT,
+    detail TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
 `);
 
 // Idempotent migrations

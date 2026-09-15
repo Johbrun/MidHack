@@ -4,6 +4,7 @@ const path = require('path');
 const db = require('../db');
 const { authenticate } = require('../middleware/auth');
 const { FLAGS } = require('../flags');
+const { awardFlag } = require('../award');
 
 const router = express.Router();
 
@@ -58,9 +59,15 @@ router.get('/image', (req, res) => {
     const filePath = path.join(__dirname, '..', '..', 'public', 'bananas', file);
     const content = fs.readFileSync(filePath, 'utf-8');
 
-    // Check if the content contains the path traversal flag
+    // Le fichier lu contient le flag : la preuve est la sortie du dossier servi.
     if (content.includes(FLAGS.PATH_TRAVERSAL)) {
-      return res.json({ content, flag: FLAGS.PATH_TRAVERSAL, message: 'Path Traversal réussi !' });
+      const response = { content };
+      awardFlag(req, response, 'PATH_TRAVERSAL', {
+        proof: 'file_read_outside_public_dir',
+        file,
+        message: 'Fichier lu hors du dossier des images : path traversal réussi !',
+      });
+      return res.json(response);
     }
 
     // Serve SVG files with proper content-type so <img> tags work

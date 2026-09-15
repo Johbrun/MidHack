@@ -2,6 +2,7 @@ const express = require('express');
 const db = require('../db');
 const { authenticate } = require('../middleware/auth');
 const { FLAGS } = require('../flags');
+const { awardFlag } = require('../award');
 
 const router = express.Router();
 
@@ -64,10 +65,12 @@ router.post('/send', authenticate, (req, res) => {
     balance: updatedSender.balance,
   };
 
-  // Flag revealed when balance exceeds 999 (achieved via negative amounts)
   if (updatedSender.balance > 999) {
-    response.flag = FLAGS.BUSINESS_LOGIC;
-    response.message += ' 🎉 Impressive balance!';
+    awardFlag(req, response, 'BUSINESS_LOGIC', {
+      proof: 'balance_over_threshold',
+      balance: updatedSender.balance,
+      message: `${response.message} 🎉 Solde impressionnant !`,
+    });
   }
 
   // CSRF detection disabled
