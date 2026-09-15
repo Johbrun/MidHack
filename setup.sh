@@ -43,6 +43,7 @@ load_config() {
   NANTES_HACK="${VITE_NANTES_HACK:-1}"
   PROGRESSIVE_UNLOCK="${VITE_PROGRESSIVE_UNLOCK:-false}"
   UNLOCK_THRESHOLD="${VITE_UNLOCK_THRESHOLD:-2}"
+  NUDGE_DELAY_MIN="${VITE_NUDGE_DELAY_MIN:-10}"
   read -ra NAMES <<< "${TEAM_NAMES:-Alpha Bravo Charlie Delta}"
 
   # ── Validation ──
@@ -332,7 +333,8 @@ EOF
         VITE_NANTES_HACK: \"$NANTES_HACK\"
         VITE_PROGRESSIVE_UNLOCK: \"$PROGRESSIVE_UNLOCK\"
         VITE_UNLOCK_THRESHOLD: \"$UNLOCK_THRESHOLD\"
-        VITE_HINT_PENALTY: \"$HINT_PENALTY\""
+        VITE_HINT_PENALTY: \"$HINT_PENALTY\"
+        VITE_NUDGE_DELAY_MIN: \"$NUDGE_DELAY_MIN\""
     else
       SITE_BUILD="    pull_policy: never"
       EXPLOIT_BUILD="    pull_policy: never"
