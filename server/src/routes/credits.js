@@ -2,7 +2,7 @@ const express = require('express');
 const db = require('../db');
 const { authenticate } = require('../middleware/auth');
 const { FLAGS } = require('../flags');
-const { awardFlag } = require('../award');
+const { awardFlag, noteSideEffect } = require('../award');
 
 const router = express.Router();
 
@@ -65,11 +65,20 @@ router.post('/send', authenticate, (req, res) => {
     balance: updatedSender.balance,
   };
 
-  if (updatedSender.balance > 999) {
+  // Le flag récompense l'ACTE — un virement de montant négatif, qui crédite
+  // l'émetteur au lieu de le débiter — et non l'état « solde > 999 » : ce solde
+  // était aussi atteignable depuis le panneau admin ou par top-ups successifs,
+  // ce qui validait le challenge sans rien exploiter.
+  if (sendAmount < 0) {
     awardFlag(req, response, 'BUSINESS_LOGIC', {
+      proof: 'negative_transfer',
+      amount: sendAmount,
+      message: `${response.message} 🎉 Montant négatif accepté : la logique métier est contournée !`,
+    });
+  } else if (updatedSender.balance > 999) {
+    noteSideEffect(req, response, 'BUSINESS_LOGIC', {
       proof: 'balance_over_threshold',
       balance: updatedSender.balance,
-      message: `${response.message} 🎉 Solde impressionnant !`,
     });
   }
 

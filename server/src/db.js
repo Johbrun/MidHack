@@ -90,7 +90,7 @@ if (userCount === 0) {
   const flagHash = bcrypt.hashSync('unfindable_password_42!', 10);
 
   db.prepare('INSERT INTO users (username, password_hash, email, bio, role, balance) VALUES (?, ?, ?, ?, ?, ?)').run(
-    'admin', adminHash, 'admin@bananashop.local', 'Compte administrateur', 'admin', 999
+    'admin', adminHash, 'admin@bananashop.local', 'Compte administrateur', 'admin', 1000000
   );
   db.prepare('INSERT INTO users (username, password_hash, email, bio, role, balance) VALUES (?, ?, ?, ?, ?, ?)').run(
     'john', johnHash, 'john@example.com', 'Amateur de bananes ordinaire', 'user', 500

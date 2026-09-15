@@ -85,6 +85,8 @@ ${Y}COMMANDES${N}
   passwords         Réaffiche les mots de passe (équipes + admin) lus depuis
                     credentials.json, sans rien régénérer.
   reset             Arrête et supprime conteneurs, volumes et fichiers générés.
+  reset-team <nom>  Remet à zéro une seule équipe : base du site recréée et
+                    webhook vidé, sans toucher aux autres équipes ni au score.
   -h, --help, help  Affiche cette aide.
 
 ${Y}CONFIGURATION${N}
@@ -558,12 +560,46 @@ cmd_deploy() {
   echo ""
 }
 
+# Remet une équipe à l'état initial sans interrompre l'atelier des autres.
+# Utile quand un participant a saccagé l'économie de son instance : jusqu'ici
+# il fallait réinitialiser tout l'événement.
+cmd_reset_team() {
+  local name="${1:-}"
+  [ -n "$name" ] || fail "Usage: ./setup.sh reset-team <nom d'équipe>"
+  [ -f "docker-compose.yml" ] || fail "docker-compose.yml absent — lancez d'abord ./setup.sh deploy"
+
+  # Retrouve l'index de l'équipe à partir de son nom tel que déployé.
+  local idx="" i=1
+  for team in $TEAM_NAMES; do
+    [ "$team" = "$name" ] && idx=$i
+    i=$((i + 1))
+  done
+  [ -n "$idx" ] || fail "Équipe inconnue: '$name' (TEAM_NAMES: $TEAM_NAMES)"
+
+  echo ""
+  echo "🧹 Reset de l'équipe $name (services site-team${idx} / exploit-team${idx})..."
+
+  # La base du site est recréée au démarrage : la supprimer suffit.
+  docker compose exec -T "site-team${idx}" sh -c 'rm -f /app/server/banana_shop.db*' 2>/dev/null \
+    && ok "Base du site supprimée" || warn "Base du site non supprimée (service arrêté ?)"
+  docker compose exec -T "exploit-team${idx}" sh -c 'rm -f /app/exploit-server/data/webhook-requests.json' 2>/dev/null \
+    && ok "Webhook vidé" || warn "Webhook non vidé (service arrêté ?)"
+
+  docker compose restart "site-team${idx}" "exploit-team${idx}" >/dev/null 2>&1 \
+    && ok "Services redémarrés" || warn "Redémarrage impossible"
+
+  echo ""
+  ok "Équipe $name réinitialisée. Le score du dashboard est conservé."
+  echo ""
+}
+
 # ─────────────────────────── Dispatch ───────────────────────────
 
 case "${1:-}" in
   deploy)          cmd_deploy ;;
   passwords)       show_passwords ;;
   reset)           cmd_reset ;;
+  reset-team)      cmd_reset_team "${2:-}" ;;
   -h|--help|help)  usage ;;
   "")              usage; exit 1 ;;
   *)               fail "Commande inconnue: '$1' (voir ./setup.sh --help)" ;;
