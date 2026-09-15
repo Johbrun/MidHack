@@ -141,6 +141,10 @@ function awardFlag(req, response, flagId, evidence = {}) {
  * voit l'effet de bord dans le journal.
  */
 function noteSideEffect(req, response, flagId, detail = {}) {
+  // Une fois le challenge capturé, l'état n'a plus rien d'ambigu : répéter le
+  // message à chaque requête ne ferait que parasiter le jeu.
+  if (progress.hasCaptured(flagId)) return;
+
   logEvent(req, { flagId, kind: KIND.SIDE_EFFECT, proof: detail.proof || null, detail });
   response.message =
     `${response.message ? response.message + ' ' : ''}` +

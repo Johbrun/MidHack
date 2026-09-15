@@ -100,7 +100,7 @@ test('SQL Injection UNION : erreur SQL exposée, puis flag sur extraction réell
   });
 });
 
-test('Logique métier : le virement négatif donne le flag, pas un solde élevé', async () => {
+test('Logique métier : le virement négatif donne le flag', async () => {
   await withServer({ captured: ALL_CAPTURED }, async (api) => {
     await login(api);
     const attack = await api.post('/api/credits/send', { recipientUsername: 'admin', amount: -5000 });
@@ -109,18 +109,18 @@ test('Logique métier : le virement négatif donne le flag, pas un solde élevé
 });
 
 test('Logique métier : un solde > 999 obtenu par l\'admin ne valide rien (chemin non prévu)', async () => {
-  await withServer({ captured: ALL_CAPTURED }, async (api) => {
+  // Équipe qui n'a pas encore résolu le challenge : c'est le scénario du testeur.
+  const captured = ALL_CAPTURED.filter((id) => id !== 'BUSINESS_LOGIC');
+  await withServer({ captured }, async (api) => {
     // L'admin crédite un compte : c'est le scénario qui validait le challenge.
     await login(api, 'admin', 'SuperSecretAdmin123!');
     await api.put('/api/admin/users/2', { balance: 10000 });
 
-    const victim = client(api.base);
     await login(api, 'john', 'john123');
     const transfer = await api.post('/api/credits/send', { recipientUsername: 'admin', amount: 30 });
 
     assert.equal(transfer.data.flag, undefined, 'un virement ordinaire ne prouve aucune exploitation');
     assert.match(transfer.data.message, /pas le chemin de ce challenge/);
-    assert.ok(victim);
   });
 });
 
