@@ -12,9 +12,20 @@ const TEAM_NAME = process.env.TEAM_NAME || 'Unknown Team';
 // cette équipe, et pas d'une requête forgée au nom d'une autre.
 const TEAM_TOKEN = process.env.TEAM_TOKEN || '';
 
+// Un flag est presque toujours copié depuis une réponse JSON : il arrive avec
+// ses guillemets, une virgule, parfois toute la ligne autour. Refuser ça au
+// motif de « flag invalide » fait croire au joueur qu'il s'est trompé de flag.
+const FLAG_PATTERN = /ASY\{[^}]*\}/;
+
+function normalizeFlag(raw) {
+  if (typeof raw !== 'string') return '';
+  const match = raw.match(FLAG_PATTERN);
+  return match ? match[0] : raw.trim().replace(/^["'`,\s]+|["'`,\s]+$/g, '');
+}
+
 // POST /api/flags/submit
 router.post('/submit', async (req, res) => {
-  const { flag } = req.body;
+  const flag = normalizeFlag(req.body.flag);
 
   if (!flag) {
     return res.status(400).json({ error: 'Flag is required' });
@@ -52,6 +63,7 @@ router.post('/submit', async (req, res) => {
 
   // Notify the central dashboard and respect its response (e.g. frozen state)
   let queuedMessage = null;
+  let duplicate = false;
   try {
     const dashRes = await fetch(`${DASHBOARD_URL}/api/capture`, {
       method: 'POST',
@@ -64,6 +76,9 @@ router.post('/submit', async (req, res) => {
     }
     // Scoreboard gelé : la capture est en file d'attente côté dashboard.
     if (dashData.queued) queuedMessage = dashData.message;
+    // Déjà capturé par l'équipe : le dire, plutôt que de laisser croire que
+    // des points viennent d'être marqués une seconde fois.
+    if (dashData.duplicate) duplicate = true;
   } catch {
     // Dashboard might not be running in dev mode — continue anyway
   }
@@ -77,8 +92,11 @@ router.post('/submit', async (req, res) => {
     points: flagInfo.points,
     difficulty: flagInfo.difficulty,
     queued: !!queuedMessage,
+    duplicate,
     message: queuedMessage
-      || `Congratulations! You found the ${flagName} flag! (+${flagInfo.points} pts)`,
+      || (duplicate
+        ? `Flag « ${flagName} » déjà capturé par votre équipe : aucun point supplémentaire.`
+        : `Bravo ! Vous avez trouvé le flag « ${flagName} » ! (+${flagInfo.points} pts)`),
     explanation,
   });
 });
