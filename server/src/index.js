@@ -7,6 +7,7 @@ const WebSocket = require('ws');
 const { registerTeam } = require('../../shared/register-team');
 const { awardFlag } = require('./award');
 const progress = require('./progress');
+const { detectIntent } = require('./detect');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -32,6 +33,9 @@ app.use(express.json());
 // sans ce parser, le body est vide (et la démo CSRF ne peut pas fonctionner).
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+// Classe 🟡 : oriente quand une technique connue est employée au mauvais endroit.
+// Ne délivre jamais de flag (cf. detect.js).
+app.use(detectIntent);
 
 // Initialize database (triggers seed)
 require('./db');

@@ -26,6 +26,7 @@ const KIND = {
   AWARD: 'award',         // exploitation réelle, preuve fournie -> flag délivré
   WITHHELD: 'withheld',   // un flag a déjà été délivré sur cette requête
   LOCKED: 'locked',       // prérequis du fil rouge non satisfaits
+  SIDE_EFFECT: 'side_effect', // état atteint sans l'acte : aucun flag
 };
 
 function logEvent(req, { flagId, kind, proof, detail }) {
@@ -99,4 +100,16 @@ function awardFlag(req, response, flagId, evidence = {}) {
   return true;
 }
 
-module.exports = { awardFlag, logEvent, KIND, CHALLENGE_BY_ID };
+/**
+ * Classe ⚪ : l'état visé est atteint, mais par un chemin qui ne prouve rien.
+ * Aucun flag n'est délivré ; le joueur reçoit un message neutre et l'animateur
+ * voit l'effet de bord dans le journal.
+ */
+function noteSideEffect(req, response, flagId, detail = {}) {
+  logEvent(req, { flagId, kind: KIND.SIDE_EFFECT, proof: detail.proof || null, detail });
+  response.message =
+    `${response.message ? response.message + ' ' : ''}` +
+    "L'état a bien été modifié, mais ce n'est pas le chemin de ce challenge.";
+}
+
+module.exports = { awardFlag, noteSideEffect, logEvent, KIND, CHALLENGE_BY_ID };
