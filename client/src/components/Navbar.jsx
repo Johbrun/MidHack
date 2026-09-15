@@ -48,6 +48,11 @@ export default function Navbar() {
           <span className="font-heading font-extrabold text-lg tracking-tight group-hover:text-accent transition-colors">
             BananaShop
           </span>
+          {/* Repère d'environnement : le QG porte le sien en bleu. Avec quatre
+              onglets ouverts, c'est ce qui évite de confondre les deux fronts. */}
+          <span className="hidden sm:inline text-[0.6rem] font-bold uppercase tracking-[0.18em] text-accent bg-accent/10 border border-accent/25 rounded px-2 py-[3px]">
+            env: prod
+          </span>
         </Link>
 
         <div className="flex items-center gap-1">
