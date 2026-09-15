@@ -3,6 +3,7 @@ import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { ThemeProvider } from './context/ThemeContext';
 import Navbar from './components/Navbar';
+import NudgeBanner from './components/NudgeBanner';
 import AnnouncementBanner from './components/AnnouncementBanner';
 import FreezeOverlay from './components/FreezeOverlay';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -31,6 +32,7 @@ export default function App() {
           <OnboardingModal />
           <AnnouncementBanner />
           <FreezeOverlay />
+          <NudgeBanner />
           <div className="geo-bg" />
           <Navbar />
           <div className="relative z-10">
