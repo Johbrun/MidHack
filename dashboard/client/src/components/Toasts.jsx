@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react';
-import { FLAGS, HINT_PENALTY } from '../flags';
+import { FLAGS } from '../flags';
 
 // Receives an incoming events stream from useScoreboard() and renders
 // a stack of auto-dismissing toasts matching the vanilla dashboard look.
-export default function Toasts({ events, consumeEvent }) {
+// La pénalité vient du serveur (config du scoreboard) : la constante locale
+// annonçait -3 même quand l'événement était configuré autrement.
+export default function Toasts({ events, consumeEvent, hintPenalty = 3 }) {
   const [toasts, setToasts] = useState([]); // { id, msg, kind, visible }
 
   useEffect(() => {
     if (events.length === 0) return;
     for (const evt of events) {
-      const built = buildToast(evt);
+      const built = buildToast(evt, hintPenalty);
       if (built) {
         const toast = { ...built, id: evt.id, visible: false };
         setToasts((prev) => [...prev, toast].slice(-5));
@@ -61,7 +63,7 @@ export default function Toasts({ events, consumeEvent }) {
   );
 }
 
-function buildToast(evt) {
+function buildToast(evt, hintPenalty) {
   if (evt.type === 'first_blood') {
     const flagDef = FLAGS.find((f) => f.flagId === evt.payload.flagId);
     const label = flagDef ? flagDef.name : evt.payload.flagId;
@@ -80,7 +82,7 @@ function buildToast(evt) {
   }
   if (evt.type === 'hint') {
     return {
-      msg: `💡 ${evt.payload.teamName} a utilisé un indice pour ${evt.payload.challengeName} (-${HINT_PENALTY}pts)`,
+      msg: `💡 ${evt.payload.teamName} a utilisé un indice pour ${evt.payload.challengeName} (-${hintPenalty}pts)`,
       kind: 'hint',
     };
   }

@@ -33,7 +33,7 @@ export default function App() {
           <Scoreboard teams={teams} hintPenalty={config.hintPenalty} frozen={frozen} />
         </div>
       </div>
-      <Toasts events={events} consumeEvent={consumeEvent} />
+      <Toasts events={events} consumeEvent={consumeEvent} hintPenalty={config.hintPenalty} />
       {showAdmin && <AdminPanel onClose={() => setShowAdmin(false)} />}
     </>
   );
