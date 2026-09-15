@@ -119,7 +119,7 @@ app.use((req, res, next) => {
 
 // Register a team
 app.post('/api/teams/register', (req, res) => {
-  const { teamName } = req.body;
+  const { teamName, service } = req.body;
   if (!teamName) return res.status(400).json({ error: 'teamName required' });
 
   if (!teamTokenValid(teamName, req)) {
@@ -134,8 +134,26 @@ app.post('/api/teams/register', (req, res) => {
     console.log(`Team registered: ${teamName}`);
   }
 
+  // Chaque démarrage d'un service se signale ici : au-delà du premier, c'est un
+  // redémarrage (crash, OOM-kill, déploiement). L'animateur doit le voir sans
+  // avoir à ouvrir les logs Docker.
+  if (service) {
+    const boots = serviceBoots.get(teamName) || {};
+    boots[service] = (boots[service] || 0) + 1;
+    serviceBoots.set(teamName, boots);
+    if (boots[service] > 1) {
+      console.warn(`RESTART: ${teamName}/${service} a démarré ${boots[service]} fois`);
+      broadcast({ type: 'service_restart', teamName, service, boots: boots[service] });
+    }
+  }
+
   res.json({ ok: true, teamName });
 });
+
+// Démarrages observés par équipe : { [teamName]: { site: n, exploit: n } }.
+// Volontairement en mémoire — c'est un compteur d'incidents pour la session en
+// cours, pas une donnée de classement à conserver.
+const serviceBoots = new Map();
 
 // Record a capture
 const FIRST_BLOOD_BONUS = 5;
@@ -429,6 +447,15 @@ app.get('/api/admin/status', requireAdmin, (req, res) => {
     frozen,
     timer,
     pendingCaptures: pendingCaptures.length,
+    // Un service à plus d'un démarrage a redémarré pendant l'atelier.
+    restarts: Object.fromEntries(
+      Array.from(serviceBoots.entries())
+        .map(([team, boots]) => [
+          team,
+          Object.fromEntries(Object.entries(boots).map(([svc, n]) => [svc, n - 1])),
+        ])
+        .filter(([, boots]) => Object.values(boots).some((n) => n > 0))
+    ),
   });
 });
 

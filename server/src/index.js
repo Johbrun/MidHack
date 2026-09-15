@@ -100,7 +100,7 @@ if (fs.existsSync(path.join(clientBuild, 'index.html'))) {
 
 // Register team with dashboard on startup
 setTimeout(() => {
-  registerTeam({ dashboardUrl: DASHBOARD_URL, teamName: TEAM_NAME }).catch(() => { });
+  registerTeam({ dashboardUrl: DASHBOARD_URL, teamName: TEAM_NAME, service: 'site' }).catch(() => { });
 }, 2000);
 
 // Connect to dashboard WebSocket to relay announcements via SSE

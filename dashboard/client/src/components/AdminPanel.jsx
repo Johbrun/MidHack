@@ -208,6 +208,22 @@ export default function AdminPanel({ onClose }) {
               <span>{status.teamCount} équipe(s) enregistrée(s)</span>
             </div>
           )}
+          {/* Un service qui redémarre pendant l'atelier doit se voir ici, pas
+              dans les logs Docker. */}
+          {status && Object.keys(status.restarts || {}).length > 0 && (
+            <div className="mt-2 text-sm text-amber-400">
+              ⚠️ Redémarrages de services :{' '}
+              {Object.entries(status.restarts)
+                .map(([team, boots]) =>
+                  Object.entries(boots)
+                    .filter(([, n]) => n > 0)
+                    .map(([svc, n]) => `${team}/${svc} ×${n}`)
+                    .join(', ')
+                )
+                .filter(Boolean)
+                .join(' · ')}
+            </div>
+          )}
         </Section>
 
         {/* Export */}
