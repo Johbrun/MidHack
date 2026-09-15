@@ -126,7 +126,7 @@ Un testeur comme un animateur doit pouvoir trancher sans lire le code.
 | `X-Frame-Options: ALLOW`, CSP permissive, `Referrer-Policy: unsafe-url` | ✅ Volontaire | En-têtes mal configurés, support de plusieurs challenges |
 | Le panneau admin permet de fixer le solde de n'importe qui | ✅ Volontaire | Conséquence d'un accès admin obtenu — ne valide **aucun** challenge |
 | Un rôle inconnu (`tartanpion`) est refusé | ⛔ Bordé | Le mass assignment reste exploitable vers `admin` uniquement |
-| `/api/internal/flag` en accès direct depuis le navigateur | ⛔ Bordé | Réservé au loopback : le flag SSRF exige une vraie SSRF |
+| `/api/internal/flag` en accès direct depuis le navigateur | ⛔ Bordé | Réservé au loopback : le flag SSRF exige une vraie SSRF via `POST /api/products/<id>/image-url` |
 | Un flag obtenu sans l'exploitation attendue | ⛔ Bordé | Chaque flag exige une preuve d'acte (`server/src/award.js`) |
 
 **Deux flags sur la même requête** : impossible par construction. Si deux

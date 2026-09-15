@@ -116,7 +116,7 @@ midhack/
 | 11 | CSRF | Broken Access Control | Moyen | ❌ |
 | 12 | SQL Injection (UNION) | Injection | Difficile | ✅ |
 | 13 | Stored XSS | Injection | Difficile | ✅ |
-| 14 | SSRF | Server-Side Request Forgery | Difficile | ❌ |
+| 14 | SSRF | Server-Side Request Forgery | Difficile | ✅ |
 | 15 | Cookie Theft via XSS | Injection + Auth Failures | Difficile | ✅ |
 
 ## Scoring

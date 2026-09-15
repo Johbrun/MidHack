@@ -24,7 +24,7 @@
     { "flagId": "CSRF",            "enabled": false, "name": "CSRF",           "difficulty": "Moyen",     "category": "other",     "hint": "Un script exécuté coté client pour effectuer une action" , "requires": [] },
     { "flagId": "SQLI_UNION",      "enabled": true,  "name": "SQL Injection (UNION)",         "difficulty": "Difficile", "category": "injection", "hint": "Voir l'academy et https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/SQL%20Injection/SQLite%20Injection.md" , "requires": ["SQLI"] },
     { "flagId": "STORED_XSS",      "enabled": true, "name": "Stored XSS",     "difficulty": "Difficile", "category": "injection", "hint": "Et si on enregistrait du script dans la BD ?" , "requires": [] },
-    { "flagId": "SSRF",            "enabled": false, "name": "SSRF",           "difficulty": "Difficile", "category": "injection", "hint": "XXXXX" , "requires": [] },
+    { "flagId": "SSRF",            "enabled": true,  "name": "SSRF",           "difficulty": "Difficile", "category": "injection", "hint": "Le serveur sait aller chercher l'image d'un produit à une URL que VOUS fournissez. Et s'il visait sa propre boucle locale ?" , "requires": [] },
     { "flagId": "COOKIE_THEFT",    "enabled": true, "name": "Vol de cookie",  "difficulty": "Difficile", "category": "injection", "hint": "Un script exécuté coté client peut permettre de lire et exfiltrer un token ;)" , "requires": [] }
   ]
 }
