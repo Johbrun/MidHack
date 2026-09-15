@@ -27,6 +27,9 @@ app.use((req, res, next) => {
 // Middleware
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
+// Un POST de formulaire HTML arrive en application/x-www-form-urlencoded :
+// sans ce parser, le body est vide (et la démo CSRF ne peut pas fonctionner).
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // Initialize database (triggers seed)
@@ -44,8 +47,16 @@ app.use('/api/config', require('./routes/config'));
 app.use('/api/flags', require('./routes/flags'));
 app.use('/api/xss-flag', require('./routes/xss-flag'));
 
-// VULNERABLE: Internal-only endpoint - not linked from the UI, but accessible via SSRF
+// VULNERABLE: Internal-only endpoint - not linked from the UI, but accessible via SSRF.
+// Restreint au loopback : la requête doit provenir du serveur lui-même (donc
+// d'une SSRF via POST /api/products/:id/image-url). Sans ce garde-fou, le flag
+// est servi directement au navigateur du participant, sans aucune SSRF.
+const LOOPBACK = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
 app.get('/api/internal/flag', (req, res) => {
+  const from = req.socket.remoteAddress || '';
+  if (!LOOPBACK.has(from)) {
+    return res.status(403).json({ error: 'Internal endpoint - localhost only' });
+  }
   res.json({ flag: FLAGS.SSRF, message: 'You accessed an internal endpoint via SSRF!' });
 });
 

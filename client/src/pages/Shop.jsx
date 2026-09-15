@@ -35,9 +35,7 @@ export default function Shop() {
     const url = search ? `/products?search=${encodeURIComponent(search)}` : '/products';
     api.get(url).then(r => {
       setProducts(r.data.products);
-      if (r.data.searchTerm) {
-        setDisplaySearch(r.data.searchTerm);
-      }
+      setDisplaySearch(r.data.searchTerm || '');
     }).catch(() => {});
   }, [searchParams]);
 

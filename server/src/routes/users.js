@@ -4,7 +4,6 @@ const { authenticate } = require('../middleware/auth');
 const { FLAGS } = require('../flags');
 
 const router = express.Router();
-const VALID_PLANS = ['free', 'premium'];
 
 // GET /api/users/:id
 // VULNERABLE: IDOR - no check that req.user.id === params.id
@@ -27,10 +26,16 @@ router.put('/:id', authenticate, (req, res) => {
   const { email, bio, username, role, subscription } = req.body;
   const userId = req.params.id;
 
-  const user = db.prepare('SELECT id FROM users WHERE id = ?').get(userId);
+  const user = db.prepare('SELECT id, bio, role, subscription FROM users WHERE id = ?').get(userId);
   if (!user) {
     return res.status(404).json({ error: 'User not found' });
   }
+
+  // L'écriture sur le profil d'autrui reste volontairement ouverte (IDOR), mais
+  // la bio qui porte le flag IDOR est protégée : sans ça une équipe peut
+  // l'écraser et détruire son propre challenge (base à réinitialiser).
+  const bioHoldsFlag = (user.bio || '').includes(FLAGS.IDOR);
+  const nextBio = bioHoldsFlag ? null : (bio || null);
 
   if (username) {
     const existing = db.prepare('SELECT id FROM users WHERE username = ? AND id != ?').get(username, userId);
@@ -41,16 +46,24 @@ router.put('/:id', authenticate, (req, res) => {
 
   // VULNERABLE: role and subscription are updated from user input without authorization check
   db.prepare('UPDATE users SET email = COALESCE(?, email), bio = COALESCE(?, bio), username = COALESCE(?, username), role = COALESCE(?, role), subscription = COALESCE(?, subscription) WHERE id = ?')
-    .run(email || null, bio || null, username || null, role || null, subscription || null, userId);
+    .run(email || null, nextBio, username || null, role || null, subscription || null, userId);
 
   const updated = db.prepare(
     'SELECT id, username, email, bio, role, balance, subscription, created_at FROM users WHERE id = ?'
   ).get(userId);
 
+  // Le flag ne tombe que sur une vraie élévation de privilège via mass
+  // assignment : passer premium sans payer, ou se donner le rôle admin.
+  // Renvoyer 'free' (ou repasser premium alors qu'on l'est déjà) ne prouve rien.
+  const gotPremium = subscription === 'premium' && user.subscription !== 'premium';
+  const gotAdmin = role === 'admin' && user.role !== 'admin';
+
   const response = { ...updated };
-  if (subscription && VALID_PLANS.includes(subscription)) {
+  if (gotPremium || gotAdmin) {
     response.flag = FLAGS.MASS_ASSIGNMENT;
-    response.message = 'Abonnement modifié via mass assignment ! Vous avez trouvé la faille.';
+    response.message = gotAdmin
+      ? 'Rôle admin obtenu via mass assignment ! Vous avez trouvé la faille.'
+      : 'Abonnement modifié via mass assignment ! Vous avez trouvé la faille.';
   }
 
   res.json(response);

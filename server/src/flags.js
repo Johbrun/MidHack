@@ -154,9 +154,17 @@ const FLAG_EXPLANATIONS = {
 
 const ALL_FLAGS = Object.values(FLAGS);
 
+// Flags des challenges activés dans shared/flags.json. Un flag dont le
+// challenge est `enabled: false` ne doit pas rapporter de points : il
+// n'apparaît pas dans la liste des challenges des participants.
+const ENABLED_FLAG_IDS = new Set(CHALLENGES.filter(c => c.enabled).map(c => c.flagId));
+const ENABLED_FLAGS = Object.entries(FLAGS)
+  .filter(([id]) => ENABLED_FLAG_IDS.has(id))
+  .map(([, value]) => value);
+
 // Reverse mapping: flag value -> flag key (e.g. 'ASY{...}' -> 'IDOR')
 const FLAG_IDS = Object.fromEntries(
   Object.entries(FLAGS).map(([key, value]) => [value, key])
 );
 
-module.exports = { FLAGS, FLAG_NAMES, FLAG_POINTS, FLAG_EXPLANATIONS, FLAG_IDS, ALL_FLAGS };
+module.exports = { FLAGS, FLAG_NAMES, FLAG_POINTS, FLAG_EXPLANATIONS, FLAG_IDS, ALL_FLAGS, ENABLED_FLAGS };

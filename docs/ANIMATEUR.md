@@ -101,7 +101,11 @@ Les mots de passe sont **générés aléatoirement** à chaque exécution de `se
 
 ### Secret JWT
 
-Le secret JWT est `secret-pass-to-change` (chaîne littérale). Le serveur n'accepte que l'algorithme `HS256` (l'algorithme `none` est rejeté).
+Le secret JWT est `secret-pass-to-change` (chaîne littérale). Il figure dans la wordlist « JWT Secrets » fournie aux participants.
+
+Deux chemins mènent donc au challenge **Go superadmin** :
+- **Secret faible** : re-signer un token en `HS256` avec `secret-pass-to-change` et `super_admin: true`
+- **`alg: none`** : le serveur accepte volontairement les tokens non signés (`middleware/auth.js`), il suffit de forger l'en-tête et le payload
 
 ---
 
@@ -117,7 +121,7 @@ Le mot de passe admin est affiché lors du `setup.sh` et sauvegardé dans `crede
 |----------|-------------|
 | **Timer** | Démarrer/arrêter un compte à rebours (en minutes) |
 | **Annonces** | Envoyer un message en direct à toutes les équipes (toast sur les exploit-servers + scoreboard) |
-| **Geler le scoreboard** | Les captures continuent d'être enregistrées mais le classement public ne se met plus à jour (suspense pour les dernières minutes) |
+| **Geler le scoreboard** | Le classement public ne se met plus à jour et les fronts des équipes se verrouillent. Les flags soumis pendant le gel sont **mis en file d'attente** et comptabilisés au dégel (suspense pour les dernières minutes) |
 | **Dégeler le scoreboard** | Révéler le classement final |
 | **Réinitialiser les scores** | Remet tous les scores à zéro |
 | **Export JSON/CSV** | Télécharger les résultats complets |
@@ -151,7 +155,7 @@ Le mot de passe admin est affiché lors du `setup.sh` et sauvegardé dans `crede
 
 ### Phase 3 - Debrief (15 min)
 
-- **Dégeler le scoreboard** pour la révélation du classement final
+- **Dégeler le scoreboard** pour la révélation du classement final (les captures mises en file pendant le gel sont rejouées à ce moment-là)
 - Walkthrough de chaque vulnérabilité avec les participants
 - Montrer le code vulnérable vs. le code corrigé via le bouton **Fix-It** sur la page Challenges (disponible pour chaque flag capturé)
 - Discuter des remédiations et bonnes pratiques
@@ -164,12 +168,16 @@ Terminer l'atelier par une démonstration concrète d'attaque CSRF pour marquer 
 
    ```html
    <h1>🎁 Vous avez gagné des bananes gratuites !</h1>
-   <form id="csrf" action="http://localhost:3001/api/credits/send" method="POST">
-     <input type="hidden" name="toUserId" value="1" />
+   <form id="csrf" action="http://localhost:44002/api/credits/send" method="POST">
+     <input type="hidden" name="recipientUsername" value="admin" />
      <input type="hidden" name="amount" value="500" />
    </form>
    <script>document.getElementById('csrf').submit();</script>
    ```
+
+   > ⚠️ Deux détails qui font échouer la démo si on les rate :
+   > - le champ s'appelle **`recipientUsername`** (un nom d'utilisateur), pas un id ;
+   > - l'`action` doit pointer sur **l'URL du BananaShop de l'équipe** (`START_PORT + 2N − 1`, ex. `http://localhost:44002`), servie depuis le **même hôte** que la page piégée. Les cookies sont en `SameSite=Lax` : ils ne partent sur un POST que si la page piégée est *same-site* (même domaine, le port n'entre pas en compte). Héberger la page ailleurs (fichier local `file://`, autre domaine) fait échouer la démo pour une raison qui n'a rien à voir avec le CSRF.
 
 2. **Scénario** : se connecter en tant que `john` sur le site BananaShop, puis ouvrir la page piégée dans un autre onglet du même navigateur
 3. **Résultat** : montrer que le transfert s'exécute sans aucune action de la victime, car le cookie de session est envoyé automatiquement et aucun token CSRF ne protège l'endpoint

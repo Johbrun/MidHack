@@ -241,6 +241,7 @@ check_port() {
 # Variables partagées entre la génération et le résumé.
 ADMIN_PWD=""
 declare -a PASSWORDS
+declare -a TEAM_TOKENS
 
 generate_files() {
   echo ""
@@ -249,6 +250,17 @@ generate_files() {
 
   local FILE="docker-compose.yml"
   ADMIN_PWD=$(head -c 100 /dev/urandom | tr -dc 'a-zA-Z0-9' | head -c 8)
+
+  # Jeton interne par équipe : partagé entre le dashboard et les conteneurs de
+  # l'équipe, jamais montré aux participants. Il empêche une équipe de poster
+  # des captures ou des pénalités d'indice au nom d'une autre.
+  TEAM_TOKENS=()
+  local t TOKENS_ENV=""
+  for t in $(seq 1 "$TEAMS"); do
+    TEAM_TOKENS[$t]=$(head -c 400 /dev/urandom | tr -dc 'a-zA-Z0-9' | head -c 24)
+    [ -n "$TOKENS_ENV" ] && TOKENS_ENV+="|"
+    TOKENS_ENV+="${NAMES[$((t - 1))]}:${TEAM_TOKENS[$t]}"
+  done
 
   cat > "$FILE" <<EOF
 # Auto-généré par setup.sh — $TEAMS equipe(s)
@@ -262,6 +274,7 @@ x-event-config: &event-config
   ADMIN_PASSWORD: "$ADMIN_PWD"
   EVENT_TITLE: "$EVENT_TITLE"
   HINT_PENALTY: "$HINT_PENALTY"
+  TEAM_TOKENS: "$TOKENS_ENV"
 
 services:
   # Central live dashboard (to project on screen)
@@ -299,6 +312,7 @@ EOF
     local SITE_PORT=$((TEAM_PORT_BASE + (i - 1) * 2))
     local EXPLOIT_PORT=$((TEAM_PORT_BASE + 1 + (i - 1) * 2))
     local TEAM_PWD=${PASSWORDS[$i]}
+    local TEAM_TOKEN=${TEAM_TOKENS[$i]}
 
     # Toutes les équipes partagent la même image (seules les variables
     # d'environnement runtime diffèrent). Seule la team 1 porte la directive
@@ -330,6 +344,7 @@ EOF
 ${SITE_BUILD}
     environment:
       - TEAM_NAME=$NAME
+      - TEAM_TOKEN=$TEAM_TOKEN
       - DASHBOARD_URL=http://dashboard:5000
     ports:
       - "${SITE_PORT}:3000"
@@ -350,6 +365,7 @@ ${SITE_BUILD}
 ${EXPLOIT_BUILD}
     environment:
       - TEAM_NAME=$NAME
+      - TEAM_TOKEN=$TEAM_TOKEN
       - TEAM_PASSWORD=$TEAM_PWD
       - SITE_URL=http://site-team${i}:3000
       - DASHBOARD_URL=http://dashboard:5000

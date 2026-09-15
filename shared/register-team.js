@@ -4,7 +4,10 @@
 function registerTeam({ dashboardUrl, teamName }) {
   return fetch(`${dashboardUrl}/api/teams/register`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Team-Token': process.env.TEAM_TOKEN || '',
+    },
     body: JSON.stringify({ teamName }),
   });
 }

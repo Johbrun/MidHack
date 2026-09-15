@@ -74,14 +74,16 @@ router.post('/login', (req, res) => {
     const usedSqli = !!sqliUser;
     const isSqliAdmin = usedSqli && authedUser.role === 'admin';
 
-    const isAdmin = authedUser.role === 'admin';
+    // Le flag Cookie Theft n'est PAS placé dans le token : il s'obtient en
+    // exfiltrant un cookie via XSS vers le webhook du Hacking QG (/log?c=<jwt>).
+    // L'y remettre le rendrait lisible sur jwt.io par toute équipe ayant réussi
+    // le bypass SQLi, ce qui court-circuite le challenge.
     const token = jwt.sign(
       {
         id: authedUser.id,
         username: authedUser.username,
         role: authedUser.role,
         super_admin: false,
-        ...(isAdmin ? { flag: FLAGS.COOKIE_THEFT } : {}),
       },
       JWT_SECRET,
       { expiresIn: '30d' }

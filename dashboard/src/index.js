@@ -12,6 +12,38 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin';
 const HINT_PENALTY = parseInt(process.env.HINT_PENALTY || '3', 10);
 const EVENT_TITLE = process.env.EVENT_TITLE || 'BananaShop CTF';
 
+// Barème et liste des challenges : le dashboard recalcule lui-même les points
+// au lieu de faire confiance au champ `points` de la requête.
+const { DIFFICULTY_POINTS, CHALLENGES } = require('../../shared/flags.json');
+const ENABLED_CHALLENGES = new Map(
+  CHALLENGES.filter(c => c.enabled).map(c => [c.flagId, c])
+);
+const ENABLED_CHALLENGE_NAMES = new Set(
+  CHALLENGES.filter(c => c.enabled).map(c => c.name)
+);
+
+// Jeton par équipe, injecté dans les conteneurs de l'équipe par setup.sh au
+// format "Alpha:jeton1|Bravo:jeton2". Il empêche une équipe de poster des
+// captures ou des pénalités d'indice au nom d'une autre. Vide (dev local) =
+// contrôle désactivé.
+const TEAM_TOKENS = new Map(
+  (process.env.TEAM_TOKENS || '')
+    .split('|')
+    .map(pair => pair.trim())
+    .filter(Boolean)
+    .map(pair => {
+      const idx = pair.lastIndexOf(':');
+      return [pair.slice(0, idx), pair.slice(idx + 1)];
+    })
+);
+
+// Vérifie que l'appelant est bien le service de l'équipe qu'il prétend être.
+function teamTokenValid(teamName, req) {
+  if (TEAM_TOKENS.size === 0) return true; // dev local : pas de jetons générés
+  const expected = TEAM_TOKENS.get(teamName);
+  return !!expected && req.headers['x-team-token'] === expected;
+}
+
 app.use(express.json());
 
 // Admin auth middleware (simple token via query param or header)
@@ -90,6 +122,10 @@ app.post('/api/teams/register', (req, res) => {
   const { teamName } = req.body;
   if (!teamName) return res.status(400).json({ error: 'teamName required' });
 
+  if (!teamTokenValid(teamName, req)) {
+    return res.status(403).json({ error: 'Invalid team token' });
+  }
+
   if (!teams.has(teamName)) {
     teams.set(teamName, { name: teamName, captures: [], hints: [] });
     saveState();
@@ -102,57 +138,104 @@ app.post('/api/teams/register', (req, res) => {
 });
 
 // Record a capture
-app.post('/api/capture', (req, res) => {
-  if (frozen) return res.status(423).json({ error: 'Le CTF est gelé. Votre flag sera pris en compte après le dégel.' });
+const FIRST_BLOOD_BONUS = 5;
 
-  const { teamName, flag, flagId, flagName, points } = req.body;
-  if (!teamName || !flag) return res.status(400).json({ error: 'teamName and flag required' });
-
+// Enregistre une capture. `capturedAt` permet de rejouer, au dégel, les
+// captures reçues pendant le gel en conservant leur horodatage d'origine.
+function recordCapture({ teamName, flag, flagId, flagName, capturedAt }) {
   if (!teams.has(teamName)) {
     teams.set(teamName, { name: teamName, captures: [], hints: [] });
   }
 
   const team = teams.get(teamName);
 
-  // Prevent duplicates
-  if (team.captures.some(c => c.flag === flag)) {
-    return res.json({ ok: true, duplicate: true });
+  // Prevent duplicates (par challenge, pas par chaîne de flag)
+  if (team.captures.some(c => c.flagId === flagId)) {
+    return { duplicate: true };
   }
 
   // Check for first blood: is this the first team to capture this flag?
-  const FIRST_BLOOD_BONUS = 5;
   let firstBlood = true;
   for (const [name, t] of teams) {
-    if (name !== teamName && t.captures.some(c => c.flag === flag)) {
+    if (name !== teamName && t.captures.some(c => c.flagId === flagId)) {
       firstBlood = false;
       break;
     }
   }
 
-  const basePoints = points || 0;
+  // Les points viennent du barème local, jamais de la requête.
+  const basePoints = DIFFICULTY_POINTS[ENABLED_CHALLENGES.get(flagId).difficulty] ?? 0;
   const totalPoints = firstBlood ? basePoints + FIRST_BLOOD_BONUS : basePoints;
-  const capture = { flag, flagId: flagId || null, points: totalPoints, firstBlood, capturedAt: new Date().toISOString() };
+  const capture = { flag, flagId, points: totalPoints, firstBlood, capturedAt };
   team.captures.push(capture);
 
   saveState();
 
   if (firstBlood) {
-    console.log(`FIRST BLOOD: ${teamName} found ${flagName} (${flag}) +${basePoints}pts +${FIRST_BLOOD_BONUS}pts bonus`);
+    console.log(`FIRST BLOOD: ${teamName} found ${flagName} (${flagId}) +${basePoints}pts +${FIRST_BLOOD_BONUS}pts bonus`);
     broadcast({ type: 'first_blood', teamName, flagId, flagName, points: totalPoints, bonus: FIRST_BLOOD_BONUS });
   } else {
-    console.log(`CAPTURE: ${teamName} found ${flagName} (${flag}) +${basePoints}pts`);
+    console.log(`CAPTURE: ${teamName} found ${flagName} (${flagId}) +${basePoints}pts`);
   }
 
   broadcast({ type: 'capture', teamName, ...capture });
   broadcastScoreboard();
 
-  res.json({ ok: true, firstBlood });
+  return { firstBlood };
+}
+
+app.post('/api/capture', (req, res) => {
+  const { teamName, flag, flagId, flagName } = req.body;
+  if (!teamName || !flag) return res.status(400).json({ error: 'teamName and flag required' });
+
+  if (!teamTokenValid(teamName, req)) {
+    return res.status(403).json({ error: 'Invalid team token' });
+  }
+
+  // Seul un challenge activé peut rapporter des points, et le barème est celui
+  // du dashboard : un `points` forgé dans la requête est ignoré.
+  if (!flagId || !ENABLED_CHALLENGES.has(flagId)) {
+    return res.status(400).json({ error: 'Unknown or disabled challenge' });
+  }
+
+  const entry = {
+    teamName,
+    flag,
+    flagId,
+    flagName: flagName || ENABLED_CHALLENGES.get(flagId).name,
+    capturedAt: new Date().toISOString(),
+  };
+
+  // Pendant le gel, la capture est mise en file et rejouée au dégel : elle
+  // n'est pas perdue (c'est ce que promet le message renvoyé à l'équipe).
+  if (frozen) {
+    if (!pendingCaptures.some(c => c.teamName === teamName && c.flagId === flagId)) {
+      pendingCaptures.push(entry);
+      savePending();
+    }
+    return res.json({
+      ok: true,
+      queued: true,
+      message: 'Le CTF est gelé. Votre flag est enregistré et sera comptabilisé au dégel.',
+    });
+  }
+
+  const result = recordCapture(entry);
+  res.json({ ok: true, ...result });
 });
 
 // Record a hint usage
 app.post('/api/hint', (req, res) => {
   const { teamName, challengeName } = req.body;
   if (!teamName || !challengeName) return res.status(400).json({ error: 'teamName and challengeName required' });
+
+  if (!teamTokenValid(teamName, req)) {
+    return res.status(403).json({ error: 'Invalid team token' });
+  }
+
+  if (!ENABLED_CHALLENGE_NAMES.has(challengeName)) {
+    return res.status(400).json({ error: 'Unknown challenge' });
+  }
 
   if (!teams.has(teamName)) {
     teams.set(teamName, { name: teamName, captures: [], hints: [] });
@@ -170,7 +253,7 @@ app.post('/api/hint', (req, res) => {
   team.hints.push(hint);
 
   saveState();
-  console.log(`HINT: ${teamName} used hint for ${challengeName} (-3pts)`);
+  console.log(`HINT: ${teamName} used hint for ${challengeName} (-${HINT_PENALTY}pts)`);
 
   broadcast({ type: 'hint', teamName, challengeName });
   broadcastScoreboard();
@@ -182,7 +265,7 @@ app.post('/api/hint', (req, res) => {
 let timer = { endTime: null, duration: null, running: false };
 
 // POST /api/timer/start - start or restart a countdown
-app.post('/api/timer/start', (req, res) => {
+app.post('/api/timer/start', requireAdmin, (req, res) => {
   const { duration } = req.body; // duration in minutes
   if (!duration || duration <= 0) return res.status(400).json({ error: 'duration (minutes) required' });
   timer = { endTime: Date.now() + duration * 60 * 1000, duration, running: true };
@@ -192,7 +275,7 @@ app.post('/api/timer/start', (req, res) => {
 });
 
 // POST /api/timer/stop - stop the timer
-app.post('/api/timer/stop', (req, res) => {
+app.post('/api/timer/stop', requireAdmin, (req, res) => {
   timer = { endTime: null, duration: null, running: false };
   broadcast({ type: 'timer', ...timer });
   console.log('Timer stopped');
@@ -207,6 +290,8 @@ app.get('/api/timer', (req, res) => {
 // Reset all scores and hints
 app.post('/api/reset', requireAdmin, (req, res) => {
   teams.clear();
+  pendingCaptures = [];
+  savePending();
   saveState();
   console.log('RESET: All scores and hints cleared');
   broadcast({ type: 'reset' });
@@ -216,9 +301,38 @@ app.post('/api/reset', requireAdmin, (req, res) => {
 
 // ─── Freeze mode ───
 let frozen = false;
+// Captures reçues pendant le gel, rejouées telles quelles au dégel. Persistées
+// sur disque : un redémarrage du dashboard pendant le gel ne doit pas faire
+// perdre les flags déjà soumis par les équipes.
+const PENDING_FILE = path.join(__dirname, '..', 'data', 'pending-captures.json');
+let pendingCaptures = [];
+
+function loadPending() {
+  try {
+    if (fs.existsSync(PENDING_FILE)) {
+      const data = JSON.parse(fs.readFileSync(PENDING_FILE, 'utf-8'));
+      frozen = !!data.frozen;
+      pendingCaptures = data.captures || [];
+      if (frozen || pendingCaptures.length) {
+        console.log(`Restored freeze state (frozen=${frozen}, ${pendingCaptures.length} pending capture(s))`);
+      }
+    }
+  } catch { pendingCaptures = []; }
+}
+
+function savePending() {
+  try {
+    const dir = path.dirname(PENDING_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(PENDING_FILE, JSON.stringify({ frozen, captures: pendingCaptures }, null, 2));
+  } catch (err) { console.error('Failed to save pending captures:', err.message); }
+}
+
+loadPending();
 
 app.post('/api/scoreboard/freeze', requireAdmin, (req, res) => {
   frozen = true;
+  savePending();
   console.log('FREEZE: CTF frozen');
   broadcast({ type: 'freeze', frozen: true });
   res.json({ ok: true, frozen });
@@ -226,10 +340,14 @@ app.post('/api/scoreboard/freeze', requireAdmin, (req, res) => {
 
 app.post('/api/scoreboard/unfreeze', requireAdmin, (req, res) => {
   frozen = false;
-  console.log('UNFREEZE: CTF unfrozen');
+  const queued = pendingCaptures;
+  pendingCaptures = [];
+  savePending();
+  for (const entry of queued) recordCapture(entry);
+  console.log(`UNFREEZE: CTF unfrozen (${queued.length} capture(s) en attente rejouée(s))`);
   broadcast({ type: 'freeze', frozen: false });
   broadcastScoreboard();
-  res.json({ ok: true, frozen });
+  res.json({ ok: true, frozen, replayed: queued.length });
 });
 
 // ─── Announcements ───
@@ -310,6 +428,7 @@ app.get('/api/admin/status', requireAdmin, (req, res) => {
     teamCount: teams.size,
     frozen,
     timer,
+    pendingCaptures: pendingCaptures.length,
   });
 });
 
