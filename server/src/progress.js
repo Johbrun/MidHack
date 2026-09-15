@@ -39,8 +39,4 @@ function hasCaptured(flagId) {
   return !reachable || captured.has(flagId);
 }
 
-function capturedFlagIds() {
-  return [...captured];
-}
-
-module.exports = { start, refresh, hasCaptured, capturedFlagIds };
+module.exports = { start, refresh, hasCaptured };

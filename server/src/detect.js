@@ -99,4 +99,4 @@ function detectIntent(req, res, next) {
   next();
 }
 
-module.exports = { detectIntent, SIGNATURES };
+module.exports = { detectIntent };

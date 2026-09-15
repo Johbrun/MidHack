@@ -71,6 +71,21 @@ function logEvent(req, { flagId, kind, proof, detail }) {
 }
 
 /**
+ * Prérequis non encore capturés pour un challenge donné. Partagé entre
+ * l'attribution (ici) et la soumission (routes/flags.js), qui doivent appliquer
+ * exactement la même règle.
+ */
+function missingPrerequisites(flagId) {
+  const challenge = CHALLENGE_BY_ID.get(flagId);
+  return (challenge?.requires || []).filter((id) => !progress.hasCaptured(id));
+}
+
+/** Nom lisible d'un challenge, pour les messages destinés aux joueurs. */
+function challengeName(flagId) {
+  return CHALLENGE_BY_ID.get(flagId)?.name || flagId;
+}
+
+/**
  * Délivre le flag d'un challenge sur la réponse en cours, si et seulement si
  * l'exploitation est prouvée et qu'aucun autre flag n'a déjà été délivré.
  *
@@ -102,13 +117,12 @@ function awardFlag(req, response, flagId, evidence = {}) {
 
   // Prérequis : un challenge tiroir ne se valide pas hors de son fil rouge,
   // ce qui coupe court aux validations par effet de bord.
-  const missing = (challenge.requires || []).filter((id) => !progress.hasCaptured(id));
+  const missing = missingPrerequisites(flagId);
   if (missing.length) {
     logEvent(req, { flagId, kind: KIND.LOCKED, proof, detail: { ...detail, missing } });
-    const names = missing.map((id) => CHALLENGE_BY_ID.get(id)?.name || id);
     response.message =
       `L'action a bien abouti, mais ce challenge s'inscrit dans un fil rouge : ` +
-      `validez d'abord ${names.map((n) => `« ${n} »`).join(', ')}.`;
+      `validez d'abord ${missing.map((id) => `« ${challengeName(id)} »`).join(', ')}.`;
     return false;
   }
 
@@ -133,4 +147,4 @@ function noteSideEffect(req, response, flagId, detail = {}) {
     "L'état a bien été modifié, mais ce n'est pas le chemin de ce challenge.";
 }
 
-module.exports = { awardFlag, noteSideEffect, logEvent, KIND, CHALLENGE_BY_ID };
+module.exports = { awardFlag, noteSideEffect, logEvent, missingPrerequisites, challengeName, KIND };

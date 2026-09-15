@@ -1,7 +1,6 @@
 const express = require('express');
 const db = require('../db');
 const { authenticate } = require('../middleware/auth');
-const { FLAGS } = require('../flags');
 const { awardFlag, noteSideEffect } = require('../award');
 
 const router = express.Router();
@@ -82,16 +81,18 @@ router.post('/send', authenticate, (req, res) => {
     });
   }
 
-  // CSRF detection disabled
-  // const origin = req.headers.origin || '';
-  // const referer = req.headers.referer || '';
-  // if (origin && !origin.includes('localhost:' + (process.env.PORT || 3000)) && !origin.includes('localhost:5173')) {
-  //   response.csrf_flag = FLAGS.CSRF;
-  //   response.csrf_message = 'CSRF détecté ! Ce transfert a été effectué depuis un autre site.';
-  // } else if (referer && !referer.includes('localhost:' + (process.env.PORT || 3000)) && !referer.includes('localhost:5173')) {
-  //   response.csrf_flag = FLAGS.CSRF;
-  //   response.csrf_message = 'CSRF détecté ! Ce transfert a été effectué depuis un autre site.';
-  // }
+  // Transfert déclenché depuis un autre site : c'est la démo CSRF. Le challenge
+  // est désactivé par défaut dans shared/flags.json, auquel cas awardFlag ne
+  // délivre rien — le code reste vivant plutôt que de dormir en commentaire, et
+  // suit l'activation du challenge sans intervention.
+  const source = req.headers.origin || req.headers.referer || '';
+  if (source && !source.includes(req.headers.host)) {
+    awardFlag(req, response, 'CSRF', {
+      proof: 'cross_origin_transfer',
+      source,
+      message: `${response.message} CSRF détecté : ce transfert vient d'un autre site !`,
+    });
+  }
 
   res.json(response);
 });

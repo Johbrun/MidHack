@@ -3,8 +3,7 @@ const { ALL_FLAGS, ENABLED_FLAGS, FLAG_NAMES, FLAG_POINTS, FLAG_EXPLANATIONS, FL
 
 const router = express.Router();
 
-const { CHALLENGES } = require('../../../shared/flags.json');
-const progress = require('../progress');
+const { missingPrerequisites, challengeName } = require('../award');
 
 const DASHBOARD_URL = process.env.DASHBOARD_URL || 'http://localhost:5000';
 const TEAM_NAME = process.env.TEAM_NAME || 'Unknown Team';
@@ -50,12 +49,10 @@ router.post('/submit', async (req, res) => {
   // Le fil rouge s'applique aussi ici : un flag dont la valeur a été aperçue
   // hors de son parcours (extraction d'une table, épaule d'un voisin) ne
   // rapporte rien tant que ses prérequis ne sont pas validés.
-  const challenge = CHALLENGES.find((c) => c.flagId === flagId);
-  const missing = (challenge?.requires || []).filter((id) => !progress.hasCaptured(id));
+  const missing = missingPrerequisites(flagId);
   if (missing.length) {
-    const names = missing.map((id) => CHALLENGES.find((c) => c.flagId === id)?.name || id);
     return res.status(400).json({
-      error: `Ce challenge s'inscrit dans un fil rouge : validez d'abord ${names.map((n) => `« ${n} »`).join(', ')}.`,
+      error: `Ce challenge s'inscrit dans un fil rouge : validez d'abord ${missing.map((id) => `« ${challengeName(id)} »`).join(', ')}.`,
       valid: false,
     });
   }
