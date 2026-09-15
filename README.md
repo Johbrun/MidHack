@@ -119,10 +119,36 @@ midhack/
 | 14 | SSRF | Server-Side Request Forgery | Difficile | ✅ |
 | 15 | Cookie Theft via XSS | Injection + Auth Failures | Difficile | ✅ |
 
+## Garde-fous d'attribution des flags
+
+Un flag n'est jamais délivré sur un état atteint, mais sur l'**acte** qui le
+prouve. Tout passe par `server/src/award.js`, qui garantit :
+
+- **preuve obligatoire** — une condition sans preuve d'exploitation ne délivre rien ;
+- **un flag par requête** — deux vulnérabilités ne se découvrent pas d'un coup ;
+- **prérequis** — les challenges d'un fil rouge (`requires` dans
+  `shared/flags.json`) ne se valident pas hors de leur ordre ;
+- **journal** — chaque décision est tracée et remontée au dashboard, où
+  l'animateur voit le chemin emprunté par chaque équipe.
+
+En complément, `server/src/detect.js` oriente le joueur quand une technique
+connue est employée au mauvais endroit — sans jamais délivrer de flag
+(`DETECTION_MESSAGES=off` pour un public avancé).
+
+## Tests
+
+```bash
+npm test     # vérifie chaque challenge : chemin prévu ET absence de chemin non prévu
+```
+
+Chaque challenge est testé deux fois : l'exploitation attendue doit donner le
+flag, et un chemin voisin ne doit rien donner.
+
 ## Scoring
 
 - Chaque flag rapporte des points selon sa difficulté (Facile=10 / Moyen=15 / Difficile=25)
-- Utiliser un indice coûte des points (configurable via `HINT_PENALTY` dans le `.env`, défaut : 3)
+- Une **orientation** (où chercher) est gratuite et s'ouvre après quelques minutes sans capture (`VITE_NUDGE_DELAY_MIN`)
+- Un **indice** (la technique) coûte des points (configurable via `HINT_PENALTY` dans le `.env`, défaut : 3)
 - En cas d'égalité : nombre de flags > temps de première capture
 
 ## Onboarding des participants

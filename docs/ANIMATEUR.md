@@ -227,6 +227,29 @@ Activé via `VITE_PROGRESSIVE_UNLOCK=true` dans le `.env` (désactivé par défa
 
 Les challenges verrouillés apparaissent en grisé avec "???".
 
+### Orientation gratuite puis indice payant
+
+Deux niveaux d'aide : l'**orientation** (🧭) dit *où* chercher, ne coûte rien et
+n'est pas diffusée au classement ; elle s'ouvre après `VITE_NUDGE_DELAY_MIN`
+minutes sans nouvelle capture. L'**indice** (💡) donne la technique, coûte
+`HINT_PENALTY` points et reste visible de toutes les équipes.
+
+### Chemins d'exploitation (panel admin)
+
+Le panel admin liste ce que les équipes ont réellement fait : flag délivré, flag
+retenu (un autre était déjà tombé sur la requête), challenge verrouillé par ses
+prérequis, effet de bord, technique employée au mauvais endroit. C'est l'outil
+pour repérer une validation non prévue **pendant** l'atelier.
+
+Il signale aussi les **redémarrages de services** : un conteneur qui redémarre
+se voit sans ouvrir les logs Docker.
+
+### Réinitialiser une seule équipe
+
+```bash
+./setup.sh reset-team Alpha   # base du site recréée + webhook vidé, score conservé
+```
+
 ### Mode Fix-It
 
 Après avoir capturé un flag, un bouton **🔧 Fix-It** apparaît sur la page Challenges. Il ouvre une modale avec :
