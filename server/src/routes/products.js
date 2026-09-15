@@ -22,8 +22,15 @@ router.get('/', (req, res) => {
       products = db.prepare(
         `SELECT id, name, description, price, image_url, stock FROM products WHERE name LIKE '%${search}%' OR description LIKE '%${search}%'`
       ).all();
-    } catch {
-      products = [];
+    } catch (err) {
+      // Premier temps du challenge : l'erreur SQL est renvoyée telle quelle,
+      // comme le ferait une application réellement mal codée. Avaler l'erreur
+      // rendait la recherche muette — indiscernable d'une recherche sans
+      // résultat — donc le challenge invisible, y compris pour un scanner.
+      return res.status(500).json({
+        error: `SQL error: ${err.message}`,
+        nudge: 'La requête a échoué : votre saisie est bien concaténée dans le SQL. Reste à la rendre valide.',
+      });
     }
 
     // VULNERABLE: reflect search term back unsanitized (used by frontend for Reflected XSS)
@@ -32,7 +39,17 @@ router.get('/', (req, res) => {
     if (/alert\s*\(/.test(search)) {
       reflected = search.replace(/alert\s*\([^)]*\)/, `alert('${FLAGS.REFLECTED_XSS}')`);
     }
-    return res.json({ products, searchTerm: reflected });
+
+    // Second temps : la requête injectée ramène une ligne de la table `secrets`.
+    // C'est l'extraction elle-même qui est récompensée, pas la tentative.
+    const response = { products, searchTerm: reflected };
+    if (products.some((p) => JSON.stringify(p).includes(FLAGS.SQLI_UNION))) {
+      awardFlag(req, response, 'SQLI_UNION', {
+        proof: 'union_select_secrets',
+        message: 'UNION SELECT réussi : vous venez de lire une table qui ne vous était pas destinée !',
+      });
+    }
+    return res.json(response);
   }
 
   products = db.prepare(`
