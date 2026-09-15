@@ -59,14 +59,22 @@ router.put('/:id', authenticate, (req, res) => {
   const gotPremium = subscription === 'premium' && user.subscription !== 'premium';
   const gotAdmin = role === 'admin' && user.role !== 'admin';
 
+  // Deux exploitations distinctes du même défaut, donc deux challenges : le
+  // flag « Go Premium » ne peut plus annoncer une élévation de rôle.
+  // L'élévation de privilège est la plus spécifique, donc testée en premier.
   const response = { ...updated };
-  if (gotPremium || gotAdmin) {
+  if (gotAdmin) {
+    awardFlag(req, response, 'PRIV_ESC_ROLE', {
+      proof: 'mass_assignment_role',
+      field: 'role',
+      message: 'Champ « role » accepté depuis le body : élévation de privilège par mass assignment !',
+    });
+  }
+  if (gotPremium) {
     awardFlag(req, response, 'MASS_ASSIGNMENT', {
-      proof: gotAdmin ? 'mass_assignment_role' : 'mass_assignment_subscription',
-      field: gotAdmin ? 'role' : 'subscription',
-      message: gotAdmin
-        ? 'Champ « role » accepté depuis le body : élévation de privilège par mass assignment !'
-        : 'Champ « subscription » accepté depuis le body : Premium obtenu sans payer !',
+      proof: 'mass_assignment_subscription',
+      field: 'subscription',
+      message: 'Champ « subscription » accepté depuis le body : Premium obtenu sans payer !',
     });
   }
 

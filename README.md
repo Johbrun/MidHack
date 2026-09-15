@@ -108,15 +108,16 @@ midhack/
 | 3 | Path Traversal | Broken Access Control | Facile | ✅ |
 | 4 | Zero Rating Bypass | Insecure Design | Facile | ✅ |
 | 5 | Reflected XSS | Injection | Facile | ✅ |
-| 6 | Mass Assignment | Insecure Design | Moyen | ✅ |
-| 7 | JWT Forging (secret faible) | Cryptographic Failures | Moyen | ✅ |
-| 8 | SQL Injection (Login Bypass) | Injection | Moyen | ✅ |
-| 9 | Business Logic (crédits négatifs) | Insecure Design | Moyen | ✅ |
-| 10 | CSRF | Broken Access Control | Moyen | ❌ |
-| 11 | SQL Injection (UNION) | Injection | Difficile | ✅ |
-| 12 | Stored XSS | Injection | Difficile | ✅ |
-| 13 | SSRF | Server-Side Request Forgery | Difficile | ❌ |
-| 14 | Cookie Theft via XSS | Injection + Auth Failures | Difficile | ✅ |
+| 6 | Mass Assignment (Go Premium) | Insecure Design | Moyen | ✅ |
+| 7 | Mass Assignment (changement de rôle) | Broken Access Control | Moyen | ✅ |
+| 8 | JWT Forging (secret faible) | Cryptographic Failures | Moyen | ✅ |
+| 9 | SQL Injection (Login Bypass) | Injection | Moyen | ✅ |
+| 10 | Business Logic (crédits négatifs) | Insecure Design | Moyen | ✅ |
+| 11 | CSRF | Broken Access Control | Moyen | ❌ |
+| 12 | SQL Injection (UNION) | Injection | Difficile | ✅ |
+| 13 | Stored XSS | Injection | Difficile | ✅ |
+| 14 | SSRF | Server-Side Request Forgery | Difficile | ❌ |
+| 15 | Cookie Theft via XSS | Injection + Auth Failures | Difficile | ✅ |
 
 ## Scoring
 
