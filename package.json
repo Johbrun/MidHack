@@ -7,7 +7,8 @@
     "dev:exploit": "cd exploit-server && npm run dev",
     "dev:dashboard": "cd dashboard && npm run dev",
     "dev": "concurrently --kill-others --names server,client,exploit,dash -c yellow,cyan,magenta,green \"npm run dev:server\" \"npm run dev:client\" \"npm run dev:exploit\" \"npm run dev:dashboard\"",
-    "install:all": "cd server && npm install && cd ../client && npm install && cd ../exploit-server && npm install && cd ../dashboard && npm install"
+    "install:all": "cd server && npm install && cd ../client && npm install && cd ../exploit-server && npm install && cd ../dashboard && npm install",
+    "test": "npm --prefix server test"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
