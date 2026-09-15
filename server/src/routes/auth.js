@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const db = require('../db');
 const { JWT_SECRET } = require('../middleware/auth');
 const { awardFlag } = require('../award');
+const { setSecretCookie } = require('../auth-cookie');
 
 const router = express.Router();
 
@@ -41,6 +42,7 @@ router.post('/register', (req, res) => {
   );
 
   res.cookie('token', token, TOKEN_COOKIE_OPTIONS);
+  setSecretCookie(res);
   res.json({ id: result.lastInsertRowid, username, role: 'user' });
 });
 
@@ -90,6 +92,7 @@ router.post('/login', (req, res) => {
     );
 
     res.cookie('token', token, TOKEN_COOKIE_OPTIONS);
+    setSecretCookie(res);
 
     const response = { id: authedUser.id, username: authedUser.username, role: authedUser.role };
     if (isSqliAdmin) {
@@ -108,6 +111,7 @@ router.post('/login', (req, res) => {
 // POST /api/auth/logout
 router.post('/logout', (req, res) => {
   res.clearCookie('token', { path: '/' });
+  res.clearCookie('ctf_secret', { path: '/' });
   res.json({ message: 'Logged out' });
 });
 
