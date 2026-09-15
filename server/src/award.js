@@ -19,6 +19,10 @@ const { FLAGS } = require('./flags');
 const { CHALLENGES } = require('../../shared/flags.json');
 const progress = require('./progress');
 
+const DASHBOARD_URL = process.env.DASHBOARD_URL || 'http://localhost:5000';
+const TEAM_NAME = process.env.TEAM_NAME || 'Unknown Team';
+const TEAM_TOKEN = process.env.TEAM_TOKEN || '';
+
 const CHALLENGE_BY_ID = new Map(CHALLENGES.map((c) => [c.flagId, c]));
 
 // Types d'événements journalisés (cf. les trois classes de réponse, docs/RETOURS-TESTEUR.md).
@@ -47,6 +51,23 @@ function logEvent(req, { flagId, kind, proof, detail }) {
     // Le journal ne doit jamais faire échouer une requête de jeu.
     console.error('challenge_events insert failed:', err.message);
   }
+
+  // Remontée à l'animateur : le dashboard agrège les chemins de toutes les
+  // équipes, ce qui permet de repérer un effet de bord pendant l'atelier et
+  // non dans un retour de test trois semaines plus tard.
+  fetch(`${DASHBOARD_URL}/api/challenge-event`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Team-Token': TEAM_TOKEN },
+    body: JSON.stringify({
+      teamName: TEAM_NAME,
+      flagId,
+      kind,
+      proof: proof ?? null,
+      username: req.user?.username ?? null,
+      at: new Date().toISOString(),
+    }),
+    signal: AbortSignal.timeout(2000),
+  }).catch(() => { /* le dashboard peut être absent en dev */ });
 }
 
 /**

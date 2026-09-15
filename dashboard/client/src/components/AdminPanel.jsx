@@ -10,6 +10,8 @@ export default function AdminPanel({ onClose }) {
   const [status, setStatus] = useState(null);
   const [feedbacks, setFeedbacks] = useState([]);
   const [showFeedbacks, setShowFeedbacks] = useState(false);
+  const [events, setEvents] = useState([]);
+  const [showEvents, setShowEvents] = useState(false);
 
   async function login() {
     try {
@@ -27,6 +29,21 @@ export default function AdminPanel({ onClose }) {
         fetchStatus(data.token);
       } else {
         setMessage('Mot de passe invalide');
+      }
+    } catch {
+      setMessage('Erreur de connexion');
+    }
+  }
+
+  // Chemins d'exploitation : ce que les équipes ont réellement fait, et pas
+  // seulement ce qu'elles ont validé.
+  async function fetchEvents() {
+    try {
+      const res = await fetch(`/api/admin/events?token=${token}`);
+      if (res.ok) {
+        const data = await res.json();
+        setEvents(data.events || []);
+        setShowEvents(true);
       }
     } catch {
       setMessage('Erreur de connexion');
@@ -227,6 +244,45 @@ export default function AdminPanel({ onClose }) {
         </Section>
 
         {/* Export */}
+        <Section title="Chemins d'exploitation">
+          <p className="text-sm text-white/40 mb-3">
+            Ce que les équipes ont fait, pas seulement ce qu'elles ont validé : flag délivré,
+            flag retenu (un autre était déjà tombé sur la requête), challenge verrouillé,
+            effet de bord, ou technique employée au mauvais endroit.
+          </p>
+          <button
+            onClick={fetchEvents}
+            className="btn-admin bg-sky-500/20 border-sky-500/40 text-sky-400 hover:bg-sky-500/30"
+          >
+            {showEvents ? 'Rafraîchir' : 'Afficher'}
+          </button>
+          {showEvents && (
+            <div className="mt-3 max-h-72 overflow-y-auto text-sm">
+              {events.length === 0 ? (
+                <p className="text-white/40">Aucun événement pour l'instant.</p>
+              ) : (
+                <table className="w-full text-left">
+                  <tbody>
+                    {events.map((e, i) => (
+                      <tr key={i} className="border-b border-white/[0.06]">
+                        <td className="py-1 pr-3 text-white/40 whitespace-nowrap">
+                          {new Date(e.at).toLocaleTimeString()}
+                        </td>
+                        <td className="py-1 pr-3 font-bold">{e.teamName}</td>
+                        <td className="py-1 pr-3">
+                          <span className={KIND_STYLE[e.kind] || 'text-white/60'}>{KIND_LABEL[e.kind] || e.kind}</span>
+                        </td>
+                        <td className="py-1 pr-3 text-white/70">{e.flagId || '—'}</td>
+                        <td className="py-1 text-white/40 font-mono text-xs">{e.proof || ''}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          )}
+        </Section>
+
         <Section title="Export">
           <div className="flex gap-3">
             <a
@@ -338,6 +394,22 @@ export default function AdminPanel({ onClose }) {
     </div>
   );
 }
+
+const KIND_LABEL = {
+  award: 'flag délivré',
+  withheld: 'flag retenu',
+  locked: 'verrouillé',
+  side_effect: 'effet de bord',
+  near_miss: 'mauvais endroit',
+};
+
+const KIND_STYLE = {
+  award: 'text-emerald-400',
+  withheld: 'text-amber-400',
+  locked: 'text-sky-400',
+  side_effect: 'text-amber-400',
+  near_miss: 'text-white/50',
+};
 
 function Section({ title, children }) {
   return (

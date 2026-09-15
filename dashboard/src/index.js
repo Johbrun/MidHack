@@ -150,6 +150,11 @@ app.post('/api/teams/register', (req, res) => {
   res.json({ ok: true, teamName });
 });
 
+// Journal des chemins d'exploitation, alimenté par les sites des équipes.
+// En mémoire et borné : c'est un outil d'animation pour la session en cours.
+const challengeEvents = [];
+const MAX_EVENTS = 500;
+
 // Démarrages observés par équipe : { [teamName]: { site: n, exploit: n } }.
 // Volontairement en mémoire — c'est un compteur d'incidents pour la session en
 // cours, pas une donnée de classement à conserver.
@@ -438,6 +443,25 @@ app.post('/api/admin/login', (req, res) => {
   const { password } = req.body;
   if (password !== ADMIN_PASSWORD) return res.status(401).json({ error: 'Invalid password' });
   res.json({ ok: true, token: ADMIN_PASSWORD });
+});
+
+// Chemin emprunté par une équipe : flag délivré, flag retenu (un autre avait
+// déjà été délivré sur la requête), challenge verrouillé, effet de bord, ou
+// technique employée au mauvais endroit.
+app.post('/api/challenge-event', (req, res) => {
+  const { teamName, flagId, kind, proof, username, at } = req.body || {};
+  if (!teamName || !kind) return res.status(400).json({ error: 'teamName and kind required' });
+  if (!teamTokenValid(teamName, req)) return res.status(403).json({ error: 'Invalid team token' });
+
+  challengeEvents.unshift({ teamName, flagId: flagId || null, kind, proof: proof || null, username: username || null, at: at || new Date().toISOString() });
+  if (challengeEvents.length > MAX_EVENTS) challengeEvents.pop();
+  res.json({ ok: true });
+});
+
+app.get('/api/admin/events', requireAdmin, (req, res) => {
+  const { team } = req.query;
+  const events = team ? challengeEvents.filter(e => e.teamName === team) : challengeEvents;
+  res.json({ events: events.slice(0, 100) });
 });
 
 app.get('/api/admin/status', requireAdmin, (req, res) => {
