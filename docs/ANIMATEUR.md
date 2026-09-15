@@ -129,6 +129,10 @@ Un testeur comme un animateur doit pouvoir trancher sans lire le code.
 | `/api/internal/flag` en accès direct depuis le navigateur | ⛔ Bordé | Réservé au loopback : le flag SSRF exige une vraie SSRF via `POST /api/products/<id>/image-url` |
 | Un flag obtenu sans l'exploitation attendue | ⛔ Bordé | Chaque flag exige une preuve d'acte (`server/src/award.js`) |
 
+**L'académie n'est pas un corrigé** : ses exemples portent sur une application
+fictive (`shop.example`, `/api/members`, `/api/avatars`…). La technique est
+enseignée, la transposition vers BananaShop reste l'exercice.
+
 **Deux flags sur la même requête** : impossible par construction. Si deux
 conditions se déclenchent, la plus spécifique l'emporte et l'autre challenge
 reste à trouver — la décision est tracée dans la table `challenge_events` du
