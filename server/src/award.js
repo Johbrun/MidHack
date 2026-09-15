@@ -10,11 +10,14 @@
 //   2. Un flag par requête — si deux conditions matchent, la première l'emporte.
 //      Les appels sont donc ordonnés du plus spécifique au plus général dans
 //      chaque route ; le flag écarté est journalisé et reste à trouver.
+//   2bis. Prérequis    — un challenge du fil rouge ne se valide pas hors de son
+//      ordre : `requires` dans shared/flags.json, captures lues sur le dashboard.
 //   3. Journal            — chaque décision est tracée dans `challenge_events`,
 //      ce qui donne à l'animateur le CHEMIN de chaque validation.
 const db = require('./db');
 const { FLAGS } = require('./flags');
 const { CHALLENGES } = require('../../shared/flags.json');
+const progress = require('./progress');
 
 const CHALLENGE_BY_ID = new Map(CHALLENGES.map((c) => [c.flagId, c]));
 
@@ -22,6 +25,7 @@ const CHALLENGE_BY_ID = new Map(CHALLENGES.map((c) => [c.flagId, c]));
 const KIND = {
   AWARD: 'award',         // exploitation réelle, preuve fournie -> flag délivré
   WITHHELD: 'withheld',   // un flag a déjà été délivré sur cette requête
+  LOCKED: 'locked',       // prérequis du fil rouge non satisfaits
 };
 
 function logEvent(req, { flagId, kind, proof, detail }) {
@@ -71,6 +75,18 @@ function awardFlag(req, response, flagId, evidence = {}) {
   // Un seul flag par requête : deux vulnérabilités ne se découvrent pas d'un coup.
   if (req._awardedFlagId) {
     logEvent(req, { flagId, kind: KIND.WITHHELD, proof, detail: { ...detail, awarded: req._awardedFlagId } });
+    return false;
+  }
+
+  // Prérequis : un challenge tiroir ne se valide pas hors de son fil rouge,
+  // ce qui coupe court aux validations par effet de bord.
+  const missing = (challenge.requires || []).filter((id) => !progress.hasCaptured(id));
+  if (missing.length) {
+    logEvent(req, { flagId, kind: KIND.LOCKED, proof, detail: { ...detail, missing } });
+    const names = missing.map((id) => CHALLENGE_BY_ID.get(id)?.name || id);
+    response.message =
+      `L'action a bien abouti, mais ce challenge s'inscrit dans un fil rouge : ` +
+      `validez d'abord ${names.map((n) => `« ${n} »`).join(', ')}.`;
     return false;
   }
 

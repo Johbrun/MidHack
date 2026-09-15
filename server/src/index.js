@@ -6,6 +6,7 @@ const fs = require('fs');
 const WebSocket = require('ws');
 const { registerTeam } = require('../../shared/register-team');
 const { awardFlag } = require('./award');
+const progress = require('./progress');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -127,4 +128,6 @@ app.listen(PORT, () => {
   console.log(`BananaShop server running on port ${PORT}`);
   console.log(`Team: ${TEAM_NAME}`);
   connectDashboardWs();
+  // Instantané des captures de l'équipe : alimente les prérequis des challenges.
+  progress.start();
 });
