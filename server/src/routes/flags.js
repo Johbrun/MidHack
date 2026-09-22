@@ -31,7 +31,7 @@ router.post('/submit', async (req, res) => {
   }
 
   if (!ALL_FLAGS.includes(flag)) {
-    return res.status(400).json({ error: 'Invalid flag', valid: false });
+    return res.status(400).json({ error: 'C\'est quoi ce flag tout pourri ? 🤔', valid: false });
   }
 
   // Un flag valide mais dont le challenge est désactivé ne rapporte rien :
