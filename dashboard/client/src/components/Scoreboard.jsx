@@ -124,11 +124,11 @@ export default function Scoreboard({ teams, hintPenalty = 3, frozen = false }) {
                     className={`th-flag${f.groupStart ? ' group-start' : ''}`}
                     title={f.name}
                   >
+                    <span className="th-flag-label">{shortName(f)}</span>
                     <span
                       className="th-flag-cat"
                       style={{ background: (CATEGORIES[f.category] || CATEGORIES.other).color }}
                     />
-                    {shortName(f)}
                   </th>
                 ))}
                 <th className="th th-right">Dernier flag</th>

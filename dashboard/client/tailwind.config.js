@@ -7,8 +7,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        mono: ['JetBrains Mono', 'Source Code Pro', 'monospace'],
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        mono: ['IBM Plex Mono', 'Source Code Pro', 'monospace'],
+        sans: ['Space Grotesk', 'system-ui', 'sans-serif'],
       },
     },
   },
