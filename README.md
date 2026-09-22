@@ -14,6 +14,24 @@ Une **mini-académie** intégrée au serveur d'exploit propose des slides intera
 
 Un **parcours d'onboarding guidé** s'affiche automatiquement à la première connexion sur le Hacking QG et sur le site BananaShop, pour s'assurer que les participants lisent les instructions et comprennent l'utilisation de Burp Suite avant de commencer.
 
+
+## TL;DR
+
+```bash
+# with docker (to test)
+cp .env.example .env     # config de l'événement (équipes, ports, titre…)
+./setup.sh deploy        # génère docker-compose.yml + credentials, build & démarre
+./setup.sh passwords     # réaffiche les mots de passe des équipes
+docker compose logs -f   # suivre les logs
+./setup.sh reset         # tout arrêter et nettoyer
+
+# without docker (to dev)
+cp .env.example .env     # config locale
+npm run install:all      # dépendances des 4 services
+npm run dev              # site :5173 · dashboard :5174 · hacking QG :5175
+npm test                 # vérifie chaque challenge
+```
+
 ## Public 
 
 Due à la facilité des vulnérabilités, Cette plateforme se classerait dans un niveau facile / moyen, dans les CTF traditionnels. Cette plateforme est utilisée en particulier pour des développeurs ou des étudiants en cyber.
@@ -88,39 +106,11 @@ docker compose down          # arrête les containers
 ./setup.sh reset             # arrête + supprime volumes et fichiers générés (reset complet)
 ```
 
-### Développement local (sans Docker)
-
-Prérequis : `node` (≥ 20) et `npm`.
+### Développement local
 
 ```bash
-git clone <url-du-repo> midhack
-cd midhack
-cp .env.example .env     # config locale (titre, pénalité, branding…)
-npm run install:all      # installe les dépendances des 4 services
-npm run dev              # lance les 4 services simultanément via concurrently
-```
-
-URLs en développement :
-
-| Service              | URL                     |
-| -------------------- | ----------------------- |
-| Site BananaShop      | http://localhost:5173   |
-| Dashboard live       | http://localhost:5174   |
-| Hacking QG (exploit) | http://localhost:5175   |
-
-Lancer un seul service (utile pour déboguer) :
-
-```bash
-npm run dev:server       # API BananaShop      → :3001
-npm run dev:client       # SPA React           → :5173
-npm run dev:dashboard    # scoreboard + API    → :5174 (API :5000)
-npm run dev:exploit      # Hacking QG + API    → :5175 (API :4000)
-```
-
-Réinitialiser la base SQLite locale :
-
-```bash
-rm server/banana_shop.db*   # recréée au prochain démarrage du serveur
+npm run install:all
+npm run dev # Lance les 4 services simultanément via `concurrently`
 ```
 
 ## Architecture
@@ -178,11 +168,8 @@ connue est employée au mauvais endroit — sans jamais délivrer de flag
 ## Tests
 
 ```bash
-npm test                       # depuis la racine du projet
-npm --prefix server test       # équivalent, directement sur le service testé
+npm test     # vérifie chaque challenge : chemin prévu ET absence de chemin non prévu
 ```
-
-Les tests vérifient chaque challenge : chemin prévu ET absence de chemin non prévu.
 
 ## Scoring
 
