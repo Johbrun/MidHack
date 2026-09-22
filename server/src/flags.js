@@ -143,6 +143,294 @@ const FLAG_EXPLANATIONS = {
   },
 };
 
+// ─── Fix-It Lab (page /blue) ───
+// Pour chaque faille, trois correctifs plausibles : un seul tient debout. Les
+// deux autres sont les réflexes qu'on croise le plus souvent en revue de code —
+// filtrer par blacklist, contrôler côté client, obscurcir — et `why` dit
+// exactement ce qu'ils laissent passer. C'est là qu'est la leçon : un
+// développeur qui a déjà écrit le mauvais correctif s'en souvient.
+//
+// Les réponses partent au client avec l'explication : le Fix-It de la page
+// Challenges donne déjà le code corrigé, il n'y a rien à cacher de plus.
+const FLAG_QUIZZES = {
+  IDOR: {
+    choices: [
+      {
+        ok: true,
+        code: `router.get('/:id', authenticate, (req, res) => {\n  if (Number(req.params.id) !== req.user.id) {\n    return res.status(403).json({ error: 'Access denied' });\n  }\n  // ...\n});`,
+        why: "Le serveur compare la ressource demandée à l'identité portée par le token. C'est le seul endroit où la décision ne peut pas être contournée.",
+      },
+      {
+        code: `const id = Buffer.from(req.params.id, 'base64').toString();\nconst user = db.prepare('SELECT * FROM users WHERE id = ?').get(id);`,
+        why: "Encoder l'identifiant ne le protège pas : on décode, on incrémente, on ré-encode. C'est de l'obscurité, pas du contrôle d'accès.",
+      },
+      {
+        code: `// Côté React : ne montrer le lien que pour soi\n{user.id === me.id && <Link to={'/profile/' + user.id} />}`,
+        why: "Cacher le lien ne ferme pas la route. L'API répond toujours à qui l'appelle directement — c'est précisément ce que vous venez de faire avec Burp.",
+      },
+    ],
+  },
+
+  DATA_EXPOSURE: {
+    choices: [
+      {
+        ok: true,
+        code: `// L'endpoint de debug ne part pas en production\nif (process.env.NODE_ENV !== 'production') {\n  router.get('/config', requireAdmin, (req, res) => {\n    res.json({ appName: 'BananaShop', version: '1.0.0' });\n  });\n}`,
+        why: "La route disparaît en production, et même en développement elle ne renvoie plus de secret. Un secret qui ne quitte jamais le serveur ne fuit pas.",
+      },
+      {
+        code: `router.get('/_cfg9x2f', (req, res) => {\n  res.json({ jwtSecret: 'secret', adminCredentials: {...} });\n});`,
+        why: "Renommer la route ne fait que la rendre moins devinable. Une wordlist, un fichier JS oublié ou une archive du site suffisent à la retrouver — vous l'avez déjà fait aujourd'hui.",
+      },
+      {
+        code: `res.json({\n  jwtSecret: jwtSecret.slice(0, 4) + '***',\n  adminCredentials: { username: 'admin', password: '***' },\n});`,
+        why: "Masquer partiellement, c'est encore divulguer : les quatre premiers caractères réduisent l'espace de recherche, et le nom du compte admin reste offert.",
+      },
+    ],
+  },
+
+  PATH_TRAVERSAL: {
+    choices: [
+      {
+        ok: true,
+        code: `const filename = path.basename(req.query.file);\nconst filePath = path.join('public/bananas', filename);`,
+        why: "`path.basename()` ne garde que le nom de fichier : il n'existe plus de chemin à remonter. Mieux encore, une whitelist des fichiers servis.",
+      },
+      {
+        code: `const safe = req.query.file.replace(/\\.\\.\\//g, '');\nconst filePath = path.join('public/bananas', safe);`,
+        why: "Un remplacement en un seul passage se contourne : `....//` perd son `../` central et redevient `../`. Nettoyer plutôt que refuser laisse toujours une écriture qui passe.",
+      },
+      {
+        code: `if (req.query.file.startsWith('/')) {\n  return res.status(400).json({ error: 'Chemin absolu interdit' });\n}`,
+        why: "Bloquer les chemins absolus ne dit rien des chemins relatifs. `../../secret_flag.txt` ne commence pas par `/` et sort pourtant du dossier.",
+      },
+    ],
+  },
+
+  ZERO_RATING: {
+    choices: [
+      {
+        ok: true,
+        code: `const rating = parseInt(req.body.rating, 10);\nif (isNaN(rating) || rating < 1 || rating > 5) {\n  return res.status(400).json({ error: 'Rating must be 1-5' });\n}`,
+        why: "La plage autorisée est vérifiée là où la donnée arrive vraiment. Tout ce qui sort de 1–5 est refusé, quelle que soit la façon dont la requête a été fabriquée.",
+      },
+      {
+        code: `// Côté React : un select au lieu d'un champ libre\n<select name="rating">\n  {[1, 2, 3, 4, 5].map((n) => <option key={n}>{n}</option>)}\n</select>`,
+        why: "Le formulaire n'est qu'une suggestion. L'API accepte n'importe quel corps de requête, et Burp ne passe pas par votre `<select>`.",
+      },
+      {
+        code: `const rating = parseInt(req.body.rating, 10);\nconst safeRating = isNaN(rating) ? 5 : rating;`,
+        why: "Une valeur par défaut couvre le cas « pas un nombre », pas le cas « mauvais nombre ». `0`, `-1` et `999` sont des entiers parfaitement valides.",
+      },
+    ],
+  },
+
+  REFLECTED_XSS: {
+    choices: [
+      {
+        ok: true,
+        code: `// Serveur : échapper avant de renvoyer\nconst escapeHtml = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');\nres.json({ products, searchTerm: escapeHtml(search) });\n// Client : rendre du texte, pas du HTML\n<span>{displaySearch}</span>`,
+        why: "La donnée est traitée comme du texte de bout en bout. Sans interprétation HTML, il n'y a plus d'injection possible — quel que soit le payload.",
+      },
+      {
+        code: `const clean = search.replace(/<script>/gi, '');\nres.json({ products, searchTerm: clean });`,
+        why: "Une blacklist ne liste jamais tout. `<img src=x onerror=...>`, `<svg onload=...>` ou `<body onpageshow=...>` n'ont pas besoin de la balise `<script>`.",
+      },
+      {
+        code: `// Côté React, avant d'appeler l'API\nif (/[<>]/.test(search)) return;\nfetch('/api/products?search=' + search);`,
+        why: "Le contrôle vit dans le navigateur de l'attaquant : il lui suffit de ne pas l'exécuter. Toute validation faite uniquement côté client est une validation absente.",
+      },
+    ],
+  },
+
+  MASS_ASSIGNMENT: {
+    choices: [
+      {
+        ok: true,
+        code: `const { email, bio, username } = req.body;\n// 'subscription' n'est jamais lu ici : il a son propre endpoint,\n// qui vérifie le solde avant de débiter.`,
+        why: "Une whitelist énumère ce qui est autorisé. Le champ ajouté demain ne sera pas assignable tant que personne ne l'aura explicitement ouvert.",
+      },
+      {
+        code: `delete req.body.subscription;\nconst fields = req.body;`,
+        why: "Une blacklist protège le champ d'aujourd'hui. `role`, `credits`, `isVerified` — le prochain champ sensible arrivera sans que personne ne pense à l'ajouter ici.",
+      },
+      {
+        code: `// Retirer le champ du formulaire de profil\n<input type="hidden" name="subscription" value={user.subscription} />`,
+        why: "Le corps de la requête est écrit par le client. Ce que le formulaire envoie ou non n'a aucune influence sur ce que le serveur accepte.",
+      },
+    ],
+  },
+
+  PRIV_ESC_ROLE: {
+    choices: [
+      {
+        ok: true,
+        code: `const { email, bio, username } = req.body;\n// Le rôle ne se change que via PUT /api/admin/users/:id,\n// protégé par requireAdmin.`,
+        why: "Le privilège ne transite plus par une requête que l'utilisateur contrôle. Changer un rôle devient une action d'administration, tracée et authentifiée.",
+      },
+      {
+        code: `const { email, bio, username, role } = req.body;\nif (role === 'admin') {\n  return res.status(403).json({ error: 'Interdit' });\n}`,
+        why: "Vous bloquez une valeur, pas le mécanisme. `Admin`, `superadmin`, `moderator` ou tout rôle privilégié ajouté plus tard passeront sans encombre.",
+      },
+      {
+        code: `// Masquer le champ rôle dans le formulaire de profil\n{me.role === 'admin' && <RoleSelect />}`,
+        why: "L'interface n'est pas une frontière de sécurité. La requête part du client : ce qu'il affiche ne change rien à ce qu'il peut envoyer.",
+      },
+    ],
+  },
+
+  JWT_FORGING: {
+    choices: [
+      {
+        ok: true,
+        code: `const JWT_SECRET = process.env.JWT_SECRET; // 256+ bits aléatoires\njwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] });`,
+        why: "Un secret fort hors du code, et un seul algorithme accepté. Sans `none` et sans secret devinable, le token ne se forge plus.",
+      },
+      {
+        code: `const payload = jwt.decode(token);\nif (payload.role === 'admin') {\n  // accès admin\n}`,
+        why: "`decode()` lit le token sans jamais vérifier la signature. N'importe qui peut écrire `role: admin` dans le payload. C'est l'erreur la plus répandue sur les JWT.",
+      },
+      {
+        code: `const JWT_SECRET = 'BananaShop_Secret_2024_Production!';\njwt.verify(token, JWT_SECRET, { algorithms: ['HS256', 'none'] });`,
+        why: "Un secret plus long reste un secret en dur : il est dans le dépôt, dans l'historique Git, dans l'image Docker. Et `none` est toujours accepté — la signature devient facultative.",
+      },
+    ],
+  },
+
+  SQLI: {
+    choices: [
+      {
+        ok: true,
+        code: `const user = db.prepare(\n  'SELECT * FROM users WHERE username = ?'\n).get(username);`,
+        why: "La requête préparée sépare le code SQL de la donnée. Le contenu de `username` ne peut plus devenir de la syntaxe, quoi qu'il contienne.",
+      },
+      {
+        code: `const safe = username.replace(/'/g, "''");\nconst user = db.prepare(\n  \`SELECT * FROM users WHERE username = '\${safe}'\`\n).get();`,
+        why: "Échapper à la main, c'est réimplémenter le moteur SQL. Les cas particuliers (backslash, encodage, contextes numériques sans quotes) finissent toujours par vous échapper.",
+      },
+      {
+        code: `const banned = ['OR', 'UNION', '--', ';'];\nif (banned.some((w) => username.toUpperCase().includes(w))) {\n  return res.status(400).json({ error: 'Requête invalide' });\n}`,
+        why: "Une blacklist bloque les utilisateurs légitimes (« O'Connor », « Dupont-OR ») avant de bloquer l'attaquant, qui contourne avec `||`, `/**/` ou des commentaires imbriqués.",
+      },
+    ],
+  },
+
+  BUSINESS_LOGIC: {
+    choices: [
+      {
+        ok: true,
+        code: `const amount = parseFloat(req.body.amount);\nif (isNaN(amount) || amount <= 0) {\n  return res.status(400).json({ error: 'Amount must be positive' });\n}`,
+        why: "La règle métier — un transfert est positif — est vérifiée côté serveur, au moment où elle compte. La requête invalide est refusée, pas réparée.",
+      },
+      {
+        code: `const amount = Math.abs(parseFloat(req.body.amount));`,
+        why: "`Math.abs()` transforme silencieusement un `-50` en `+50`. Le débit passe, dans le mauvais sens peut-être, et l'utilisateur n'est jamais prévenu que sa requête était absurde.",
+      },
+      {
+        code: `<input type="number" name="amount" min="0" step="0.01" />`,
+        why: "`min` est une aide à la saisie, pas un contrôle. Elle disparaît dès qu'on envoie la requête autrement que par le formulaire.",
+      },
+    ],
+  },
+
+  SQLI_UNION: {
+    choices: [
+      {
+        ok: true,
+        code: `products = db.prepare(\n  'SELECT id, name, price FROM products WHERE name LIKE ?'\n).all(\`%\${search}%\`);`,
+        why: "Le terme de recherche devient un paramètre, jamais du SQL. `UNION SELECT` s'y retrouve cherché comme un nom de produit — et ne trouve rien.",
+      },
+      {
+        code: `if (search.toUpperCase().includes('UNION')) {\n  return res.status(400).json({ error: 'Requête invalide' });\n}`,
+        why: "Le filtre se contourne par la casse mélangée, les commentaires (`UN/**/ION`) ou l'encodage. Et il ne ferme pas l'injection : seulement une de ses formes.",
+      },
+      {
+        code: `products = db.prepare(\n  \`SELECT ... FROM products WHERE name LIKE '%\${search}%' LIMIT 20\`\n).all();`,
+        why: "`LIMIT` réduit le nombre de lignes exfiltrées, pas la capacité à injecter. Vingt lignes bien choisies suffisent largement à sortir un secret.",
+      },
+    ],
+  },
+
+  STORED_XSS: {
+    choices: [
+      {
+        ok: true,
+        code: `const sanitizeHtml = require('sanitize-html');\nconst safe = sanitizeHtml(content, { allowedTags: [], allowedAttributes: {} });\n// et à l'affichage : <div>{review.content}</div>`,
+        why: "Une bibliothèque éprouvée nettoie à l'entrée, et l'affichage se fait en texte. Deux barrières, dont aucune ne repose sur une liste de balises interdites.",
+      },
+      {
+        code: `const safe = content.replace(/<script[\\s\\S]*?<\\/script>/gi, '');\ndb.prepare('INSERT INTO reviews ...').run(safe);`,
+        why: "Vous retirez la balise la moins utile à l'attaquant. `<img onerror>`, `<svg onload>` et les attributs `on*` passent tous, et sont désormais stockés en base pour chaque visiteur.",
+      },
+      {
+        code: `// Ajouter une CSP\nres.setHeader('Content-Security-Policy', "script-src 'self'");`,
+        why: "Une CSP est une excellente défense en profondeur, mais elle ne corrige pas l'injection : le HTML malveillant est toujours stocké et rendu. Elle limite les dégâts, elle ne ferme pas la faille.",
+      },
+    ],
+  },
+
+  SSRF: {
+    choices: [
+      {
+        ok: true,
+        code: `const url = new URL(req.body.url);\nconst ALLOWED = ['images.example.com'];\nif (!ALLOWED.includes(url.hostname) || url.protocol !== 'https:') {\n  return res.status(400).json({ error: 'URL non autorisée' });\n}`,
+        why: "Une whitelist de destinations : tout ce qui n'est pas explicitement permis est refusé. C'est la seule approche qui résiste aux adresses internes que vous n'aviez pas prévues.",
+      },
+      {
+        code: `if (req.body.url.includes('localhost')) {\n  return res.status(400).json({ error: 'URL non autorisée' });\n}`,
+        why: "`127.0.0.1`, `[::1]`, `0.0.0.0`, `127.1`, `2130706433`, ou un domaine public qui pointe vers 127.0.0.1 : la même machine a une infinité de noms.",
+      },
+      {
+        code: `const response = await fetch(req.body.url, { signal: AbortSignal.timeout(2000) });`,
+        why: "Un timeout limite le scan de ports à l'aveugle, pas la lecture d'un service interne : une API locale répond en quelques millisecondes.",
+      },
+    ],
+  },
+
+  COOKIE_THEFT: {
+    choices: [
+      {
+        ok: true,
+        code: `res.cookie('token', token, {\n  httpOnly: true,  // invisible pour document.cookie\n  secure: true,    // HTTPS uniquement\n  sameSite: 'strict',\n});`,
+        why: "`httpOnly` retire le cookie de la portée du JavaScript. Même avec une XSS, `document.cookie` ne renvoie plus rien à exfiltrer.",
+      },
+      {
+        code: `const encrypted = encrypt(token, KEY);\nres.cookie('token', encrypted, { httpOnly: false });`,
+        why: "Un cookie volé se rejoue tel quel : l'attaquant n'a pas besoin de le comprendre, seulement de le renvoyer. Le chiffrer ne change rien au vol.",
+      },
+      {
+        code: `// Ne plus utiliser de cookie\nlocalStorage.setItem('token', token);`,
+        why: "C'est pire : `localStorage` est lisible en JavaScript par construction, et aucun `httpOnly` ne viendra jamais le protéger d'une XSS.",
+      },
+    ],
+  },
+
+  CSRF: {
+    choices: [
+      {
+        ok: true,
+        code: `// Cookie en sameSite: 'strict'\n// + jeton anti-CSRF vérifié à chaque écriture\nif (req.headers['x-csrf-token'] !== req.session.csrfToken) {\n  return res.status(403).json({ error: 'CSRF detected' });\n}`,
+        why: "Le jeton vit dans une réponse que seul le vrai site peut lire, et `sameSite: 'strict'` empêche le cookie de partir avec une requête inter-site. L'un couvre l'autre.",
+      },
+      {
+        code: `if (!req.headers.referer?.startsWith('https://bananashop')) {\n  return res.status(403).json({ error: 'CSRF detected' });\n}`,
+        why: "Le `Referer` est absent ou tronqué dans bien des configurations légitimes — et le test par préfixe accepte `https://bananashop.attaquant.com`.",
+      },
+      {
+        code: `// Passer l'action en POST au lieu de GET\nrouter.post('/send', authenticate, (req, res) => { ... });`,
+        why: "Un formulaire auto-soumis fait un POST inter-site sans difficulté. La méthode HTTP n'a jamais été une preuve d'intention.",
+      },
+    ],
+  },
+};
+
+// Le quiz rejoint l'explication : l'endpoint /api/explanation/:flagId la
+// renvoie déjà telle quelle, et reste fermé tant que le flag n'est pas capturé.
+for (const [flagId, quiz] of Object.entries(FLAG_QUIZZES)) {
+  const explanation = FLAG_EXPLANATIONS[FLAGS[flagId]];
+  if (explanation) explanation.quiz = quiz;
+}
+
 const ALL_FLAGS = Object.values(FLAGS);
 
 // Flags des challenges activés dans shared/flags.json. Un flag dont le
