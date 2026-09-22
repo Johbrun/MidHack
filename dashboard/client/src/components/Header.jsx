@@ -1,54 +1,84 @@
 import Timer from './Timer';
-import { NantesHackLogo } from '../lib/branding';
+import { NantesHackLogo, nantesHack } from '../lib/branding';
+import { FLAGS } from '../flags';
+import { IconMoon, IconShield, IconSnowflake, IconSun } from './icons';
 
-export default function Header({ online, status, timerEndTime, eventTitle, onAdmin, isDark, onToggleTheme }) {
+// Bandeau d'environnement, comme dans le QG. Les commandes (thème, admin)
+// y restent discrètes : elles servent à l'animateur, pas à la salle.
+export function EnvBar({ online, status, frozen, onAdmin, isDark, onToggleTheme }) {
+  const ThemeIcon = isDark ? IconSun : IconMoon;
   return (
-    <div className="flex items-center justify-between mb-12">
-      <div className="flex items-center gap-4">
-        <NantesHackLogo className="h-10 w-auto" />
-        <div>
-          <h1 className="font-heading font-black text-4xl tracking-tight">
-            <span className="gradient-text">{eventTitle || 'BananaShop CTF'}</span>
+    <div className={`envbar${frozen ? ' is-frozen' : ''}`}>
+      <span className={`envbar-status${online ? ' is-live' : ''}`}>
+        <span className="live-dot" />
+        {status}
+      </span>
+      <span className="envbar-title">
+        {frozen ? (
+          <>
+            <IconSnowflake size={14} />
+            CTF gelé — scores figés
+          </>
+        ) : (
+          'Hacking QG · Scoreboard'
+        )}
+      </span>
+      <span className="envbar-tools">
+        <button
+          className="icon-btn"
+          onClick={onToggleTheme}
+          title={isDark ? 'Mode jour' : 'Mode nuit'}
+          aria-label={isDark ? 'Mode jour' : 'Mode nuit'}
+        >
+          <ThemeIcon size={15} />
+        </button>
+        <button className="icon-btn" onClick={onAdmin} title="Administration" aria-label="Administration">
+          <IconShield size={15} />
+        </button>
+      </span>
+    </div>
+  );
+}
+
+export default function Header({ teams, timerEndTime, eventTitle }) {
+  const captures = teams.reduce((n, t) => n + t.captures.length, 0);
+  const fallen = new Set(teams.flatMap((t) => t.captures.map((c) => c.flagId))).size;
+
+  return (
+    <header className="head">
+      <div className="brand">
+        <span className="brand-mark">{nantesHack ? <NantesHackLogo /> : '>_'}</span>
+        <div className="brand-text">
+          <p className="prompt">
+            <span className="prompt-user">root@qg</span>:
+            <span className="prompt-path">~/scoreboard</span>$ watch ./rank
+          </p>
+          <h1 className="brand-title">
+            {eventTitle || 'BananaShop CTF'}
+            <span className="cursor">_</span>
           </h1>
-          <p className="text-white/30 text-sm mt-1">Classement en direct</p>
         </div>
       </div>
 
       <Timer endTime={timerEndTime} />
 
-      <div className="flex items-center gap-4">
-        <button
-          onClick={onToggleTheme}
-          className="p-2 text-white/40 hover:text-accent transition-colors"
-          title={isDark ? 'Mode jour' : 'Mode nuit'}
-        >
-          {isDark ? (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="4"/>
-              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
-            </svg>
-          ) : (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-            </svg>
-          )}
-        </button>
-        <button
-          onClick={onAdmin}
-          className="font-heading font-bold text-xs uppercase tracking-wider px-4 py-2 border border-accent/40 rounded-lg bg-accent/10 text-accent hover:bg-accent/25 hover:border-accent/60 transition"
-          title="Panneau d'administration"
-        >
-          Admin
-        </button>
-        <div className="flex items-center gap-2 text-xs text-white/30">
-          <div
-            className={`w-2.5 h-2.5 rounded-full ${
-              online ? 'bg-emerald-500 animate-pulse-dot' : 'bg-red-500'
-            }`}
-          />
-          <span>{status}</span>
-        </div>
+      <div className="stats">
+        <Stat label="Équipes" value={teams.length} />
+        <Stat label="Flags" value={captures} />
+        <Stat label="Challenges tombés" value={fallen} max={FLAGS.length} />
       </div>
+    </header>
+  );
+}
+
+function Stat({ label, value, max }) {
+  return (
+    <div className="stat">
+      <span className="stat-label">{label}</span>
+      <span className="stat-value">
+        {value}
+        {max !== undefined && <small> / {max}</small>}
+      </span>
     </div>
   );
 }

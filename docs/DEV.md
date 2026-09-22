@@ -344,6 +344,7 @@ Toute la configuration vit dans le `.env` — `setup.sh` n'a **plus** de flags d
 | `VITE_NANTES_HACK` | 1 | Active/désactive le branding Nantes@Hack (0/1) |
 | `VITE_PROGRESSIVE_UNLOCK` | false | Déblocage progressif des niveaux (true/false) |
 | `VITE_UNLOCK_THRESHOLD` | 2 | Captures requises par palier |
+| `VITE_DEV_MODE` | false | `true` = pas de modale d'onboarding bloquante (BananaShop + Hacking QG). `npm run dev` uniquement, jamais transmis à Docker |
 
 Le `docker-compose.yml` généré inclut :
 - Health checks (`wget` sur les endpoints principaux)

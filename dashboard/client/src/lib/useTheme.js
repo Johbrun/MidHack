@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react';
 
+// Même convention que le Hacking QG : nuit par défaut, `html.light` pour le
+// jour. C'est aussi le thème à préférer au vidéoprojecteur.
 export function useTheme() {
-  const [isDark, setIsDark] = useState(() => {
-    const saved = localStorage.getItem('theme');
-    return saved ? saved === 'dark' : true;
-  });
+  const [isDark, setIsDark] = useState(() => localStorage.getItem('theme') !== 'light');
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', isDark);
+    document.documentElement.classList.toggle('light', !isDark);
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
   }, [isDark]);
 

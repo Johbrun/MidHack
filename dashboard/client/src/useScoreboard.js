@@ -45,6 +45,9 @@ export function useScoreboard() {
         if (data.type === 'scoreboard') {
           setTeams(data.teams);
           if (data.config) setConfig(data.config);
+          // État du gel envoyé à la connexion : sans ça, un écran ouvert
+          // pendant le gel l'ignore jusqu'au prochain événement `freeze`.
+          if (typeof data.frozen === 'boolean') setFrozen(data.frozen);
         } else if (data.type === 'capture') {
           pushEvent('capture', data);
         } else if (data.type === 'hint') {

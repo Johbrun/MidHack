@@ -1,20 +1,14 @@
 /** @type {import('tailwindcss').Config} */
+// Comme pour le Hacking QG, seul le reset (preflight) de Tailwind sert : le
+// scoreboard est stylé par les tokens et composants de src/index.css.
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   darkMode: 'class',
   theme: {
     extend: {
-      colors: {
-        dark: 'rgb(var(--color-bg) / <alpha-value>)',
-        'dark-light': 'rgb(var(--color-bg-secondary) / <alpha-value>)',
-        accent: '#FABB5C',
-        cyan: '#0593A7',
-        terracotta: '#A1540D',
-      },
       fontFamily: {
-        heading: ['Exo', 'sans-serif'],
-        body: ['Figtree', 'sans-serif'],
-        mono: ['Source Code Pro', 'monospace'],
+        mono: ['JetBrains Mono', 'Source Code Pro', 'monospace'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
       },
     },
   },

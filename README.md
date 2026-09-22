@@ -113,6 +113,8 @@ npm run install:all
 npm run dev # Lance les 4 services simultanément via `concurrently`
 ```
 
+**Mode DEV** : avec `VITE_DEV_MODE=true` dans le `.env`, la modale d'onboarding bloquante n'est plus affichée sur le BananaShop ni sur le Hacking QG — l'interface est déverrouillée d'office, sans avoir à refaire l'exercice Burp ni à saisir le flag de démarrage. Ce mode ne concerne que `npm run dev` : la variable n'est jamais transmise aux images Docker, un `./setup.sh deploy` affiche donc toujours l'onboarding. Relancez `npm run dev` après avoir modifié la valeur.
+
 ## Architecture
 
 ```text
@@ -188,7 +190,7 @@ npm test     # vérifie chaque challenge : chemin prévu ET absence de chemin no
 4. **Déroulement du CTF** — process de recherche de vulnérabilités suggéré
 5. **Flag** — saisie du flag de démarrage pour déverrouiller l'interface
 
-Le flag de démarrage est renvoyé par la route `POST /hello-my-flag` lorsque le participant envoie la bonne valeur dans le corps de la requête (exercice guidé à l'étape 03). Une fois le flag soumis, tous les menus du QG et du BananaShop se déverrouillent. L'état est persisté en `localStorage`.
+Le flag de démarrage est renvoyé par la route `POST /hello-my-flag` lorsque le participant envoie la bonne valeur dans le corps de la requête (exercice guidé à l'étape 03). Une fois le flag soumis, tous les menus du QG et du BananaShop se déverrouillent. L'état est persisté en `localStorage`. En développement local, `VITE_DEV_MODE=true` désactive cette modale (voir [Développement local](#développement-local)).
 
 ## Déroulement suggéré (2h)
 
