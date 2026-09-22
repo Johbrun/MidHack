@@ -2,12 +2,15 @@ import { createContext, useContext, useEffect, useState } from 'react';
 
 const UNLOCK_FLAG = 'ASY{L3t_5_H4cK_B4n4n45}';
 const STORAGE_KEY = 'midhack_unlocked';
+// Mode DEV (VITE_DEV_MODE=true dans le .env) : pas de modale d'onboarding
+// bloquante, l'interface est déverrouillée d'office.
+const DEV_MODE = import.meta.env.VITE_DEV_MODE === 'true';
 
 const OnboardingContext = createContext(null);
 
 export function OnboardingProvider({ children }) {
   const [unlocked, setUnlocked] = useState(() =>
-    localStorage.getItem(STORAGE_KEY) === 'true'
+    DEV_MODE || localStorage.getItem(STORAGE_KEY) === 'true'
   );
 
   const unlock = (flag) => {
