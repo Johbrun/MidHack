@@ -1,15 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Banane Argentée">
+  <title>Banane Argentée</title>
   <defs>
-    <filter id="silver">
-      <feColorMatrix type="saturate" values="0"/>
-      <feComponentTransfer>
-        <feFuncR type="linear" slope="1.3" intercept="0.1"/>
-        <feFuncG type="linear" slope="1.3" intercept="0.1"/>
-        <feFuncB type="linear" slope="1.3" intercept="0.1"/>
-      </feComponentTransfer>
-    </filter>
+    <linearGradient id="body" x1="0.2" y1="0" x2="0.7" y2="1">
+      <stop offset="0" stop-color="#F7F9FB"/>
+      <stop offset="1" stop-color="#98A3B0"/>
+    </linearGradient>
+    <clipPath id="bodyclip"><path d="M58 50 C 36 124, 100 178, 172 140 C 175 138, 174 133, 170 133 C 122 140, 88 104, 82 46 Z"/></clipPath>
   </defs>
-  <rect width="200" height="200" rx="24" fill="#1a1a2e"/>
-  <text x="100" y="115" text-anchor="middle" font-size="80" dominant-baseline="central" filter="url(#silver)">🍌</text>
-  <text x="100" y="180" text-anchor="middle" fill="#c0c0c0" font-family="sans-serif" font-size="14" font-weight="bold">Silver</text>
+  <ellipse cx="108" cy="170" rx="56" ry="5" fill="#1C1527" opacity="0.08"/>
+  <path d="M57 52 L 60 30 C 61 26, 72 25, 74 29 L 82 48 Z" fill="#6B7480"/>
+  <path d="M59.5 32 C 61 27, 72 26, 74 30 L 73.5 31 C 69 29, 63 29, 59.4 33 Z" fill="#000" opacity="0.25"/>
+  <path d="M58 50 C 36 124, 100 178, 172 140 C 175 138, 174 133, 170 133 C 122 140, 88 104, 82 46 Z" fill="url(#body)"/>
+  <path d="M58 50 C 36 124, 100 178, 172 140 C 150 146, 84 140, 66 56 Z" fill="#5E6977" opacity="0.35"/>
+  <path d="M84 70 C 88 108, 112 128, 150 134" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity="0.8"/>
+  <circle cx="171" cy="136.5" r="4" fill="#3D4450"/>
+  <path d="M150 40 Q150 52 162 52 Q150 52 150 64 Q150 52 138 52 Q150 52 150 40 Z" fill="#0593A7" opacity="1"/><path d="M176 81 Q176 88 183 88 Q176 88 176 95 Q176 88 169 88 Q176 88 176 81 Z" fill="#0593A7" opacity="0.6"/><path d="M36 142 Q36 150 44 150 Q36 150 36 158 Q36 150 28 150 Q36 150 36 142 Z" fill="#98A3B0" opacity="1"/>
 </svg>

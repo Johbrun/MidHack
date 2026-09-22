@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../api';
+import { IconLock } from '../components/Icons';
+import { formatCredits } from '../lib/catalog';
 
 export default function AdminDashboard() {
   const [data, setData] = useState(null);
@@ -48,100 +50,101 @@ export default function AdminDashboard() {
   if (error) {
     return (
       <div className="page-container">
-        <div className="card p-8 max-w-md mx-auto text-center">
-          <div className="text-4xl mb-4">🔒</div>
-          <h1 className="font-heading font-bold text-xl mb-2">Accès refusé</h1>
-          <p className="text-red-400 text-sm">{error}</p>
+        <div className="card p-10 max-w-md mx-auto text-center">
+          <span className="mx-auto h-14 w-14 rounded-full bg-red-50 text-red-700 flex items-center justify-center">
+            <IconLock size={26} />
+          </span>
+          <h1 className="mt-5 font-heading font-bold text-2xl text-ink">Accès refusé</h1>
+          <p className="mt-2 text-red-700 text-sm">{error}</p>
+          <p className="mt-1 text-sm text-muted">Cet espace est réservé à l'équipe BananaShop.</p>
         </div>
       </div>
     );
   }
 
-  if (!data) return <div className="page-container">Chargement...</div>;
+  if (!data) return <div className="page-container text-muted">Chargement…</div>;
+
+  const stats = [
+    { label: 'Utilisateurs', value: data.stats.users },
+    { label: 'Produits', value: data.stats.products },
+    { label: 'Transactions', value: data.stats.transactions },
+    { label: 'Revenus', value: data.stats.revenue },
+  ];
 
   return (
     <div className="page-container">
-      <h1 className="section-title mb-2">Tableau de bord Admin</h1>
-      <p className="text-white/40 text-sm mb-8">Vue d'ensemble du système</p>
+      <div className="mb-8">
+        <p className="eyebrow mb-2">Back-office</p>
+        <h1 className="font-heading font-extrabold tracking-tight text-3xl sm:text-4xl text-ink">Tableau de bord Admin</h1>
+        <p className="mt-2 text-muted">Vue d'ensemble du système</p>
+      </div>
 
       {/* Super Admin Flag */}
       {data.flag && (
-        <div className="mb-8">
-          <div className="card p-6 border-cyan/30">
-            <h3 className="font-heading font-bold text-sm text-cyan mb-2">Section Super Admin</h3>
-            <p className="font-mono text-cyan text-lg">{data.flag}</p>
-            <p className="text-white/30 text-xs mt-2">{data.secret_message}</p>
-          </div>
+        <div className="mb-8 rounded-2xl border-2 border-cyan/40 bg-cyan-50 p-6">
+          <h3 className="font-heading font-bold text-sm text-cyan-700 mb-2">Section Super Admin</h3>
+          <p className="font-mono text-cyan-700 text-lg break-all select-all">{data.flag}</p>
+          <p className="text-muted text-xs mt-2">{data.secret_message}</p>
         </div>
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-        <div className="card p-6 text-center">
-          <p className="text-3xl font-heading font-extrabold text-accent">{data.stats.users}</p>
-          <p className="text-white/30 text-xs uppercase tracking-wider mt-2">Utilisateurs</p>
-        </div>
-        <div className="card p-6 text-center">
-          <p className="text-3xl font-heading font-extrabold text-cyan">{data.stats.products}</p>
-          <p className="text-white/30 text-xs uppercase tracking-wider mt-2">Produits</p>
-        </div>
-        <div className="card p-6 text-center">
-          <p className="text-3xl font-heading font-extrabold">{data.stats.transactions}</p>
-          <p className="text-white/30 text-xs uppercase tracking-wider mt-2">Transactions</p>
-        </div>
-        <div className="card p-6 text-center">
-          <p className="text-3xl font-heading font-extrabold text-emerald-400">{data.stats.revenue}</p>
-          <p className="text-white/30 text-xs uppercase tracking-wider mt-2">Revenus</p>
-        </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+        {stats.map(({ label, value }) => (
+          <div key={label} className="card p-6">
+            <p className="text-sm text-muted">{label}</p>
+            <p className="mt-2 font-heading font-extrabold text-3xl text-ink">{value}</p>
+          </div>
+        ))}
       </div>
 
       {/* Users Management */}
-      <h2 className="font-heading font-bold text-xl mb-4">Gestion des membres</h2>
+      <div className="flex items-end justify-between mb-4">
+        <h2 className="font-heading font-bold text-xl text-ink">Gestion des membres</h2>
+        <p className="text-sm text-muted">{users.length} membres</p>
+      </div>
 
       {saveMsg && (
-        <div className={`mb-4 p-3 rounded-lg text-sm ${saveMsgError
-            ? 'bg-red-500/10 border border-red-500/20 text-red-400'
-            : 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
-          }`}>
+        <div className={`mb-4 ${saveMsgError ? 'alert-error' : 'alert-success'}`}>
           {saveMsg}
         </div>
       )}
 
-      <div className="card overflow-hidden">
+      <div className="card overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-white/10 text-white/40 uppercase text-xs tracking-wider">
-              <th className="text-left p-4">ID</th>
-              <th className="text-left p-4">Nom d'utilisateur</th>
-              <th className="text-left p-4">E-mail</th>
-              <th className="text-left p-4">Rôle</th>
-              <th className="text-right p-4">Crédits</th>
-              <th className="text-right p-4">Actions</th>
+            <tr className="border-b border-line bg-cream/60 text-muted text-xs">
+              <th className="text-left font-semibold px-5 py-3">ID</th>
+              <th className="text-left font-semibold px-5 py-3">Nom d'utilisateur</th>
+              <th className="text-left font-semibold px-5 py-3">E-mail</th>
+              <th className="text-left font-semibold px-5 py-3">Rôle</th>
+              <th className="text-right font-semibold px-5 py-3">Crédits</th>
+              <th className="text-right font-semibold px-5 py-3">Actions</th>
             </tr>
           </thead>
           <tbody>
             {users.map(u => (
-              <tr key={u.id} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+              <tr key={u.id} className="border-b border-line last:border-0 hover:bg-cream/50 transition-colors">
                 {editingId === u.id ? (
                   <>
-                    <td className="p-4 font-mono text-white/30">{u.id}</td>
-                    <td className="p-4">
+                    <td className="px-5 py-3 text-muted">{u.id}</td>
+                    <td className="px-5 py-3">
                       <input
-                        className="input !py-1 !text-sm"
+                        className="input !h-9 !text-sm"
                         value={editForm.username}
                         onChange={e => setEditForm({ ...editForm, username: e.target.value })}
                       />
                     </td>
-                    <td className="p-4">
+                    <td className="px-5 py-3">
                       <input
-                        className="input !py-1 !text-sm"
+                        className="input !h-9 !text-sm"
                         value={editForm.email}
                         onChange={e => setEditForm({ ...editForm, email: e.target.value })}
                       />
                     </td>
-                    <td className="p-4">
+                    <td className="px-5 py-3">
                       <select
-                        className="input !py-1 !text-sm !w-28"
+                        className="input !h-9 !text-sm !w-36"
                         value={editForm.role}
                         onChange={e => setEditForm({ ...editForm, role: e.target.value })}
                       >
@@ -149,39 +152,39 @@ export default function AdminDashboard() {
                         <option value="admin">Administrateur</option>
                       </select>
                     </td>
-                    <td className="p-4">
+                    <td className="px-5 py-3">
                       <input
                         type="number"
-                        className="input !py-1 !text-sm !w-28 text-right"
+                        className="input !h-9 !text-sm !w-28 text-right ml-auto"
                         value={editForm.balance}
                         onChange={e => setEditForm({ ...editForm, balance: parseFloat(e.target.value) || 0 })}
                       />
                     </td>
-                    <td className="p-4 text-right space-x-2">
-                      <button onClick={() => handleSave(u.id)} className="text-emerald-400 hover:text-emerald-300 text-xs font-heading font-semibold">
+                    <td className="px-5 py-3 text-right whitespace-nowrap space-x-3">
+                      <button onClick={() => handleSave(u.id)} className="text-emerald-700 hover:underline font-semibold">
                         Sauver
                       </button>
-                      <button onClick={cancelEdit} className="text-white/30 hover:text-white/60 text-xs">
+                      <button onClick={cancelEdit} className="text-muted hover:text-ink">
                         Annuler
                       </button>
                     </td>
                   </>
                 ) : (
                   <>
-                    <td className="p-4 font-mono text-white/30">{u.id}</td>
-                    <td className="p-4 font-heading font-semibold">{u.username}</td>
-                    <td className="p-4 font-mono text-white/50">{u.email || '-'}</td>
-                    <td className="p-4">
-                      <span className={`px-2 py-0.5 rounded text-xs font-heading font-semibold ${u.role === 'admin'
-                          ? 'bg-accent/20 text-accent'
-                          : 'bg-white/5 text-white/40'
+                    <td className="px-5 py-3 text-muted">{u.id}</td>
+                    <td className="px-5 py-3 font-semibold text-ink">{u.username}</td>
+                    <td className="px-5 py-3 text-muted">{u.email || '-'}</td>
+                    <td className="px-5 py-3">
+                      <span className={`badge ${u.role === 'admin'
+                          ? 'bg-accent-100 text-terracotta'
+                          : 'bg-sand text-muted'
                         }`}>
                         {u.role}
                       </span>
                     </td>
-                    <td className="p-4 text-right font-mono text-accent">{u.balance.toFixed(2)}</td>
-                    <td className="p-4 text-right">
-                      <button onClick={() => startEdit(u)} className="text-cyan hover:text-cyan/70 text-xs font-heading font-semibold">
+                    <td className="px-5 py-3 text-right font-semibold text-ink">{formatCredits(u.balance.toFixed(2))}</td>
+                    <td className="px-5 py-3 text-right">
+                      <button onClick={() => startEdit(u)} className="link">
                         Modifier
                       </button>
                     </td>

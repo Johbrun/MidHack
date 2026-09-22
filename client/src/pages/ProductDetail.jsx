@@ -1,20 +1,31 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import ReviewCard from '../components/ReviewCard';
+import Stars from '../components/Stars';
+import { IconStar, IconCart, IconCheck, IconChevronRight, IconMinus, IconPlus, IconTruck, IconRefresh, IconShield } from '../components/Icons';
+import { tierMeta, productImageUrl, formatCredits } from '../lib/catalog';
 import api from '../api';
+
+function StockStatus({ stock }) {
+  const n = Number(stock);
+  if (n === 0) return <p className="flex items-center gap-2 text-sm font-medium text-red-700"><span className="h-2 w-2 rounded-full bg-red-600" /> Victime de son succès : rupture de stock</p>;
+  if (n <= 10) return <p className="flex items-center gap-2 text-sm font-medium text-terracotta"><span className="h-2 w-2 rounded-full bg-terracotta" /> Plus que {n} en stock, faites vite !</p>;
+  return <p className="flex items-center gap-2 text-sm font-medium text-emerald-700"><span className="h-2 w-2 rounded-full bg-emerald-600" /> En stock ({n} disponibles)</p>;
+}
 
 export default function ProductDetail() {
   const { id } = useParams();
   const { user } = useAuth();
   const { addToCart } = useCart();
   const [product, setProduct] = useState(null);
+  const [qty, setQty] = useState(1);
   const [addedToCart, setAddedToCart] = useState(false);
   const [reviews, setReviews] = useState([]);
   const [reviewContent, setReviewContent] = useState('');
   const [rating, setRating] = useState(5);
-  const [message, setMessage] = useState(null);
+  const [hoverRating, setHoverRating] = useState(0);
   const [reviewError, setReviewError] = useState(null);
   const [reviewSuccess, setReviewSuccess] = useState(null);
 
@@ -44,105 +55,177 @@ export default function ProductDetail() {
     }
   };
 
-  if (!product) return <div className="page-container">Chargement...</div>;
+  const handleAdd = () => {
+    for (let i = 0; i < qty; i++) addToCart(product);
+    setAddedToCart(true);
+    setTimeout(() => setAddedToCart(false), 2000);
+  };
+
+  if (!product) {
+    return <div className="page-container text-muted">Chargement de la banane…</div>;
+  }
+
+  const tier = tierMeta(product.tier);
+  const avg = reviews.length ? reviews.reduce((s, r) => s + Number(r.rating || 0), 0) / reviews.length : null;
+  const distribution = [5, 4, 3, 2, 1].map(n => ({ n, count: reviews.filter(r => Math.round(r.rating) === n).length }));
+  const outOfStock = Number(product.stock) === 0;
 
   return (
-    <div className="page-container max-w-4xl">
-      {/* Product Header */}
-      <div className="card p-8 mb-8 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-accent/5 rounded-full -translate-y-1/2 translate-x-1/3" />
-        <div className="relative flex gap-8 items-start">
-          <div className="shrink-0 p-8">
-            <img src={`/api/products/image?file=${product.image_url?.split('/').pop()}`} alt={product.name} className="w-32 h-32 object-contain" />
-          </div>
-          <div className="flex-1">
-            <h1 className="text-3xl font-heading font-extrabold mb-3">{product.name}</h1>
-            <p className="text-white/50 mb-6 leading-relaxed">{product.description}</p>
-            <div className="flex items-center gap-6 mb-6">
-              <span className="text-4xl font-heading font-extrabold text-accent">
-                {product.price} <span className="text-sm text-white/30">crédits</span>
-              </span>
-              <span className="text-sm text-white/20 font-mono">{product.stock} en stock</span>
-            </div>
+    <div className="page-container">
+      {/* Fil d'Ariane */}
+      <nav className="flex flex-wrap items-center gap-1.5 text-sm text-muted mb-6">
+        <Link to="/" className="hover:text-ink">Accueil</Link>
+        <IconChevronRight size={14} />
+        <Link to="/shop" className="hover:text-ink">Boutique</Link>
+        {tier.label && (<><IconChevronRight size={14} /><Link to={`/shop?tier=${product.tier}`} className="hover:text-ink">{tier.label}</Link></>)}
+        <IconChevronRight size={14} />
+        <span className="text-ink truncate">{product.name}</span>
+      </nav>
 
-            {message && (
-              <div className={`mb-4 p-3 rounded-lg text-sm ${
-                message.type === 'success'
-                  ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
-                  : 'bg-red-500/10 border border-red-500/20 text-red-400'
-              }`}>
-                {message.text}
-              </div>
-            )}
+      {/* Produit */}
+      <div className="grid lg:grid-cols-2 gap-8 lg:gap-14">
+        <div className={`relative aspect-square rounded-[2rem] ${tier.tint} flex items-center justify-center`}>
+          {tier.label && <span className={`absolute top-5 left-5 badge ${tier.badge}`}>Gamme {tier.label}</span>}
+          <img
+            src={productImageUrl(product)}
+            alt={product.name}
+            className="w-3/4 h-3/4 object-contain"
+          />
+        </div>
 
-            <div className="flex gap-3">
-              <button
-                onClick={() => {
-                  addToCart(product);
-                  setAddedToCart(true);
-                  setTimeout(() => setAddedToCart(false), 2000);
-                }}
-                className="btn-primary"
-              >
-                {addedToCart ? 'Ajouté !' : 'Ajouter au panier'}
+        <div className="lg:py-4">
+          <h1 className="font-heading font-extrabold tracking-tight text-3xl sm:text-4xl text-ink">{product.name}</h1>
+
+          <a href="#avis" className="mt-3 inline-flex items-center gap-2 text-sm text-muted hover:text-ink">
+            <Stars value={avg ?? 0} size={16} />
+            {avg != null
+              ? <span><strong className="text-ink">{avg.toFixed(1).replace('.', ',')}</strong> · {reviews.length} avis</span>
+              : <span>Aucun avis pour l'instant</span>}
+          </a>
+
+          <p className="mt-6 font-heading font-extrabold text-4xl text-ink">
+            {formatCredits(product.price)} <span className="text-lg font-body font-medium text-muted">crédits</span>
+          </p>
+
+          <p className="mt-6 text-ink/75 leading-relaxed text-[17px]">{product.description}</p>
+
+          <div className="mt-6"><StockStatus stock={product.stock} /></div>
+
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            <div className="flex items-center h-12 rounded-full border border-line bg-white">
+              <button onClick={() => setQty(q => Math.max(1, q - 1))} className="h-12 w-12 flex items-center justify-center text-muted hover:text-ink" aria-label="Diminuer la quantité">
+                <IconMinus size={18} />
+              </button>
+              <span className="w-8 text-center font-semibold">{qty}</span>
+              <button onClick={() => setQty(q => q + 1)} className="h-12 w-12 flex items-center justify-center text-muted hover:text-ink" aria-label="Augmenter la quantité">
+                <IconPlus size={18} />
               </button>
             </div>
+            <button
+              onClick={handleAdd}
+              disabled={outOfStock}
+              className={`btn-lg flex-1 min-w-[220px] ${addedToCart ? 'btn bg-emerald-600 text-white' : 'btn-primary'}`}
+            >
+              {addedToCart ? <><IconCheck size={18} /> Ajouté au panier</> : <><IconCart size={18} /> Ajouter au panier</>}
+            </button>
           </div>
+
+          <ul className="mt-8 rounded-2xl border border-line bg-white divide-y divide-line text-sm">
+            <li className="flex items-center gap-3 px-5 py-4">
+              <IconTruck size={20} className="text-terracotta shrink-0" />
+              <span><strong className="text-ink">Livraison en 67h</strong> <span className="text-muted">· offerte dès 50 cr d'achat</span></span>
+            </li>
+            <li className="flex items-center gap-3 px-5 py-4">
+              <IconRefresh size={20} className="text-terracotta shrink-0" />
+              <span><strong className="text-ink">Satisfait ou re-mûri</strong> <span className="text-muted">· on la laisse mûrir avec vous</span></span>
+            </li>
+            <li className="flex items-center gap-3 px-5 py-4">
+              <IconShield size={20} className="text-terracotta shrink-0" />
+              <span><strong className="text-ink">Paiement sécurisé</strong> <span className="text-muted">· en crédits BananaShop</span></span>
+            </li>
+          </ul>
         </div>
       </div>
 
-      {/* Reviews Section */}
-      <div className="mb-8">
-        <h2 className="font-heading font-bold text-xl mb-6">
-          Avis <span className="text-white/20 text-sm">({reviews.length})</span>
-        </h2>
-
-        {/* Review Form */}
-        {user && (
-          <form onSubmit={handleReview} className="card p-6 mb-6">
-            <div className="mb-4">
-              <label className="label">Votre avis</label>
-              <textarea
-                className="input min-h-[100px] resize-none"
-                value={reviewContent}
-                onChange={(e) => { setReviewContent(e.target.value); setReviewError(null); setReviewSuccess(null); }}
-                placeholder="Rédigez votre avis..."
-              />
-              {reviewError && (
-                <p className="mt-2 text-sm text-red-400">{reviewError}</p>
-              )}
-              {reviewSuccess && (
-                <p className="mt-2 text-sm text-emerald-400">{reviewSuccess}</p>
-              )}
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <label className="label !mb-0">Note :</label>
-                <select
-                  className="input !w-20 !py-2"
-                  value={rating}
-                  onChange={(e) => setRating(Number(e.target.value))}
-                >
-                  {[5, 4, 3, 2, 1].map(n => (
-                    <option key={n} value={n}>{n} ★</option>
-                  ))}
-                </select>
+      {/* Avis */}
+      <section id="avis" className="mt-16 lg:mt-24 scroll-mt-40 grid lg:grid-cols-[340px_1fr] gap-10">
+        <div className="self-start lg:sticky lg:top-40 space-y-6">
+          <div>
+            <h2 className="section-title">Avis clients</h2>
+            <div className="mt-4 flex items-center gap-4">
+              <span className="font-heading font-extrabold text-5xl text-ink">
+                {avg != null ? avg.toFixed(1).replace('.', ',') : '–'}
+              </span>
+              <div>
+                <Stars value={avg ?? 0} size={18} />
+                <p className="text-sm text-muted mt-1">{reviews.length} avis</p>
               </div>
-              <button type="submit" className="btn-secondary">Publier l'avis</button>
             </div>
-          </form>
-        )}
+            <div className="mt-5 space-y-2">
+              {distribution.map(({ n, count }) => (
+                <div key={n} className="flex items-center gap-3 text-sm">
+                  <span className="w-3 text-muted">{n}</span>
+                  <IconStar size={13} className="text-accent-600" />
+                  <div className="flex-1 h-2 rounded-full bg-sand overflow-hidden">
+                    <div className="h-full rounded-full bg-accent" style={{ width: reviews.length ? `${(count / reviews.length) * 100}%` : 0 }} />
+                  </div>
+                  <span className="w-6 text-right text-muted">{count}</span>
+                </div>
+              ))}
+            </div>
+          </div>
 
-        {/* Review List */}
-        <div className="space-y-4">
+          {user ? (
+            <form onSubmit={handleReview} className="card p-5">
+              <h3 className="font-heading font-semibold text-lg text-ink">Donnez votre avis</h3>
+              <div className="mt-3">
+                <span className="label">Votre note</span>
+                <div className="flex gap-1" onMouseLeave={() => setHoverRating(0)}>
+                  {[1, 2, 3, 4, 5].map(n => (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => setRating(n)}
+                      onMouseEnter={() => setHoverRating(n)}
+                      aria-label={`${n} étoile${n > 1 ? 's' : ''}`}
+                      className={`p-0.5 transition-colors ${n <= (hoverRating || rating) ? 'text-accent-600' : 'text-line'}`}
+                    >
+                      <IconStar size={26} filled={n <= (hoverRating || rating)} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="mt-4">
+                <label className="label" htmlFor="review">Votre avis</label>
+                <textarea
+                  id="review"
+                  className="input min-h-[110px] resize-none"
+                  value={reviewContent}
+                  onChange={(e) => { setReviewContent(e.target.value); setReviewError(null); setReviewSuccess(null); }}
+                  placeholder="Texture, maturité, courbure… racontez-nous tout."
+                />
+              </div>
+              {reviewError && <p className="mt-3 alert-error">{reviewError}</p>}
+              {reviewSuccess && <p className="mt-3 alert-success [overflow-wrap:anywhere]">{reviewSuccess}</p>}
+              <button type="submit" className="btn-dark w-full mt-4">Publier mon avis</button>
+            </form>
+          ) : (
+            <div className="rounded-2xl bg-white border border-line p-5 text-sm text-muted">
+              Vous avez goûté cette banane ?{' '}
+              <Link to="/login" className="link">Connectez-vous</Link> pour laisser un avis.
+            </div>
+          )}
+        </div>
+
+        <div className="card px-6 self-start">
           {reviews.map(review => (
             <ReviewCard key={review.id} review={review} />
           ))}
           {reviews.length === 0 && (
-            <p className="text-white/20 text-sm text-center py-8">Aucun avis pour le moment. Soyez le premier !</p>
+            <p className="py-16 text-center text-muted">Aucun avis pour le moment. Soyez le premier à croquer !</p>
           )}
         </div>
-      </div>
+      </section>
     </div>
   );
 }

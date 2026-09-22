@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import AuthLayout from '../components/AuthLayout';
 
 export default function Register() {
   const [username, setUsername] = useState('');
@@ -22,65 +23,58 @@ export default function Register() {
   };
 
   return (
-    <div className="page-container flex items-center justify-center min-h-screen">
-      <div className="card w-full max-w-md p-8">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-heading font-extrabold mb-2">Créer un compte</h1>
-          <p className="text-white/40 text-sm">Rejoignez BananaShop et commencez à déguster</p>
+    <AuthLayout title="Créer un compte" subtitle="Rejoignez BananaShop et recevez 100 crédits pour bien commencer.">
+      {error && <div className="mb-6 alert-error">{error}</div>}
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div>
+          <label className="label" htmlFor="username">Nom d'utilisateur</label>
+          <input
+            id="username"
+            type="text"
+            className="input"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            placeholder="Choisissez un nom d'utilisateur"
+            autoComplete="username"
+          />
         </div>
 
-        {error && (
-          <div className="mb-6 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-            {error}
-          </div>
-        )}
+        <div>
+          <label className="label" htmlFor="email">E-mail</label>
+          <input
+            id="email"
+            type="email"
+            className="input"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="votre@email.com"
+            autoComplete="email"
+          />
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label className="label">Nom d'utilisateur</label>
-            <input
-              type="text"
-              className="input"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Choisissez un nom d'utilisateur"
-            />
-          </div>
+        <div>
+          <label className="label" htmlFor="password">Mot de passe</label>
+          <input
+            id="password"
+            type="password"
+            className="input"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Choisissez un mot de passe"
+            autoComplete="new-password"
+          />
+        </div>
 
-          <div>
-            <label className="label">E-mail</label>
-            <input
-              type="email"
-              className="input"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="votre@email.com"
-            />
-          </div>
+        <button type="submit" className="btn-primary btn-lg w-full">
+          Créer mon compte
+        </button>
+      </form>
 
-          <div>
-            <label className="label">Mot de passe</label>
-            <input
-              type="password"
-              className="input"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Choisissez un mot de passe"
-            />
-          </div>
-
-          <button type="submit" className="btn-primary w-full">
-            Créer un compte
-          </button>
-        </form>
-
-        <p className="text-center mt-6 text-sm text-white/40">
-          Vous avez déjà un compte ?{' '}
-          <Link to="/login" className="text-cyan hover:text-cyan/80 transition-colors">
-            Se connecter
-          </Link>
-        </p>
-      </div>
-    </div>
+      <p className="mt-8 pt-6 border-t border-line text-center text-sm text-muted">
+        Vous avez déjà un compte ?{' '}
+        <Link to="/login" className="link">Se connecter</Link>
+      </p>
+    </AuthLayout>
   );
 }

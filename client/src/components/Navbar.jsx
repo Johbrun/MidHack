@@ -1,30 +1,158 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
-import { useTheme } from '../context/ThemeContext';
 import { useOnboarding } from '../context/OnboardingContext';
 import { NantesHackLogo } from '../lib/branding';
+import { TIER_KEYS, formatCredits } from '../lib/catalog';
+import {
+  IconCart, IconChevronDown, IconCrown, IconLogout, IconMenu, IconSearch,
+  IconSend, IconSettings, IconUser, IconWallet, IconX, IconCard,
+} from './Icons';
 
-function ThemeToggle() {
-  const { isDark, toggle } = useTheme();
+const PROMOS = [
+  'Livraison offerte dès 50 cr d’achat',
+  'Livrées en 67h chrono (on ne court pas, on marche vite)',
+  'Satisfait ou re-mûri',
+];
+
+export function Logo({ className = '' }) {
   return (
-    <button
-      onClick={toggle}
-      className="p-2 text-white/40 hover:text-accent transition-colors"
-      title={isDark ? 'Mode jour' : 'Mode nuit'}
-    >
-      {isDark ? (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="12" r="4"/>
-          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
-        </svg>
-      ) : (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-        </svg>
-      )}
-    </button>
+    <span className={`flex items-center gap-2 ${className}`}>
+      <img src="/banana.svg" alt="" className="h-8 w-8" />
+      <span className="font-heading font-extrabold text-xl tracking-tight text-ink">
+        Banana<span className="text-terracotta">Shop</span>
+      </span>
+    </span>
   );
+}
+
+function HeaderSearch({ className = '' }) {
+  const location = useLocation();
+  const [params] = useSearchParams();
+  const [term, setTerm] = useState('');
+
+  useEffect(() => {
+    setTerm(location.pathname === '/shop' ? params.get('search') || '' : '');
+  }, [location.pathname, params]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    window.location.href = `/shop?search=${encodeURIComponent(term)}`;
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className={className} role="search">
+      <div className="relative">
+        <input
+          type="text"
+          value={term}
+          onChange={(e) => setTerm(e.target.value)}
+          placeholder="Rechercher une banane, une gamme, une envie…"
+          className="w-full h-11 rounded-full bg-cream border border-line pl-5 pr-12 text-sm placeholder:text-muted/80 focus:outline-none focus:bg-white focus:border-cyan focus:ring-4 focus:ring-cyan/10 transition"
+        />
+        <button
+          type="submit"
+          aria-label="Rechercher"
+          className="absolute right-1 top-1 h-9 w-9 rounded-full bg-accent text-ink flex items-center justify-center hover:bg-accent-600 transition-colors"
+        >
+          <IconSearch size={18} />
+        </button>
+      </div>
+    </form>
+  );
+}
+
+function useClickOutside(ref, onOutside) {
+  useEffect(() => {
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) onOutside();
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [ref, onOutside]);
+}
+
+function accountLinks(user) {
+  const links = [
+    { to: '/dashboard', label: 'Mon profil', icon: IconUser },
+    { to: '/subscription', label: 'Abonnement', icon: IconCrown },
+    { to: '/send', label: 'Envoyer des crédits', icon: IconSend },
+    { to: '/topup', label: 'Recharger', icon: IconCard },
+  ];
+  if (user?.role === 'admin') links.push({ to: '/admin', label: 'Administration', icon: IconSettings });
+  return links;
+}
+
+function AccountMenu({ user, unlocked, onLogout }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  const location = useLocation();
+  useClickOutside(ref, () => setOpen(false));
+  useEffect(() => setOpen(false), [location.pathname]);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-2.5 h-11 pl-1.5 pr-3 rounded-full hover:bg-cream transition-colors"
+      >
+        <span className="h-8 w-8 rounded-full bg-accent-100 text-terracotta font-heading font-bold flex items-center justify-center">
+          {user.username?.[0]?.toUpperCase() ?? '?'}
+        </span>
+        <span className="hidden md:flex flex-col items-start leading-tight">
+          <span className="text-[11px] text-muted">Bonjour, {user.username}</span>
+          <span className="text-sm font-semibold text-ink">Mon compte</span>
+        </span>
+        <IconChevronDown size={16} className={`hidden md:block text-muted transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {open && (
+        <div className="animate-fade-in absolute right-0 mt-2 w-72 card p-2 z-50">
+          <div className="px-3 py-3 mb-1 rounded-xl bg-cream">
+            <p className="text-xs text-muted">Connecté en tant que</p>
+            <p className="font-semibold text-ink truncate">{user.username}</p>
+            <div className="mt-2 flex items-center gap-2 text-sm">
+              <IconWallet size={16} className="text-terracotta" />
+              <span className="text-muted">Solde :</span>
+              <span className="font-semibold text-ink">
+                {user.balance != null ? `${formatCredits(Math.floor(user.balance))} cr` : '—'}
+              </span>
+            </div>
+          </div>
+          {accountLinks(user).map(({ to, label, icon: Icon }) =>
+            unlocked ? (
+              <Link key={to} to={to} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-ink hover:bg-cream transition-colors">
+                <Icon size={18} className="text-muted" /> {label}
+              </Link>
+            ) : (
+              <span key={to} className="flex items-center gap-3 px-3 py-2.5 text-sm text-muted/60 cursor-not-allowed" title="Complète les étapes de démarrage pour débloquer">
+                <Icon size={18} /> {label}
+              </span>
+            ),
+          )}
+          <div className="my-1 border-t border-line" />
+          <button onClick={onLogout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-red-700 hover:bg-red-50 transition-colors">
+            <IconLogout size={18} /> Déconnexion
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const navLinks = [
+  { to: '/shop', label: 'Toutes les bananes', tier: null },
+  ...TIER_KEYS.map((t) => ({ to: `/shop?tier=${t}`, label: t, tier: t })),
+];
+
+function useIsActive() {
+  const location = useLocation();
+  const [params] = useSearchParams();
+  return (link) => {
+    if (location.pathname !== '/shop') return false;
+    return (params.get('tier') || null) === link.tier && !params.get('search');
+  };
 }
 
 export default function Navbar() {
@@ -32,119 +160,127 @@ export default function Navbar() {
   const { totalItems } = useCart();
   const { unlocked } = useOnboarding();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isActive = useIsActive();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => setMobileOpen(false), [location.pathname, location.search]);
 
   const handleLogout = async () => {
     await logout();
     navigate('/login');
   };
 
+  const navItem = (link, extra = '') =>
+    unlocked ? (
+      <Link
+        key={link.to}
+        to={link.to}
+        className={`${extra} ${isActive(link) ? 'text-ink font-semibold' : 'text-muted hover:text-ink'} transition-colors`}
+      >
+        {link.label}
+      </Link>
+    ) : (
+      <span key={link.to} className={`${extra} text-muted/50 cursor-not-allowed`} title="Complète les étapes de démarrage pour débloquer">
+        {link.label}
+      </span>
+    );
+
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-dark/80 backdrop-blur-md border-b border-white/[0.08]">
-      {/* Barre principale */}
-      <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-3 group">
-          <NantesHackLogo className="h-8 w-auto" />
-          <span className="text-2xl">🍌</span>
-          <span className="font-heading font-extrabold text-lg tracking-tight group-hover:text-accent transition-colors">
-            BananaShop
-          </span>
-          {/* Repère d'environnement : le QG porte le sien en bleu. Avec quatre
-              onglets ouverts, c'est ce qui évite de confondre les deux fronts. */}
-          <span className="hidden sm:inline text-[0.6rem] font-bold uppercase tracking-[0.18em] text-accent bg-accent/10 border border-accent/25 rounded px-2 py-[3px]">
-            env: prod
-          </span>
-        </Link>
-
-        <div className="flex items-center gap-1">
-          <ThemeToggle />
-
-          {/* Cart */}
-          <Link to="/cart" className="relative p-2 text-white/60 hover:text-accent transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
-              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-            </svg>
-            {totalItems > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full bg-accent text-dark text-[10px] font-heading font-bold flex items-center justify-center">
-                {totalItems}
-              </span>
-            )}
-          </Link>
-
-          {/* Auth */}
-          {user ? (
-            <div className="ml-2 pl-3 border-l border-white/10 flex items-center gap-3">
-              <span className="text-sm font-mono text-accent">{user.username}</span>
-              <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-accent/10 border border-accent/20">
-                <span className="text-accent/60 text-xs leading-none">◈</span>
-                <span className="text-xs font-mono font-semibold text-accent/80">
-                  {user.balance != null ? Math.floor(user.balance) : '—'} cr
-                </span>
-              </span>
-              <button
-                onClick={handleLogout}
-                className="text-sm text-white/40 hover:text-red-400 transition-colors"
-              >
-                Déconnexion
-              </button>
-            </div>
-          ) : (
-            <Link to="/login" className="btn-primary !h-9 !text-xs !px-4 ml-2">
-              Connexion
-            </Link>
-          )}
+    <>
+      {/* Bandeau promo */}
+      <div className="bg-ink text-white/90 text-xs">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-9 flex items-center justify-center gap-6">
+          {PROMOS.map((promo, i) => (
+            <span key={promo} className={`${i > 0 ? 'hidden md:flex' : 'flex'} items-center gap-6`}>
+              {i > 0 && <span className="text-accent">●</span>}
+              {promo}
+            </span>
+          ))}
         </div>
       </div>
 
-      {/* Sous-barre contextuelle — uniquement connecté */}
-      {user && (
-        <div className="border-t border-white/[0.05] bg-white/[0.02]">
-          <div className="max-w-6xl mx-auto px-6 h-9 flex items-center gap-1">
-            {unlocked ? (
-              <>
-                <Link
-                  to="/shop"
-                  className="px-3 py-1 text-xs text-white/50 hover:text-cyan transition-colors font-body rounded hover:bg-white/[0.05]"
-                >
-                  Boutique
-                </Link>
-                <Link
-                  to="/dashboard"
-                  className="px-3 py-1 text-xs text-white/50 hover:text-cyan transition-colors font-body rounded hover:bg-white/[0.05]"
-                >
-                  Tableau de bord
-                </Link>
-                <Link
-                  to="/subscription"
-                  className="px-3 py-1 text-xs text-white/50 hover:text-accent transition-colors font-body rounded hover:bg-white/[0.05]"
-                >
-                  Abonnement
-                </Link>
-                {user.role === 'admin' && (
-                  <Link
-                    to="/admin"
-                    className="px-3 py-1 text-xs text-accent hover:text-accent/80 transition-colors font-heading font-semibold rounded hover:bg-accent/[0.08]"
-                  >
-                    ⚡ Admin
-                  </Link>
-                )}
-              </>
+    <header className="sticky top-0 z-50">
+      {/* Barre principale */}
+      <div className="bg-white/95 backdrop-blur border-b border-line">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-[72px] flex items-center gap-4 lg:gap-8">
+          <button
+            onClick={() => setMobileOpen((o) => !o)}
+            className="lg:hidden -ml-2 p-2 text-ink"
+            aria-label="Menu"
+          >
+            {mobileOpen ? <IconX size={22} /> : <IconMenu size={22} />}
+          </button>
+
+          <Link to="/" className="flex items-center gap-3 shrink-0">
+            <NantesHackLogo className="h-8 w-auto hidden sm:block" />
+            <Logo />
+          </Link>
+
+          <HeaderSearch className="hidden md:block flex-1 max-w-xl mx-auto" />
+
+          <div className="ml-auto md:ml-0 flex items-center gap-1 sm:gap-2">
+            {user ? (
+              <AccountMenu user={user} unlocked={unlocked} onLogout={handleLogout} />
             ) : (
-              <>
-                {['Boutique', 'Tableau de bord', 'Abonnement'].map((label) => (
-                  <span
-                    key={label}
-                    title="Complète les étapes de démarrage pour débloquer"
-                    className="px-3 py-1 text-xs text-white/20 font-body rounded cursor-not-allowed select-none"
-                  >
-                    {label}
-                  </span>
-                ))}
-              </>
+              <Link to="/login" className="flex items-center gap-2 h-11 px-3 rounded-full hover:bg-cream transition-colors text-sm font-semibold">
+                <IconUser size={20} />
+                <span className="hidden sm:inline">Se connecter</span>
+              </Link>
             )}
+
+            <Link
+              to="/cart"
+              className="relative flex items-center gap-2 h-11 px-3 rounded-full hover:bg-cream transition-colors text-sm font-semibold"
+              aria-label="Panier"
+            >
+              <IconCart size={22} />
+              <span className="hidden sm:inline">Panier</span>
+              {totalItems > 0 && (
+                <>
+                  <span className="sm:hidden absolute top-1 left-6 min-w-[20px] h-5 px-1 rounded-full bg-accent text-ink text-[11px] font-bold flex items-center justify-center ring-2 ring-white">
+                    {totalItems}
+                  </span>
+                  <span className="hidden sm:inline-flex min-w-[22px] h-[22px] px-1.5 rounded-full bg-accent text-ink text-xs font-bold items-center justify-center">
+                    {totalItems}
+                  </span>
+                </>
+              )}
+            </Link>
           </div>
         </div>
+
+        {/* Recherche mobile */}
+        <div className="md:hidden px-4 pb-3">
+          <HeaderSearch />
+        </div>
+
+        {/* Navigation catalogue */}
+        <nav className="hidden lg:block border-t border-line/70">
+          <div className="max-w-7xl mx-auto px-6 h-12 flex items-center gap-8 text-sm">
+            {navLinks.map((link) => navItem(link))}
+            <span className="ml-auto" />
+            {navItem({ to: '/subscription', label: 'Club Premium 🥭' }, 'font-semibold !text-terracotta hover:!text-terracotta/80')}
+          </div>
+        </nav>
+      </div>
+
+      {/* Menu mobile */}
+      {mobileOpen && (
+        <div className="lg:hidden bg-white border-b border-line shadow-lift animate-fade-in">
+          <nav className="max-w-7xl mx-auto px-4 py-3 flex flex-col text-[15px]">
+            {navLinks.map((link) => navItem(link, 'py-2.5'))}
+            {navItem({ to: '/subscription', label: 'Club Premium 🥭' }, 'py-2.5 font-semibold !text-terracotta')}
+            {user && (
+              <>
+                <div className="my-2 border-t border-line" />
+                {accountLinks(user).map((link) => navItem(link, 'py-2.5'))}
+              </>
+            )}
+          </nav>
+        </div>
       )}
-    </nav>
+    </header>
+    </>
   );
 }

@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import AccountLayout from '../components/AccountLayout';
+import { IconArrowRight, IconCard, IconCrown, IconSend, IconWallet } from '../components/Icons';
+import { formatCredits } from '../lib/catalog';
 import api from '../api';
 
 export default function Dashboard() {
@@ -44,16 +47,13 @@ export default function Dashboard() {
     }
   };
 
-  return (
-    <div className="page-container">
-      <div className="mb-8">
-        <h1 className="section-title mb-1">Tableau de bord</h1>
-        <p className="text-white/40 text-sm">Bon retour, {user?.username}</p>
-      </div>
+  const isPremium = subscription === 'premium';
 
+  return (
+    <AccountLayout title={`Bonjour, ${user?.username} 👋`} subtitle="Retrouvez ici votre profil, votre solde et votre abonnement.">
       {/* SQLI Flag — visible only for admin */}
       {user?.role === 'admin' && (
-        <div className="mb-6 p-5 rounded-xl border-2 border-cyan/60 bg-cyan/80">
+        <div className="mb-6 p-5 rounded-2xl border-2 border-cyan/60 bg-cyan/80">
           <p className="text-black text-xs font-heading font-bold uppercase tracking-wider mb-2">
             🚩 SQL Injection - Vous avez réussi à vous connecter en admin en utilisant une injection SQL !
           </p>
@@ -63,146 +63,91 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Balance Card */}
-      <div className="card p-8 mb-6 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full -translate-y-1/2 translate-x-1/2" />
-        <div className="relative">
-          <p className="text-white/40 text-sm uppercase tracking-wider font-heading mb-2">Solde disponible</p>
-          <p className="text-5xl font-heading font-extrabold gradient-text">
-            {profile?.balance?.toFixed(2) || '---'}
-            <span className="text-lg text-white/30 ml-2">crédits</span>
+      <div className="grid md:grid-cols-2 gap-5 mb-6">
+        {/* Portefeuille */}
+        <div className="relative overflow-hidden rounded-3xl bg-ink text-white p-7">
+          <div className="absolute -right-16 -top-16 w-56 h-56 rounded-full bg-accent/20" />
+          <div className="relative">
+            <p className="flex items-center gap-2 text-sm text-white/70"><IconWallet size={18} /> Solde disponible</p>
+            <p className="mt-3 font-heading font-extrabold text-5xl text-accent">
+              {profile?.balance != null ? formatCredits(profile.balance) : '—'}
+              <span className="ml-2 text-lg font-body font-medium text-white/60">crédits</span>
+            </p>
+            <div className="mt-6 flex flex-wrap gap-2">
+              <Link to="/send" className="btn-sm btn bg-white/10 text-white hover:bg-white/20"><IconSend size={16} /> Envoyer</Link>
+              <Link to="/topup" className="btn-sm btn bg-white/10 text-white hover:bg-white/20"><IconCard size={16} /> Recharger</Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Abonnement */}
+        <div className={`rounded-3xl p-7 border ${isPremium ? 'bg-accent-100 border-accent/50' : 'bg-white border-line shadow-soft'}`}>
+          <p className="flex items-center gap-2 text-sm text-muted"><IconCrown size={18} /> Abonnement</p>
+          <p className="mt-3 font-heading font-extrabold text-3xl text-ink">{isPremium ? 'Club Premium' : 'Formule Gratuite'}</p>
+          <p className="mt-1 text-sm text-muted">
+            {isPremium ? 'Accès à toutes les fonctionnalités. Vous êtes du sérail.' : 'Fonctionnalités limitées. Le Club vous tend les bras.'}
           </p>
+          <Link to="/subscription" className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-terracotta hover:underline underline-offset-4">
+            {isPremium ? 'Gérer mon abonnement' : 'Passer au Premium'} <IconArrowRight size={16} />
+          </Link>
         </div>
       </div>
 
-      {/* Main grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-
-        {/* Left — Profile */}
-        <div className="lg:col-span-3 card p-8">
-          <div className="flex items-center gap-5 mb-8">
-            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-accent/30 to-cyan/30 flex items-center justify-center text-xl font-heading font-extrabold shrink-0">
-              {profile?.username?.[0]?.toUpperCase() ?? '?'}
-            </div>
-            <div>
-              {editing ? (
-                <input
-                  className="input !py-1 !text-xl font-heading font-extrabold mb-1"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Nom d'utilisateur"
-                />
-              ) : (
-                <h2 className="font-heading font-extrabold text-xl">{profile?.username}</h2>
-              )}
-              <p className="text-white/40 text-sm font-mono">{profile?.role}</p>
-            </div>
+      {/* Profil */}
+      <section className="card">
+        <div className="flex flex-wrap items-center gap-4 p-6 sm:p-7 border-b border-line">
+          <span className="h-14 w-14 shrink-0 rounded-full bg-accent-100 text-terracotta text-xl font-heading font-extrabold flex items-center justify-center">
+            {profile?.username?.[0]?.toUpperCase() ?? '?'}
+          </span>
+          <div className="min-w-0 flex-1">
+            <h2 className="font-heading font-bold text-xl text-ink truncate">{profile?.username}</h2>
+            <p className="text-sm text-muted">
+              {profile?.role === 'admin' ? 'Administrateur' : 'Client'} · membre depuis le{' '}
+              {profile?.created_at ? new Date(profile.created_at).toLocaleDateString('fr-FR') : '-'}
+            </p>
           </div>
+          {!editing && (
+            <button onClick={() => setEditing(true)} className="btn-secondary btn-sm">Modifier le profil</button>
+          )}
+        </div>
 
+        <div className="p-6 sm:p-7">
           {message && (
-            <div className="mb-6 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm">
-              {message}
-            </div>
+            <div className={`mb-6 ${message.startsWith('Échec') ? 'alert-error' : 'alert-success'}`}>{message}</div>
           )}
 
-          <div className="space-y-5 text-sm">
-            <div>
-              <label className="label">E-mail</label>
-              {editing ? (
-                <input className="input" value={email} onChange={(e) => setEmail(e.target.value)} />
-              ) : (
-                <p className="font-mono text-white/70">{profile?.email || 'Non défini'}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="label">Bio</label>
-              {editing ? (
-                <textarea
-                  className="input min-h-[100px] resize-none"
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value)}
-                />
-              ) : (
-                <div
-                  className="text-white/70 leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: profile?.bio || 'Pas encore de bio' }}
-                />
-              )}
-            </div>
-
-            <div className="flex justify-between">
-              <span className="text-white/40">Membre depuis</span>
-              <span className="font-mono text-white/60">
-                {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : '-'}
-              </span>
-            </div>
-          </div>
-
-          <div className="mt-8 flex gap-3">
-            {editing ? (
-              <>
-                <button onClick={handleSave} className="btn-primary">Enregistrer</button>
-                <button onClick={() => setEditing(false)} className="btn-secondary">Annuler</button>
-              </>
-            ) : (
-              <button onClick={() => setEditing(true)} className="btn-secondary">Modifier le profil</button>
-            )}
-          </div>
-        </div>
-
-        {/* Right column */}
-        <div className="lg:col-span-2 flex flex-col gap-6">
-
-          {/* Subscription Panel */}
-          <div className="card p-6">
-            <h2 className="font-heading font-bold text-sm uppercase tracking-wider text-white/40 mb-4">Abonnement</h2>
-            <div className="flex items-center gap-3 mb-5">
-              <span className="text-2xl">{subscription === 'premium' ? '⭐' : '🆓'}</span>
+          {editing ? (
+            <div className="space-y-5 max-w-xl">
               <div>
-                <p className={`font-heading font-extrabold text-lg ${subscription === 'premium' ? 'text-accent' : 'text-white/60'}`}>
-                  {subscription === 'premium' ? 'Premium' : 'Gratuit'}
-                </p>
-                <p className="text-xs text-white/30">
-                  {subscription === 'premium' ? 'Accès à toutes les fonctionnalités' : 'Fonctionnalités limitées'}
-                </p>
+                <label className="label" htmlFor="p-username">Nom d'utilisateur</label>
+                <input id="p-username" className="input" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Nom d'utilisateur" />
+              </div>
+              <div>
+                <label className="label" htmlFor="p-email">E-mail</label>
+                <input id="p-email" className="input" value={email} onChange={(e) => setEmail(e.target.value)} />
+              </div>
+              <div>
+                <label className="label" htmlFor="p-bio">Bio</label>
+                <textarea id="p-bio" className="input min-h-[110px] resize-none" value={bio} onChange={(e) => setBio(e.target.value)} />
+              </div>
+              <div className="flex gap-3">
+                <button onClick={handleSave} className="btn-dark">Enregistrer</button>
+                <button onClick={() => setEditing(false)} className="btn-secondary">Annuler</button>
               </div>
             </div>
-            <Link to="/subscription" className="btn-secondary w-full !text-xs">
-              {subscription === 'premium' ? 'Gérer mon abonnement' : 'Passer à Premium'}
-            </Link>
-          </div>
-
-          {/* Quick Actions */}
-          <div className="card p-6">
-            <h2 className="font-heading font-bold text-sm uppercase tracking-wider text-white/40 mb-4">Actions rapides</h2>
-            <div className="flex flex-col gap-2">
-              <Link to="/shop" className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition-colors group">
-                <span className="text-xl">🍌</span>
-                <div>
-                  <p className="text-sm font-heading font-bold group-hover:text-accent transition-colors">Boutique</p>
-                  <p className="text-xs text-white/30">Achetez des bananes premium</p>
-                </div>
-              </Link>
-              <Link to="/send" className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition-colors group">
-                <span className="text-xl">💸</span>
-                <div>
-                  <p className="text-sm font-heading font-bold group-hover:text-cyan transition-colors">Envoyer des crédits</p>
-                  <p className="text-xs text-white/30">Transférer à un autre utilisateur</p>
-                </div>
-              </Link>
-              <Link to="/topup" className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition-colors group">
-                <span className="text-xl">💳</span>
-                <div>
-                  <p className="text-sm font-heading font-bold group-hover:text-accent transition-colors">Recharger</p>
-                  <p className="text-xs text-white/30">Ajoutez des crédits à votre compte</p>
-                </div>
-              </Link>
-            </div>
-          </div>
-
+          ) : (
+            <dl className="grid sm:grid-cols-[160px_1fr] gap-x-6 gap-y-5 text-sm">
+              <dt className="text-muted">E-mail</dt>
+              <dd className="text-ink [overflow-wrap:anywhere]">{profile?.email || 'Non défini'}</dd>
+              <dt className="text-muted">Bio</dt>
+              <dd
+                className="text-ink leading-relaxed [overflow-wrap:anywhere]"
+                dangerouslySetInnerHTML={{ __html: profile?.bio || 'Pas encore de bio' }}
+              />
+            </dl>
+          )}
         </div>
-      </div>
-    </div>
+      </section>
+    </AccountLayout>
   );
 }

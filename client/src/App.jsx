@@ -1,8 +1,9 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
-import { ThemeProvider } from './context/ThemeContext';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import NudgeBanner from './components/NudgeBanner';
 import AnnouncementBanner from './components/AnnouncementBanner';
 import FreezeOverlay from './components/FreezeOverlay';
@@ -22,10 +23,16 @@ import TopUp from './pages/TopUp';
 import AdminDashboard from './pages/AdminDashboard';
 import Subscription from './pages/Subscription';
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => window.scrollTo(0, 0), [pathname]);
+  return null;
+}
+
 export default function App() {
   return (
-    <ThemeProvider>
     <BrowserRouter>
+      <ScrollToTop />
       <OnboardingProvider>
       <AuthProvider>
         <CartProvider>
@@ -33,9 +40,8 @@ export default function App() {
           <AnnouncementBanner />
           <FreezeOverlay />
           <NudgeBanner />
-          <div className="geo-bg" />
           <Navbar />
-          <div className="relative z-10">
+          <main className="min-h-[60vh]">
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
@@ -50,11 +56,11 @@ export default function App() {
               <Route path="/topup" element={<ProtectedRoute><TopUp /></ProtectedRoute>} />
               <Route path="/admin" element={<AdminDashboard />} />
             </Routes>
-          </div>
+          </main>
+          <Footer />
         </CartProvider>
       </AuthProvider>
       </OnboardingProvider>
     </BrowserRouter>
-    </ThemeProvider>
   );
 }

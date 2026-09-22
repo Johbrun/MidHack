@@ -1,6 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
-  <rect width="200" height="200" rx="24" fill="#1a1a2e"/>
-  <text x="100" y="105" text-anchor="middle" font-size="80" dominant-baseline="central">🍌</text>
-  <text x="155" y="55" text-anchor="middle" font-size="30">☀️</text>
-  <text x="100" y="180" text-anchor="middle" fill="#ffa751" font-family="sans-serif" font-size="14" font-weight="bold">Tropical</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Banane Tropical">
+  <title>Banane Tropical</title><circle cx="140" cy="64" r="44" fill="#FDE1B8"/><path d="M150 24 C 170 26, 186 40, 190 58 C 176 50, 164 44, 150 24 Z" fill="#2E9C8A"/><path d="M150 24 C 168 12, 186 14, 196 26 C 180 28, 166 28, 150 24 Z" fill="#3BB09B"/><path d="M150 24 C 140 10, 124 8, 112 14 C 126 20, 138 22, 150 24 Z" fill="#2E9C8A"/>
+  <defs>
+    <linearGradient id="body" x1="0.2" y1="0" x2="0.7" y2="1">
+      <stop offset="0" stop-color="#FFD866"/>
+      <stop offset="1" stop-color="#EE9A2E"/>
+    </linearGradient>
+    <clipPath id="bodyclip"><path d="M58 50 C 36 124, 100 178, 172 140 C 175 138, 174 133, 170 133 C 122 140, 88 104, 82 46 Z"/></clipPath>
+  </defs>
+  <ellipse cx="108" cy="170" rx="56" ry="5" fill="#1C1527" opacity="0.08"/>
+  <path d="M57 52 L 60 30 C 61 26, 72 25, 74 29 L 82 48 Z" fill="#7A8A3A"/>
+  <path d="M59.5 32 C 61 27, 72 26, 74 30 L 73.5 31 C 69 29, 63 29, 59.4 33 Z" fill="#000" opacity="0.25"/>
+  <path d="M58 50 C 36 124, 100 178, 172 140 C 175 138, 174 133, 170 133 C 122 140, 88 104, 82 46 Z" fill="url(#body)"/>
+  <path d="M58 50 C 36 124, 100 178, 172 140 C 150 146, 84 140, 66 56 Z" fill="#B8641A" opacity="0.35"/>
+  <path d="M84 70 C 88 108, 112 128, 150 134" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity="0.5"/>
+  <circle cx="171" cy="136.5" r="4" fill="#5B3A1A"/>
+  <g transform="translate(46 150)"><ellipse cx="0" cy="-9" rx="6" ry="9" fill="#E8603C" transform="rotate(0)"/><ellipse cx="0" cy="-9" rx="6" ry="9" fill="#E8603C" transform="rotate(72)"/><ellipse cx="0" cy="-9" rx="6" ry="9" fill="#E8603C" transform="rotate(144)"/><ellipse cx="0" cy="-9" rx="6" ry="9" fill="#E8603C" transform="rotate(216)"/><ellipse cx="0" cy="-9" rx="6" ry="9" fill="#E8603C" transform="rotate(288)"/><circle r="4" fill="#FABB5C"/></g>
 </svg>

@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import api from '../api';
+import AccountLayout from '../components/AccountLayout';
+import { IconCard, IconClock } from '../components/Icons';
 
 export default function TopUp() {
   const [amount, setAmount] = useState('100');
@@ -18,12 +20,17 @@ export default function TopUp() {
   };
 
   return (
-    <div className="page-container max-w-lg">
-      <h1 className="section-title mb-2">Recharger des crédits</h1>
-      <p className="text-white/40 text-sm mb-8">Ajoutez des crédits à votre compte</p>
+    <AccountLayout title="Recharger des crédits" subtitle="Ajoutez des crédits à votre compte.">
+      <div className="card p-6 sm:p-8 max-w-xl">
+        <div className="mb-8 flex items-start gap-3 alert-warning">
+          <IconClock size={20} className="shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold">Le rechargement de crédits est temporairement indisponible.</p>
+            <p className="mt-0.5 opacity-80">Notre prestataire de paiement est parti cueillir des bananes. Il revient bientôt.</p>
+          </div>
+        </div>
 
-      <div className="card p-8">
-        <div className="space-y-6 opacity-50">
+        <div className="space-y-6 opacity-60">
           <div>
             <label className="label">Montant (1-1000)</label>
             <input
@@ -37,25 +44,24 @@ export default function TopUp() {
 
           <div>
             <label className="label">Numéro de carte</label>
-            <input
-              type="text"
-              className="input"
-              value={cardNumber}
-              disabled
-              placeholder="4242 4242 4242 4242"
-              maxLength={19}
-            />
+            <div className="relative">
+              <input
+                type="text"
+                className="input pl-12"
+                value={cardNumber}
+                disabled
+                placeholder="4242 4242 4242 4242"
+                maxLength={19}
+              />
+              <IconCard size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
+            </div>
           </div>
 
-          <button disabled className="btn-primary w-full disabled:opacity-50 cursor-not-allowed">
+          <button disabled className="btn-dark btn-lg w-full">
             Rechargement désactivé pour le moment
           </button>
         </div>
-
-        <div className="mt-6 p-4 rounded-lg text-sm bg-amber-500/10 border border-amber-500/20 text-amber-400">
-          <p>Le rechargement de crédits est temporairement indisponible.</p>
-        </div>
       </div>
-    </div>
+    </AccountLayout>
   );
 }
