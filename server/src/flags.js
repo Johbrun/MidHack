@@ -16,24 +16,6 @@ const FLAGS = {
   COOKIE_THEFT: 'ASY{c00k13_v0l3_xss_c0mpl3t}',
 };
 
-const FLAG_NAMES = {
-  [FLAGS.DATA_EXPOSURE]: 'Sensitive Data Exposure',
-  [FLAGS.IDOR]: 'IDOR',
-  [FLAGS.REFLECTED_XSS]: 'Reflected XSS',
-  [FLAGS.SQLI]: 'SQL Injection (Login Bypass)',
-  [FLAGS.SQLI_UNION]: 'SQL Injection (UNION)',
-  [FLAGS.BUSINESS_LOGIC]: 'Business Logic',
-  [FLAGS.JWT_FORGING]: 'JWT Forging',
-  [FLAGS.STORED_XSS]: 'Stored XSS',
-  [FLAGS.ZERO_RATING]: 'Zero Rating',
-  [FLAGS.MASS_ASSIGNMENT]: 'Go Premium',
-  [FLAGS.PRIV_ESC_ROLE]: 'Changement de rôle',
-  [FLAGS.CSRF]: 'CSRF',
-  [FLAGS.PATH_TRAVERSAL]: 'Path Traversal',
-  [FLAGS.SSRF]: 'SSRF',
-  [FLAGS.COOKIE_THEFT]: 'Cookie Theft (XSS)',
-};
-
 const { DIFFICULTY_POINTS, CHALLENGES } = require('../../shared/flags.json');
 
 // Derive points from difficulty — single source of truth in shared/flags.json
@@ -176,4 +158,4 @@ const FLAG_IDS = Object.fromEntries(
   Object.entries(FLAGS).map(([key, value]) => [value, key])
 );
 
-module.exports = { FLAGS, FLAG_NAMES, FLAG_POINTS, FLAG_EXPLANATIONS, FLAG_IDS, ALL_FLAGS, ENABLED_FLAGS };
+module.exports = { FLAGS, FLAG_POINTS, FLAG_EXPLANATIONS, FLAG_IDS, ALL_FLAGS, ENABLED_FLAGS };

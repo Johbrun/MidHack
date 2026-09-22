@@ -77,7 +77,9 @@ router.put('/:id', authenticate, (req, res) => {
     awardFlag(req, response, 'PRIV_ESC_ROLE', {
       proof: 'mass_assignment_role',
       field: 'role',
-      message: 'Champ « role » accepté depuis le body : élévation de privilège par mass assignment !',
+      message:
+        'Champ « role » accepté depuis le body : élévation de privilège par mass assignment ! ' +
+        'Reconnecte-toi pour que ton nouveau rôle soit inscrit dans ton jeton, sinon les routes admin continueront de te refuser.',
     });
   }
   if (gotPremium) {

@@ -80,9 +80,19 @@ function missingPrerequisites(flagId) {
   return (challenge?.requires || []).filter((id) => !progress.hasCaptured(id));
 }
 
-/** Nom lisible d'un challenge, pour les messages destinés aux joueurs. */
+/** Nom de la vulnérabilité (OWASP) : ce que le classement affiche. */
 function challengeName(flagId) {
   return CHALLENGE_BY_ID.get(flagId)?.name || flagId;
+}
+
+/**
+ * Nom court du challenge, pour les messages destinés aux joueurs : c'est sous
+ * ce nom que la carte apparaît dans le QG, donc c'est celui qui permet de la
+ * retrouver. Le nom de vulnérabilité reste réservé au classement.
+ */
+function challengeCodename(flagId) {
+  const challenge = CHALLENGE_BY_ID.get(flagId);
+  return challenge?.codename || challenge?.name || flagId;
 }
 
 /**
@@ -122,7 +132,7 @@ function awardFlag(req, response, flagId, evidence = {}) {
     logEvent(req, { flagId, kind: KIND.LOCKED, proof, detail: { ...detail, missing } });
     response.message =
       `L'action a bien abouti, mais ce challenge s'inscrit dans un fil rouge : ` +
-      `validez d'abord ${missing.map((id) => `« ${challengeName(id)} »`).join(', ')}.`;
+      `validez d'abord ${missing.map((id) => `« ${challengeCodename(id)} »`).join(', ')}.`;
     return false;
   }
 
@@ -131,7 +141,7 @@ function awardFlag(req, response, flagId, evidence = {}) {
 
   response.flag = FLAGS[flagId];
   response.flagName = challenge.name;
-  response.message = message || `Challenge « ${challenge.name} » validé !`;
+  response.message = message || `Challenge « ${challenge.codename || challenge.name} » validé !`;
   return true;
 }
 
@@ -151,4 +161,4 @@ function noteSideEffect(req, response, flagId, detail = {}) {
     "L'état a bien été modifié, mais ce n'est pas le chemin de ce challenge.";
 }
 
-module.exports = { awardFlag, noteSideEffect, logEvent, missingPrerequisites, challengeName, KIND };
+module.exports = { awardFlag, noteSideEffect, logEvent, missingPrerequisites, challengeName, challengeCodename, KIND };

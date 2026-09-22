@@ -10,6 +10,10 @@ const router = express.Router();
 
 const PORT = process.env.PORT || 3000;
 
+// Le path traversal reste volontairement exploitable, mais il ne doit pas
+// livrer la table des flags : la lire terminait tout le CTF en une requête.
+const FLAGS_MODULE_PATH = require.resolve('../flags');
+
 // GET /api/products
 router.get('/', (req, res) => {
   const { search } = req.query;
@@ -74,6 +78,18 @@ router.get('/image', (req, res) => {
   try {
     // VULNERABLE: user input is used directly in file path without sanitization
     const filePath = path.join(__dirname, '..', '..', 'public', 'bananas', file);
+
+    // Seule exception à la vulnérabilité : le fichier qui contient tous les
+    // flags. Sans ce garde-fou, la première équipe à trouver la traversée
+    // (challenge « Facile », 10 pts) récupérait les 14 flags d'un coup.
+    if (path.resolve(filePath) === FLAGS_MODULE_PATH) {
+      return res.status(403).json({
+        error: 'Nice try 🍌',
+        nudge:
+          "Ce fichier-là est hors-jeu : il contient la réponse de tous les challenges. La traversée fonctionne, cherche un fichier qui se lit vraiment comme un secret de l'application.",
+      });
+    }
+
     const content = fs.readFileSync(filePath, 'utf-8');
 
     // Le fichier lu contient le flag : la preuve est la sortie du dossier servi.

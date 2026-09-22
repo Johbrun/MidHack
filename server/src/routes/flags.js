@@ -1,9 +1,9 @@
 const express = require('express');
-const { ALL_FLAGS, ENABLED_FLAGS, FLAG_NAMES, FLAG_POINTS, FLAG_EXPLANATIONS, FLAG_IDS } = require('../flags');
+const { ALL_FLAGS, ENABLED_FLAGS, FLAG_POINTS, FLAG_EXPLANATIONS, FLAG_IDS } = require('../flags');
 
 const router = express.Router();
 
-const { missingPrerequisites, challengeName } = require('../award');
+const { missingPrerequisites, challengeName, challengeCodename } = require('../award');
 
 const DASHBOARD_URL = process.env.DASHBOARD_URL || 'http://localhost:5000';
 const TEAM_NAME = process.env.TEAM_NAME || 'Unknown Team';
@@ -43,8 +43,11 @@ router.post('/submit', async (req, res) => {
     });
   }
 
-  const flagName = FLAG_NAMES[flag] || 'Unknown';
   const flagId = FLAG_IDS[flag] || 'UNKNOWN';
+  // Deux noms, deux publics : le classement reçoit le nom de la vulnérabilité,
+  // le joueur reçoit le nom court sous lequel la carte figure dans son QG.
+  const flagName = challengeName(flagId);
+  const flagCodename = challengeCodename(flagId);
 
   // Le fil rouge s'applique aussi ici : un flag dont la valeur a été aperçue
   // hors de son parcours (extraction d'une table, épaule d'un voisin) ne
@@ -52,7 +55,7 @@ router.post('/submit', async (req, res) => {
   const missing = missingPrerequisites(flagId);
   if (missing.length) {
     return res.status(400).json({
-      error: `Ce challenge s'inscrit dans un fil rouge : validez d'abord ${missing.map((id) => `« ${challengeName(id)} »`).join(', ')}.`,
+      error: `Ce challenge s'inscrit dans un fil rouge : validez d'abord ${missing.map((id) => `« ${challengeCodename(id)} »`).join(', ')}.`,
       valid: false,
     });
   }
@@ -92,8 +95,8 @@ router.post('/submit', async (req, res) => {
     duplicate,
     message: queuedMessage
       || (duplicate
-        ? `Flag « ${flagName} » déjà capturé par votre équipe : aucun point supplémentaire.`
-        : `Bravo ! Vous avez trouvé le flag « ${flagName} » ! (+${flagInfo.points} pts)`),
+        ? `Flag « ${flagCodename} » déjà capturé par votre équipe : aucun point supplémentaire.`
+        : `Bravo ! Vous avez trouvé le flag « ${flagCodename} » ! (+${flagInfo.points} pts)`),
     explanation,
   });
 });

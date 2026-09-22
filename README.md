@@ -1,10 +1,10 @@
 # MidHack - BananaShop CTF
 
-BananaCTF est une plateforme CTF  pour un atelier d'initiation à la sécurité offensive / pentest. Elle contient principalement une application e-commerce **volontairement vulnérable** où les participants doivent découvrir et exploiter des failles de sécurité pour capturer des flags.
+BananaCTF est une plateforme CTF  pour un atelier d'initiation à la sécurité offensive. Elle contient principalement une application e-commerce **volontairement vulnérable** où les participants doivent découvrir et exploiter des failles de sécurité pour capturer des flags.
 
 ## Concept
 
-L'atelier se décompose en **trois parties** :
+La plateforme se décompose en **trois parties** :
 
 1. **Le site BananaShop** - une application e-commerce React + Express contenant une dizaine vulnérabilités à exploiter pour tous niveaux débutants / intermédiaires
 2. **Le serveur d'exploit** - un espace par équipe avec webhook, outils d'exploitation et soumission de flags
@@ -12,15 +12,15 @@ L'atelier se décompose en **trois parties** :
 
 Une **mini-académie** intégrée au serveur d'exploit propose des slides interactives couvrant les phases du pentest et chaque type de vulnérabilité (explication, détection, exemples de code, remédiation).
 
-Un **parcours d'onboarding guidé** s'affiche automatiquement à la première connexion sur le Hacking QG et sur le site BananaShop, pour s'assurer que les participants lisent les instructions et configurent Burp Suite avant de commencer.
+Un **parcours d'onboarding guidé** s'affiche automatiquement à la première connexion sur le Hacking QG et sur le site BananaShop, pour s'assurer que les participants lisent les instructions et comprennent l'utilisation de Burp Suite avant de commencer.
 
 ## Public 
 
-Due à la facilité des vulnérabilités, Cette plateforme se classerait dans un niveau facile, voire moyen, dans les CTF traditionnels. Cette plateforme est utilisée en particulier pour des développeurs ou des étudiants en cyber.
+Due à la facilité des vulnérabilités, Cette plateforme se classerait dans un niveau facile / moyen, dans les CTF traditionnels. Cette plateforme est utilisée en particulier pour des développeurs ou des étudiants en cyber.
 
 ## Guide animateur
 
-Bien que l'application puisse être utilisée par une personne seule, il est fortement conseillé d'utiliser la plateforme avec un public en équipe et un animateur expérimenté. 
+Bien que l'application puisse être utilisée par une personne seule, il est fortement conseillé d'utiliser la plateforme avec un public en équipe et un animateur maitrisant la plateforme.
 
 Voir [docs/ANIMATEUR.md](docs/ANIMATEUR.md) pour les instructions de setup, le déroulement de l'atelier, les comptes et secrets, et la gestion du panel admin.
 
@@ -47,9 +47,22 @@ cp .env.example .env   # créer la config, puis l'éditer (nombre d'équipes, po
 ./setup.sh deploy      # génère docker-compose.yml + credentials, build & démarre
 ```
 
-**Toute la configuration de l'événement se fait dans le fichier `.env`** : nombre d'équipes (`TEAMS`), noms (`TEAM_NAMES`), port de départ (`START_PORT`), titre (`EVENT_TITLE`), pénalité d'indice (`HINT_PENALTY`), branding (`VITE_NANTES_HACK`)… Le script `setup.sh` ne fait que des **actions** : `deploy`, `passwords`, `reset` (voir `./setup.sh --help`). Il lit le `.env` et génère le `docker-compose.yml` en conséquence.
+**Toute la configuration de l'événement se fait dans le fichier `.env`** : 
+- nombre d'équipes (`TEAMS`)
+- noms (`TEAM_NAMES`)
+- port de départ (`START_PORT`)
+- titre (`EVENT_TITLE`)
+- pénalité d'indice (`HINT_PENALTY`)
+- branding (`VITE_NANTES_HACK`)… 
 
-Vérifier l'état des conteneurs avec `docker compose ps` et suivre les logs avec `docker compose logs -f`.
+Le script `setup.sh` ne fait que des **actions** : 
+- `deploy`
+- `passwords`
+- `reset` (voir `./setup.sh --help`). Il lit le `.env` et génère le `docker-compose.yml` en conséquence.
+
+Autre : 
+- Vérifier l'état des conteneurs avec `docker compose ps` 
+- Suivre les logs avec `docker compose logs -f`.
 
 Les ports exposés sont attribués de façon contiguë à partir de `START_PORT` (défaut `44001`, configurable dans `.env`) :
 
@@ -59,7 +72,8 @@ Les ports exposés sont attribués de façon contiguë à partir de `START_PORT`
 | Site Team N    | `START_PORT + 2N − 1`   |
 | Exploit Team N | `START_PORT + 2N`       |
 
-Pensez à ouvrir ces ports dans le firewall du serveur (ou le groupe de sécurité cloud). Les URLs et mots de passe effectifs de chaque équipe sont écrits dans `credentials.json` / `credentials.html` à la génération.
+Pensez à ouvrir ces ports dans le firewall du serveur.
+Les URLs et mots de passe effectifs de chaque équipe sont écrits dans `credentials.json` / `credentials.html` à la génération.
 
 **Mettre à jour** après un `git pull` :
 
@@ -74,14 +88,40 @@ docker compose down          # arrête les containers
 ./setup.sh reset             # arrête + supprime volumes et fichiers générés (reset complet)
 ```
 
-### Développement local
+### Développement local (sans Docker)
+
+Prérequis : `node` (≥ 20) et `npm`.
 
 ```bash
-npm run install:all
-npm run dev
+git clone <url-du-repo> midhack
+cd midhack
+cp .env.example .env     # config locale (titre, pénalité, branding…)
+npm run install:all      # installe les dépendances des 4 services
+npm run dev              # lance les 4 services simultanément via concurrently
 ```
 
-Lance les 4 services simultanément (server, client, exploit-server, dashboard) via `concurrently`.
+URLs en développement :
+
+| Service              | URL                     |
+| -------------------- | ----------------------- |
+| Site BananaShop      | http://localhost:5173   |
+| Dashboard live       | http://localhost:5174   |
+| Hacking QG (exploit) | http://localhost:5175   |
+
+Lancer un seul service (utile pour déboguer) :
+
+```bash
+npm run dev:server       # API BananaShop      → :3001
+npm run dev:client       # SPA React           → :5173
+npm run dev:dashboard    # scoreboard + API    → :5174 (API :5000)
+npm run dev:exploit      # Hacking QG + API    → :5175 (API :4000)
+```
+
+Réinitialiser la base SQLite locale :
+
+```bash
+rm server/banana_shop.db*   # recréée au prochain démarrage du serveur
+```
 
 ## Architecture
 
@@ -94,7 +134,7 @@ midhack/
 └── docker-compose.yml
 ```
 
-- **server/** - API Express.js + SQLite, contient les 14 vulnérabilités
+- **server/** - API Express.js + SQLite, contient les vulnérabilités
 - **client/** - SPA React avec Vite et Tailwind CSS
 - **exploit-server/** - Webhook receiver, mini-académie, générateur CSRF, soumission de flags
 - **dashboard/** - Tableau de scores temps réel via WebSocket, persistance JSON
@@ -138,17 +178,17 @@ connue est employée au mauvais endroit — sans jamais délivrer de flag
 ## Tests
 
 ```bash
-npm test     # vérifie chaque challenge : chemin prévu ET absence de chemin non prévu
+npm test                       # depuis la racine du projet
+npm --prefix server test       # équivalent, directement sur le service testé
 ```
 
-Chaque challenge est testé deux fois : l'exploitation attendue doit donner le
-flag, et un chemin voisin ne doit rien donner.
+Les tests vérifient chaque challenge : chemin prévu ET absence de chemin non prévu.
 
 ## Scoring
 
 - Chaque flag rapporte des points selon sa difficulté (Facile=10 / Moyen=15 / Difficile=25)
 - Une **orientation** (où chercher) est gratuite et s'ouvre après quelques minutes sans capture (`VITE_NUDGE_DELAY_MIN`)
-- Un **indice** (la technique) coûte des points (configurable via `HINT_PENALTY` dans le `.env`, défaut : 3)
+- Un **indice** coûte des points (configurable via `HINT_PENALTY` dans le `.env`, défaut : 3)
 - En cas d'égalité : nombre de flags > temps de première capture
 
 ## Onboarding des participants
@@ -191,6 +231,6 @@ Texte légal complet : voir le fichier [LICENSE](LICENSE).
 
 ---
 
-Développé par Johan Brun
+Conçu par Johan BRUN
 
 Utilisé dans le cadre des initations à la sécurité offensive de l'association [Nantes@Hack](https://www.meetup.com/nantesathack/).

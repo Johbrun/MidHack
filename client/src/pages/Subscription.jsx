@@ -15,7 +15,7 @@ const PLANS = [
   {
     id: 'premium',
     label: 'Premium',
-    price: '50',
+    price: '100 000 000',
     unit: '🥭 mangues / mois',
     description: "L'expérience banane ultime avec des avantages exclusifs.",
     features: [

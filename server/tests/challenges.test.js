@@ -277,6 +277,10 @@ test('Tous les challenges activés ont un indice, une orientation et des préreq
     assert.ok(FLAGS[challenge.flagId], `${challenge.flagId} n'a pas de flag`);
     assert.ok(challenge.hint, `${challenge.flagId} n'a pas d'indice`);
     assert.ok(challenge.nudge, `${challenge.flagId} n'a pas d'orientation`);
+    // Les deux noms sont obligatoires : le QG titre les cartes avec le
+    // codename, le classement n'affiche que le nom de la vulnérabilité.
+    assert.ok(challenge.name, `${challenge.flagId} n'a pas de nom de vulnérabilité`);
+    assert.ok(challenge.codename, `${challenge.flagId} n'a pas de codename`);
     for (const required of challenge.requires || []) {
       assert.ok(ids.has(required), `${challenge.flagId} dépend d'un challenge inconnu: ${required}`);
     }
