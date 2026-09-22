@@ -16,7 +16,10 @@ api.interceptors.response.use(
   },
   (error) => {
     if (error.response?.data?.nudge) showNudge(error.response.data.nudge);
-    if (error.response?.status === 401) {
+    // Un 401 sur /auth/* est un échec de connexion, pas une session expirée :
+    // recharger la page effacerait le message d'erreur du formulaire.
+    const isAuthCall = error.config?.url?.startsWith('/auth/');
+    if (error.response?.status === 401 && !isAuthCall) {
       document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
       window.location.href = '/login';
     }
