@@ -93,17 +93,20 @@ Les ports exposés sont attribués de façon contiguë à partir de `START_PORT`
 Pensez à ouvrir ces ports dans le firewall du serveur.
 Les URLs et mots de passe effectifs de chaque équipe sont écrits dans `credentials.json` / `credentials.html` à la génération.
 
-**Mettre à jour** après un `git pull` :
 
-```bash
-./setup.sh deploy            # régénère le docker-compose.yml et relance
-```
 
 **Arrêter / nettoyer** :
 
 ```bash
 docker compose down          # arrête les containers
 ./setup.sh reset             # arrête + supprime volumes et fichiers générés (reset complet)
+```
+
+**Mettre à jour** après un `git pull` :
+
+```bash
+./setup.sh reset     
+./setup.sh deploy            # régénère le docker-compose.yml et relance
 ```
 
 ### Développement local
