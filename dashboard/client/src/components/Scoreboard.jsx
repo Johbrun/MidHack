@@ -8,7 +8,7 @@ import {
   MAX_SCORE,
   shortName,
 } from '../flags';
-import { IconBulb, IconCheck, IconClock, IconDrop, IconSnowflake } from './icons';
+import { IconBulb, IconCheck, IconClock, IconDrop, IconShield, IconSnowflake } from './icons';
 
 // Colonnes regroupées par difficulté, dans l'ordre du barème.
 const GROUPS = [...DIFFICULTIES, ...new Set(FLAGS.map((f) => f.difficulty))]
@@ -94,12 +94,11 @@ export default function Scoreboard({ teams, hintPenalty = 3, frozen = false }) {
           >
             <colgroup>
               <col className="col-rank" />
-              <col />
+              <col className="col-team" />
               <col className="col-score" />
               {COLUMNS.map((f) => (
                 <col key={f.flagId} className="col-flag" />
               ))}
-              <col className="col-last" />
             </colgroup>
             <thead ref={headRef}>
               <tr>
@@ -112,7 +111,6 @@ export default function Scoreboard({ teams, hintPenalty = 3, frozen = false }) {
                     </div>
                   </th>
                 ))}
-                <th className="th-group" />
               </tr>
               <tr>
                 <th className="th">#</th>
@@ -131,7 +129,6 @@ export default function Scoreboard({ teams, hintPenalty = 3, frozen = false }) {
                     />
                   </th>
                 ))}
-                <th className="th th-right">Dernier flag</th>
               </tr>
             </thead>
             <tbody>
@@ -184,6 +181,7 @@ function Legend() {
 
 function TeamRow({ team, rank, hintPenalty = 3, fresh }) {
   const hints = team.hints || [];
+  const blue = team.blue || { answered: 0, firstTry: 0 };
   const score =
     team.score !== undefined
       ? team.score
@@ -206,15 +204,31 @@ function TeamRow({ team, rank, hintPenalty = 3, fresh }) {
           <span className="team-name" title={team.name}>
             {team.name}
           </span>
-          {hints.length > 0 && (
-            <span
-              className="chip"
-              title={`${hints.length} indice(s) utilisé(s) (-${hints.length * hintPenalty} pts)`}
-            >
-              <IconBulb size={14} />
-              {hints.length}
-            </span>
-          )}
+          <div className="team-meta">
+            <TimeSinceLastFlag captures={team.captures} />
+            {hints.length > 0 && (
+              <span
+                className="chip"
+                title={`${hints.length} indice(s) utilisé(s) (-${hints.length * hintPenalty} pts)`}
+              >
+                <IconBulb size={14} />
+                {hints.length}
+              </span>
+            )}
+            {blue.answered > 0 && (
+              <span
+                className="chip chip-blue"
+                title={`Blue Team — ${blue.answered} question(s) répondue(s), ${blue.firstTry} juste(s) du premier coup`}
+              >
+                <IconShield size={14} />
+                {blue.answered}
+                <span className="chip-blue-ok">
+                  <IconCheck size={12} />
+                  {blue.firstTry}
+                </span>
+              </span>
+            )}
+          </div>
         </div>
       </td>
       <td>
@@ -240,9 +254,6 @@ function TeamRow({ team, rank, hintPenalty = 3, fresh }) {
           />
         </td>
       ))}
-      <td>
-        <TimeSinceLastFlag captures={team.captures} />
-      </td>
     </tr>
   );
 }
@@ -287,18 +298,21 @@ function TimeSinceLastFlag({ captures }) {
     return () => clearInterval(id);
   }, [lastTs]);
 
-  if (!lastTs) return <span className="last">—</span>;
-
-  const elapsed = Math.max(0, now - lastTs);
+  const elapsed = lastTs ? Math.max(0, now - lastTs) : 0;
   const totalSeconds = Math.floor(elapsed / 1000);
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
-  const isStale = elapsed > 10 * 60 * 1000;
-  const formatted = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  const isStale = lastTs && elapsed > 10 * 60 * 1000;
+  const formatted = lastTs
+    ? `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+    : '—';
 
   return (
-    <span className={`last${isStale ? ' is-stale' : ''}`} title="Temps depuis le dernier flag">
-      <IconClock size={16} />
+    <span
+      className={`chip chip-time${isStale ? ' is-stale' : ''}`}
+      title={lastTs ? 'Temps depuis le dernier flag' : 'Aucun flag capturé'}
+    >
+      <IconClock size={14} />
       {formatted}
     </span>
   );

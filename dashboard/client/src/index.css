@@ -345,16 +345,16 @@ a { color: var(--accent); text-decoration: none; }
 
 .table {
   width: 100%;
-  min-width: 90rem;
+  min-width: 109rem;
   border-collapse: separate;
   border-spacing: 0;
   table-layout: fixed;
   --row-h: 4.5rem;
 }
 .col-rank { width: 4rem; }
+.col-team { width: 11rem; }
 .col-score { width: 6.5rem; }
 .col-flag { width: 6.25rem; }
-.col-last { width: 8.5rem; }
 
 .table thead th {
   position: sticky; z-index: 2;
@@ -438,8 +438,11 @@ a { color: var(--accent); text-decoration: none; }
 .rank-1 { color: var(--accent); }
 .rank-2, .rank-3 { color: var(--text); }
 
-.team { display: flex; align-items: center; gap: var(--sp-3); min-width: 0; }
+/* Colonne étroite : l'indice passe sur une petite ligne au-dessus, le nom
+   d'équipe prend alors toute la largeur de la cellule en dessous. */
+.team { display: flex; flex-direction: column-reverse; align-items: flex-start; gap: var(--sp-1); min-width: 0; }
 .team-name {
+  max-width: 100%;
   min-width: 0;
   font-family: var(--font-mono);
   font-size: var(--fs-sm);
@@ -448,6 +451,10 @@ a { color: var(--accent); text-decoration: none; }
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .is-leader .team-name { color: var(--accent); }
+/* Compteurs (temps depuis le dernier flag, indices, blue team) : une petite
+   ligne de chips au-dessus du nom. */
+.team-meta { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-1); max-width: 100%; }
+.team .chip { height: 1.25rem; }
 
 .chip {
   display: inline-flex; align-items: center; gap: var(--sp-1);
@@ -462,6 +469,22 @@ a { color: var(--accent); text-decoration: none; }
   font-size: var(--fs-xs);
   font-weight: 600;
   white-space: nowrap;
+}
+
+/* Chip Blue Team : questions répondues + (en vert) réponses justes du 1er coup */
+.chip-blue {
+  border-color: var(--info-border);
+  background: var(--info-soft);
+  color: var(--info);
+}
+.chip-blue-ok {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding-left: var(--sp-1);
+  margin-left: 2px;
+  border-left: 1px solid var(--info-border);
+  color: var(--ok);
 }
 
 .score { display: flex; flex-direction: column; align-items: flex-end; gap: var(--sp-1); }
@@ -515,17 +538,19 @@ a { color: var(--accent); text-decoration: none; }
 .cell.is-fresh { animation: pop 0.6s cubic-bezier(0.3, 1.6, 0.5, 1); }
 @keyframes pop { 0% { transform: scale(0); } 100% { transform: scale(1); } }
 
-.last {
-  display: inline-flex; align-items: center; justify-content: flex-end; gap: var(--sp-2);
-  width: 100%;
-  font-family: var(--font-mono);
-  font-size: var(--fs-sm);
-  font-weight: 600;
+/* Chip « temps depuis le dernier flag » : neutre, vire au rouge si l'équipe
+   n'a rien capturé depuis plus de dix minutes. */
+.chip-time {
+  border-color: var(--border-strong);
+  background: var(--surface-2);
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
 }
-.last svg { flex-shrink: 0; opacity: 0.7; }
-.last.is-stale { color: var(--danger); }
+.chip-time.is-stale {
+  border-color: var(--danger-border);
+  background: var(--danger-soft);
+  color: var(--danger);
+}
 
 /* Tableau vide */
 .empty {
