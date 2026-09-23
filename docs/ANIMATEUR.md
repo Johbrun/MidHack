@@ -259,6 +259,17 @@ Après avoir capturé un flag, un bouton **🔧 Fix-It** apparaît sur la page C
 - La référence OWASP
 - Un diff side-by-side du code vulnérable vs. corrigé
 
+### Mots de passe des phases défensives
+
+Certaines pages du Hacking QG révèlent les failles (code vulnérable, correctifs, modélisation) : elles restent masquées derrière un mot de passe que **l'animateur communique au moment d'ouvrir la phase**, pour ne pas divulguer les solutions pendant le CTF offensif.
+
+| Page | Mot de passe |
+| --- | --- |
+| **Blue Team** (choisir le bon correctif) | `banana` |
+| **Threat Model** (STRIDE à rebours) | `diamant` |
+
+La saisie est insensible à la casse et l'état est mémorisé en `localStorage` par navigateur.
+
 ### First Blood
 
 La première équipe à capturer un flag spécifique reçoit un bonus de **+5 points**. Un toast rouge "FIRST BLOOD" s'affiche sur le scoreboard projeté.
