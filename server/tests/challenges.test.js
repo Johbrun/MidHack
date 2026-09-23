@@ -124,14 +124,26 @@ test('Logique métier : un solde > 999 obtenu par l\'admin ne valide rien (chemi
   });
 });
 
-test('Mass Assignment : premium et rôle admin donnent deux flags distincts', async () => {
+test('Free Premium : prix falsifié à 0 et rôle admin donnent deux flags distincts', async () => {
   await withServer({ captured: ALL_CAPTURED }, async (api) => {
     await login(api);
-    const premium = await api.put('/api/users/2', { subscription: 'premium' });
+
+    // Parameter tampering : le tunnel d'achat facture le prix envoyé par le client.
+    const premium = await api.put('/api/users/2/subscription', { plan: 'premium', price: 0 });
     assert.equal(premium.data.flag, FLAGS.MASS_ASSIGNMENT);
+    assert.equal(premium.data.subscription, 'premium');
 
     const role = await api.put('/api/users/2', { role: 'admin' });
     assert.equal(role.data.flag, FLAGS.PRIV_ESC_ROLE);
+  });
+});
+
+test('Free Premium : le champ subscription du profil ne fait plus rien (chemin fermé)', async () => {
+  await withServer({ captured: ALL_CAPTURED }, async (api) => {
+    await login(api);
+    const res = await api.put('/api/users/2', { subscription: 'premium' });
+    assert.equal(res.data.flag, undefined, 'le mass assignment de subscription est fermé');
+    assert.notEqual(res.data.subscription, 'premium', 'subscription non modifiable via le profil');
   });
 });
 

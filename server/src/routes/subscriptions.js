@@ -1,12 +1,13 @@
 const express = require('express');
 const db = require('../db');
 const { authenticate } = require('../middleware/auth');
+const { awardFlag } = require('../award');
 
 const router = express.Router();
 const VALID_PLANS = ['free', 'premium'];
-// Le tunnel d'achat doit rester hors de portée : sinon il faisait passer
-// premium sans rien débiter, et le participant croyait avoir réussi le
-// challenge « Go Premium » alors que le flag ne tombe que par mass assignment.
+// Prix officiels imposés côté serveur — mais le tunnel fait l'erreur de
+// laisser le client fournir son propre prix (parameter tampering) : c'est là
+// que se gagne le challenge « Free Premium ».
 const PLAN_PRICES = { free: 0, premium: 100000000 };
 
 // GET /api/users/:id/subscription
@@ -16,9 +17,9 @@ router.get('/:id/subscription', authenticate, (req, res) => {
   res.json({ subscription: user.subscription || 'free' });
 });
 
-// PUT /api/users/:id/subscription — legitimate purchase tunnel
+// PUT /api/users/:id/subscription — purchase tunnel
 router.put('/:id/subscription', authenticate, (req, res) => {
-  const { plan } = req.body;
+  const { plan, price: clientPrice } = req.body;
   if (!VALID_PLANS.includes(plan)) {
     return res.status(400).json({ error: 'Plan invalide. Valeurs acceptées : free, premium' });
   }
@@ -27,12 +28,20 @@ router.put('/:id/subscription', authenticate, (req, res) => {
     .get(req.params.id);
   if (!user) return res.status(404).json({ error: 'User not found' });
 
-  const price = PLAN_PRICES[plan];
+  const officialPrice = PLAN_PRICES[plan];
+  // VULNERABLE: Parameter Tampering — le prix facturé est repris depuis le body
+  // client s'il est fourni, au lieu d'être imposé par le serveur. Un
+  // `{ "plan": "premium", "price": 0 }` obtient donc premium sans débiter.
+  const price = clientPrice !== undefined ? parseFloat(clientPrice) : officialPrice;
+  if (isNaN(price)) {
+    return res.status(400).json({ error: 'Prix invalide' });
+  }
+
   if (price > user.balance) {
     return res.status(402).json({
-      error: `Solde insuffisant : l'abonnement ${plan} coûte ${price} crédits, vous en avez ${user.balance}.`,
+      error: `Solde insuffisant : l'abonnement ${plan} coûte ${officialPrice} crédits, vous en avez ${user.balance}.`,
       nudge:
-        "Le tunnel d'achat officiel est bien gardé. Une autre route touche pourtant au même champ…",
+        "Le montant débité est-il vraiment décidé par le serveur ? Regardez ce que la requête envoie…",
     });
   }
 
@@ -45,11 +54,31 @@ router.put('/:id/subscription', authenticate, (req, res) => {
   const updated = db
     .prepare('SELECT id, subscription, balance FROM users WHERE id = ?')
     .get(req.params.id);
-  res.json({
+
+  const response = {
     subscription: updated.subscription,
     balance: updated.balance,
     message: 'Abonnement mis à jour avec succès',
-  });
+  };
+
+  // Le flag récompense l'ACTE : premium activé en facturant moins que le prix
+  // officiel (prix manipulé côté client). L'état « subscription=premium » seul
+  // ne prouve rien — un achat légitime au bon prix le produit aussi.
+  const gotPremiumCheap =
+    plan === 'premium' && user.subscription !== 'premium' && price < officialPrice;
+  if (gotPremiumCheap) {
+    awardFlag(req, response, 'MASS_ASSIGNMENT', {
+      proof: 'price_tampering',
+      field: 'price',
+      chargedPrice: price,
+      officialPrice,
+      message:
+        `Premium activé en ne payant que ${price} au lieu de ${officialPrice} : ` +
+        'le prix envoyé par le client a été facturé tel quel !',
+    });
+  }
+
+  res.json(response);
 });
 
 module.exports = router;

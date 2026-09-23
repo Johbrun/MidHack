@@ -118,7 +118,8 @@ Un testeur comme un animateur doit pouvoir trancher sans lire le code.
 |----------------------|--------|--------------------|
 | `GET /api/users/:id` renvoie le profil et le solde de **n'importe quel** utilisateur | ✅ Volontaire | IDOR — l'absence de contrôle d'accès est la faille à trouver |
 | `GET /api/config` expose mot de passe de base et identifiants | ✅ Volontaire | Sensitive Data Exposure |
-| `PUT /api/users/:id` accepte `role` et `subscription` depuis le body | ✅ Volontaire | Go Premium / Changement de rôle |
+| `PUT /api/users/:id` accepte `role` depuis le body | ✅ Volontaire | Make Me Admin (mass assignment / élévation de privilège) |
+| `PUT /api/users/:id/subscription` facture le `price` envoyé par le client | ✅ Volontaire | Free Premium (parameter tampering) |
 | Le formulaire de connexion concatène la saisie dans le SQL | ✅ Volontaire | SQL Injection (Login Bypass) |
 | La recherche produits renvoie une **erreur SQL** sur une apostrophe | ✅ Volontaire | SQL Injection (UNION) — le message est le signal de départ |
 | Le cookie `token` est lisible par `document.cookie` (pas de `httpOnly`) | ✅ Volontaire | Vol de cookie |

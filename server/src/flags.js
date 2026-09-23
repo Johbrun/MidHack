@@ -100,14 +100,14 @@ const FLAG_EXPLANATIONS = {
     fixedCode: `const ratingValue = parseInt(rating);\nif (isNaN(ratingValue) || ratingValue < 1 || ratingValue > 5) {\n  return res.status(400).json({ error: 'Rating must be 1-5' });\n}`,
   },
   [FLAGS.MASS_ASSIGNMENT]: {
-    danger: "Un utilisateur peut s'abonner au plan Premium sans payer en ajoutant le champ 'subscription' dans une requête de mise à jour de profil.",
-    fix: "Utiliser une whitelist de champs modifiables. Ne jamais propager aveuglément req.body dans une requête SQL.",
+    danger: "Le tunnel d'achat facture le prix envoyé par le client. Un utilisateur peut donc obtenir Premium sans payer en fournissant un prix à 0 dans la requête.",
+    fix: "Ne jamais faire confiance à un prix/montant venant du client. Le serveur doit imposer le prix à partir du plan choisi et ignorer tout champ prix du body.",
     owasp: 'A04:2021 - Insecure Design',
-    vulnerableCode: `const { email, bio, username, subscription } = req.body;\n// subscription vient du client sans paiement !`,
-    fixedCode: `const { email, bio, username } = req.body;\n// Ne PAS extraire 'subscription' du body\n// Utiliser l'endpoint dédié PUT /users/:id/subscription\n// qui vérifie le solde avant de débiter`,
+    vulnerableCode: `const { plan, price: clientPrice } = req.body;\nconst price = clientPrice !== undefined ? parseFloat(clientPrice) : PLAN_PRICES[plan];\n// price=0 dans le body => Premium sans débiter !`,
+    fixedCode: `const { plan } = req.body;\nconst price = PLAN_PRICES[plan];\n// Le prix est imposé par le serveur, jamais lu depuis le body`,
   },
   [FLAGS.PRIV_ESC_ROLE]: {
-    danger: "Le même champ en trop permet de se donner le rôle admin : l'utilisateur choisit lui-même son niveau de privilège, et accède ensuite au panneau d'administration.",
+    danger: "Un champ en trop dans l'update de profil permet de se donner le rôle admin : l'utilisateur choisit lui-même son niveau de privilège, et accède ensuite au panneau d'administration.",
     fix: "Le rôle ne se modifie jamais depuis une requête de profil. Le retirer de la whitelist, et réserver son changement à un endpoint d'administration authentifié.",
     owasp: 'A01:2021 - Broken Access Control',
     vulnerableCode: `const { email, bio, username, role } = req.body;\ndb.prepare('UPDATE users SET role = COALESCE(?, role) ... ').run(role, ...);`,
@@ -247,15 +247,15 @@ const FLAG_QUIZZES = {
     choices: [
       {
         ok: true,
-        code: `const { email, bio, username } = req.body;\n// 'subscription' n'est jamais lu ici : il a son propre endpoint,\n// qui vérifie le solde avant de débiter.`,
-        why: "Une whitelist énumère ce qui est autorisé. Le champ ajouté demain ne sera pas assignable tant que personne ne l'aura explicitement ouvert.",
+        code: `const { plan } = req.body;\nconst price = PLAN_PRICES[plan];\n// Le prix est imposé par le serveur, jamais lu depuis le body.`,
+        why: "Le montant à débiter est une donnée serveur : il découle du plan choisi. Le client n'a aucune raison de le fournir, donc on ne le lit pas.",
       },
       {
-        code: `delete req.body.subscription;\nconst fields = req.body;`,
-        why: "Une blacklist protège le champ d'aujourd'hui. `role`, `credits`, `isVerified` — le prochain champ sensible arrivera sans que personne ne pense à l'ajouter ici.",
+        code: `const price = Math.max(0, parseFloat(req.body.price));\n// on borne juste le prix envoyé par le client`,
+        why: "Borner un prix client ne le rend pas fiable : un premium à 1 crédit reste un premium bradé. Le prix ne doit pas venir du client du tout.",
       },
       {
-        code: `// Retirer le champ du formulaire de profil\n<input type="hidden" name="subscription" value={user.subscription} />`,
+        code: `// Masquer le champ prix dans le formulaire d'achat\n<input type="hidden" name="price" value={PLAN_PRICES[plan]} />`,
         why: "Le corps de la requête est écrit par le client. Ce que le formulaire envoie ou non n'a aucune influence sur ce que le serveur accepte.",
       },
     ],

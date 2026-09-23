@@ -26,7 +26,7 @@ router.get('/:id', authenticate, (req, res) => {
 // VULNERABLE: IDOR - can modify any user's profile
 // VULNERABLE: Mass Assignment - accepts role field, allowing privilege escalation
 router.put('/:id', authenticate, (req, res) => {
-  const { email, bio, username, role, subscription } = req.body;
+  const { email, bio, username, role } = req.body;
   const userId = req.params.id;
 
   const user = db.prepare('SELECT id, bio, role, subscription FROM users WHERE id = ?').get(userId);
@@ -55,23 +55,20 @@ router.put('/:id', authenticate, (req, res) => {
     }
   }
 
-  // VULNERABLE: role and subscription are updated from user input without authorization check
-  db.prepare('UPDATE users SET email = COALESCE(?, email), bio = COALESCE(?, bio), username = COALESCE(?, username), role = COALESCE(?, role), subscription = COALESCE(?, subscription) WHERE id = ?')
-    .run(email || null, nextBio, username || null, role || null, subscription || null, userId);
+  // VULNERABLE: role is updated from user input without authorization check.
+  // NB: 'subscription' n'est volontairement plus modifiable ici — l'abonnement
+  // se gère par le tunnel d'achat (challenge « Free Premium »), pas par le profil.
+  db.prepare('UPDATE users SET email = COALESCE(?, email), bio = COALESCE(?, bio), username = COALESCE(?, username), role = COALESCE(?, role) WHERE id = ?')
+    .run(email || null, nextBio, username || null, role || null, userId);
 
   const updated = db.prepare(
     'SELECT id, username, email, bio, role, balance, subscription, created_at FROM users WHERE id = ?'
   ).get(userId);
 
   // Le flag ne tombe que sur une vraie élévation de privilège via mass
-  // assignment : passer premium sans payer, ou se donner le rôle admin.
-  // Renvoyer 'free' (ou repasser premium alors qu'on l'est déjà) ne prouve rien.
-  const gotPremium = subscription === 'premium' && user.subscription !== 'premium';
+  // assignment : se donner le rôle admin. Renvoyer 'user' ne prouve rien.
   const gotAdmin = role === 'admin' && user.role !== 'admin';
 
-  // Deux exploitations distinctes du même défaut, donc deux challenges : le
-  // flag « Go Premium » ne peut plus annoncer une élévation de rôle.
-  // L'élévation de privilège est la plus spécifique, donc testée en premier.
   const response = { ...updated };
   if (gotAdmin) {
     awardFlag(req, response, 'PRIV_ESC_ROLE', {
@@ -80,13 +77,6 @@ router.put('/:id', authenticate, (req, res) => {
       message:
         'Champ « role » accepté depuis le body : élévation de privilège par mass assignment ! ' +
         'Reconnecte-toi pour que ton nouveau rôle soit inscrit dans ton jeton, sinon les routes admin continueront de te refuser.',
-    });
-  }
-  if (gotPremium) {
-    awardFlag(req, response, 'MASS_ASSIGNMENT', {
-      proof: 'mass_assignment_subscription',
-      field: 'subscription',
-      message: 'Champ « subscription » accepté depuis le body : Premium obtenu sans payer !',
     });
   }
 
