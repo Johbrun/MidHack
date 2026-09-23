@@ -284,6 +284,46 @@ app.post('/api/hint', (req, res) => {
   res.json({ ok: true });
 });
 
+// ─── Blue Team: exercice de remédiation par équipe ───
+// Chaque équipe a une carte `blue` : { [flagId]: 'ok' | 'first' }. Un correctif
+// trouvé du premier coup ('first') l'emporte sur un correctif trouvé après une
+// erreur ('ok') et n'est jamais rétrogradé. Le classement n'en dépend pas —
+// apprendre à corriger ne rapporte pas de points — mais l'animateur voit en
+// direct qui a joué la phase défensive, et combien de correctifs sans erreur.
+app.post('/api/blue-progress', (req, res) => {
+  const { teamName, flagId, firstTry } = req.body;
+  if (!teamName || !flagId) return res.status(400).json({ error: 'teamName and flagId required' });
+
+  if (!teamTokenValid(teamName, req)) {
+    return res.status(403).json({ error: 'Invalid team token' });
+  }
+
+  if (!ENABLED_CHALLENGES.has(flagId)) {
+    return res.status(400).json({ error: 'Unknown or disabled challenge' });
+  }
+
+  if (!teams.has(teamName)) {
+    teams.set(teamName, { name: teamName, captures: [], hints: [], blue: {} });
+  }
+
+  const team = teams.get(teamName);
+  if (!team.blue) team.blue = {};
+
+  // Idempotent : rejouer un exercice ne dégrade pas un « premier coup ».
+  const current = team.blue[flagId];
+  const next = firstTry ? 'first' : 'ok';
+  if (current === 'first' || current === next) {
+    return res.json({ ok: true, blue: blueStats(team) });
+  }
+  team.blue[flagId] = next;
+
+  saveState();
+  console.log(`BLUE: ${teamName} a corrigé ${flagId} (${next})`);
+  broadcastScoreboard();
+
+  res.json({ ok: true, blue: blueStats(team) });
+});
+
 // ─── Timer ───
 let timer = { endTime: null, duration: null, running: false };
 
@@ -547,9 +587,20 @@ function getTeamScore(team) {
   return capturePoints - hintPenalty;
 }
 
+// Stats Blue Team d'une équipe, dérivées de la carte { flagId: 'ok' | 'first' }.
+// `answered` = questions répondues (correctif trouvé), `firstTry` = correctifs
+// trouvés du premier coup. Sans impact sur le score.
+function blueStats(team) {
+  const entries = Object.values(team.blue || {});
+  return {
+    answered: entries.length,
+    firstTry: entries.filter(v => v === 'first').length,
+  };
+}
+
 function getScoreboardData() {
   return Array.from(teams.values())
-    .map(t => ({ ...t, score: getTeamScore(t) }))
+    .map(t => ({ ...t, blue: blueStats(t), score: getTeamScore(t) }))
     .sort((a, b) => {
       if (b.score !== a.score) return b.score - a.score;
       if (b.captures.length !== a.captures.length) return b.captures.length - a.captures.length;
