@@ -42,6 +42,14 @@ Bien que l'application puisse être utilisée par une personne seule, il est for
 
 Voir [docs/ANIMATEUR.md](docs/ANIMATEUR.md) pour les instructions de setup, le déroulement de l'atelier, les comptes et secrets, et la gestion du panel admin.
 
+### Pages protégées du Hacking QG
+
+Certaines pages du Hacking QG révèlent le code vulnérable, donc la solution des challenges. Elles restent masquées jusqu'à la saisie d'un mot de passe fixe, que l'animateur donne au moment d'ouvrir l'exercice :
+
+| Page              | Chemin         | Mot de passe |
+| ----------------- | -------------- | ------------ |
+| Trouve la ligne   | `/code-review` | `line`       |
+
 ## Aperçu
 
 ### Application vulnérable
