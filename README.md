@@ -49,6 +49,8 @@ Certaines pages du Hacking QG révèlent le code vulnérable, donc la solution d
 | Page              | Chemin         | Mot de passe |
 | ----------------- | -------------- | ------------ |
 | Trouve la ligne   | `/code-review` | `line`       |
+| Blue Team         | `/blue`        | `banana`     |
+| Kill Chain        | `/kill-chain`  | `kill`       |
 
 ## Aperçu
 
