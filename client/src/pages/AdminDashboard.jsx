@@ -56,7 +56,7 @@ export default function AdminDashboard() {
           </span>
           <h1 className="mt-5 font-heading font-bold text-2xl text-ink">Accès refusé</h1>
           <p className="mt-2 text-red-700 text-sm">{error}</p>
-          <p className="mt-1 text-sm text-muted">Cet espace est réservé à l'équipe BananaShop.</p>
+          <p className="mt-1 text-sm text-muted">Cet espace est réservé au staff</p>
         </div>
       </div>
     );
