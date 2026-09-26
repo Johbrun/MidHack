@@ -42,8 +42,6 @@ load_config() {
   HINT_PENALTY="${HINT_PENALTY:-3}"
   NANTES_HACK="${VITE_NANTES_HACK:-1}"
   NANTES_HACK_URL="${VITE_NANTES_HACK_URL:-}"
-  PROGRESSIVE_UNLOCK="${VITE_PROGRESSIVE_UNLOCK:-false}"
-  UNLOCK_THRESHOLD="${VITE_UNLOCK_THRESHOLD:-2}"
   NUDGE_DELAY_MIN="${VITE_NUDGE_DELAY_MIN:-10}"
   read -ra NAMES <<< "${TEAM_NAMES:-Alpha Bravo Charlie Delta}"
 
@@ -102,8 +100,6 @@ ${Y}CONFIGURATION${N}
     HINT_PENALTY             points retirés par indice
     VITE_NANTES_HACK         branding Nantes@Hack (0/1)
     VITE_NANTES_HACK_URL     lien Nantes@Hack sur « Pour aller plus loin »
-    VITE_PROGRESSIVE_UNLOCK  déblocage progressif des niveaux (true/false)
-    VITE_UNLOCK_THRESHOLD    challenges à résoudre par palier
 
   Les mots de passe (équipes + admin) sont générés aléatoirement à chaque
   « deploy » et écrits dans credentials.json / credentials.html.
@@ -334,8 +330,6 @@ EOF
       args:
         VITE_NANTES_HACK: \"$NANTES_HACK\"
         VITE_NANTES_HACK_URL: \"$NANTES_HACK_URL\"
-        VITE_PROGRESSIVE_UNLOCK: \"$PROGRESSIVE_UNLOCK\"
-        VITE_UNLOCK_THRESHOLD: \"$UNLOCK_THRESHOLD\"
         VITE_HINT_PENALTY: \"$HINT_PENALTY\"
         VITE_NUDGE_DELAY_MIN: \"$NUDGE_DELAY_MIN\""
     else
