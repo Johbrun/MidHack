@@ -11,7 +11,7 @@ La plateforme se compose de **4 services** déployés dans Docker, répliqués p
 | Service | Stack | Port interne | Rôle |
 |---------|-------|--------------|------|
 | **BananaShop Client** | React 18, Vite 5, Tailwind 3 | 3000 (servi par le serveur) | SPA e-commerce vulnérable |
-| **BananaShop Server** | Express 4, better-sqlite3 | 3000 | API REST avec 14 vulnérabilités OWASP |
+| **BananaShop Server** | Express 4, better-sqlite3 | 3000 | API REST avec <!-- GEN:count -->14<!-- /GEN:count --> vulnérabilités OWASP |
 | **Exploit Server** | Express 4, SSE, ws, React 18 | 4000 | QG de l'équipe (webhook, academy, flags) |
 | **Dashboard** | Express 4, ws (WebSocket), React 18 | 5000 | Scoreboard temps réel + admin |
 
@@ -79,7 +79,7 @@ midhack/
 │   └── data/                 # scoreboard.json (volume Docker)
 │
 ├── shared/                   # Code partagé
-│   ├── flags.json            # Catalogue des 14 challenges (points, hints, catégories)
+│   ├── flags.json            # Catalogue des challenges (points, hints, catégories)
 │   └── register-team.js      # Helper POST /api/teams/register
 │
 ├── .env                      # Configuration de l'événement (source unique)
@@ -243,6 +243,7 @@ Toute la configuration de l'événement est centralisée dans le fichier **`.env
 |----------|--------|-------------|
 | `PORT` | 4000 | Port Express |
 | `TEAM_PASSWORD` | team | Mot de passe de l'équipe (généré aléatoirement par `setup.sh`) |
+| `MASTER_PASSWORD` | banane | Passe-partout de l'animateur : ouvre le QG de n'importe quelle équipe (la valeur côté client, pour les pages verrouillées, est dans `client/src/lib/masterKey.js`) |
 | `SITE_URL` | http://localhost:3001 | URL du site BananaShop |
 | `DASHBOARD_URL` | http://localhost:5000 | URL du dashboard |
 | `TEAM_NAME` | Unknown Team | Nom de l'équipe |
@@ -263,8 +264,6 @@ Passées comme build-args par `setup.sh` (depuis le `.env`) car intégrées dans
 | Variable | Défaut | Description | Services |
 |----------|--------|-------------|----------|
 | `VITE_NANTES_HACK` | 0 | Active le branding Nantes@Hack (0/1) | tous |
-| `VITE_PROGRESSIVE_UNLOCK` | false | Déblocage progressif des niveaux (true/false) | exploit |
-| `VITE_UNLOCK_THRESHOLD` | 2 | Captures requises par palier | exploit |
 
 ---
 
@@ -342,8 +341,6 @@ Toute la configuration vit dans le `.env` — `setup.sh` n'a **plus** de flags d
 | `EVENT_TITLE` | BananaShop CTF | Titre affiché sur le dashboard |
 | `HINT_PENALTY` | 3 | Points retirés par indice utilisé |
 | `VITE_NANTES_HACK` | 1 | Active/désactive le branding Nantes@Hack (0/1) |
-| `VITE_PROGRESSIVE_UNLOCK` | false | Déblocage progressif des niveaux (true/false) |
-| `VITE_UNLOCK_THRESHOLD` | 2 | Captures requises par palier |
 | `VITE_DEV_MODE` | false | `true` = pas de modale d'onboarding bloquante (BananaShop + Hacking QG). `npm run dev` uniquement, jamais transmis à Docker |
 
 Le `docker-compose.yml` généré inclut :
@@ -351,7 +348,7 @@ Le `docker-compose.yml` généré inclut :
 - Limites mémoire (256MB site/dashboard, 128MB exploit)
 - Volumes persistants (`dashboard-data`, `exploit-teamN-data`)
 - `restart: unless-stopped`
-- Bloc `x-build-args` (branding) et `x-event-config` (titre, pénalité, mot de passe admin) reflétant le `.env` ; le service exploit reçoit en plus `VITE_PROGRESSIVE_UNLOCK` / `VITE_UNLOCK_THRESHOLD` en build-args
+- Bloc `x-build-args` (branding) et `x-event-config` (titre, pénalité, mot de passe admin) reflétant le `.env`
 
 > Le `docker-compose.yml` est **auto-généré et gitignoré** : ne l'éditez pas à la main, modifiez le `.env` puis relancez `./setup.sh deploy`.
 
@@ -440,17 +437,9 @@ Classement : score DESC, puis nombre de captures DESC, puis date de première ca
 
 ### Catalogue (`shared/flags.json`)
 
-14 challenges répartis en 4 catégories : `authz` (violet), `injection` (rouge), `misconfig` (bleu), `other` (gris).
+<!-- GEN:count -->14<!-- /GEN:count --> challenges répartis en <!-- GEN:cats -->4<!-- /GEN:cats --> catégories : `authz` (violet), `injection` (rouge), `misconfig` (bleu), `other` (gris).
 
-Chaque challenge a : `flagId`, `name`, `difficulty` (Facile/Moyen/Difficile), `category`, `hint`, `enabled`. Les points sont dérivés de la difficulté via `DIFFICULTY_POINTS` (Facile=10, Moyen=15, Difficile=25).
-
-### Déverrouillage progressif (client-side)
-
-- **Facile** : toujours visible
-- **Moyen** : après 2 captures Facile
-- **Difficile** : après 2 captures Moyen
-
-Logique dans `exploit-server/client/src/pages/ChallengesPage.jsx`, basée sur `localStorage` (`ctf_captured_flags`).
+Chaque challenge a : `flagId`, `name`, `difficulty` (Facile/Moyen/Difficile), `category`, `hint`, `enabled`. Les points sont dérivés de la difficulté via `DIFFICULTY_POINTS` (<!-- GEN:points-comma -->Facile=10, Moyen=15, Difficile=20<!-- /GEN:points-comma -->).
 
 ### Fix-It Mode
 

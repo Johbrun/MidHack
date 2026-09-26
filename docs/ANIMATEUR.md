@@ -66,8 +66,6 @@ HINT_PENALTY=3                           # points retirés par indice
 
 # ── Branding / gameplay (rebuild nécessaire) ──
 VITE_NANTES_HACK=1                       # 1 = branding Nantes@Hack activé, 0 = désactivé
-VITE_PROGRESSIVE_UNLOCK=false            # true = déblocage progressif des niveaux
-VITE_UNLOCK_THRESHOLD=2                  # captures requises par palier
 ```
 
 > Le `docker-compose.yml` est **auto-généré** à partir du `.env` : ne l'éditez pas à la main. Pour changer un paramètre, modifiez le `.env` puis relancez `./setup.sh deploy`.
@@ -127,7 +125,7 @@ Un testeur comme un animateur doit pouvoir trancher sans lire le code.
 | `X-Frame-Options: ALLOW`, CSP permissive, `Referrer-Policy: unsafe-url` | ✅ Volontaire | En-têtes mal configurés, support de plusieurs challenges |
 | Le panneau admin permet de fixer le solde de n'importe qui | ✅ Volontaire | Conséquence d'un accès admin obtenu — ne valide **aucun** challenge |
 | Un rôle inconnu (`tartanpion`) est refusé | ⛔ Bordé | Le mass assignment reste exploitable vers `admin` uniquement |
-| `/api/internal/flag` en accès direct depuis le navigateur | ⛔ Bordé | Réservé au loopback : le flag SSRF exige une vraie SSRF via `POST /api/products/<id>/image-url` |
+| `/api/internal/flag` en accès direct depuis le navigateur | ⛔ Bordé | Listener loopback dédié (`127.0.0.1:9000`), non exposé ni proxifié : injoignable depuis le navigateur. Le flag SSRF exige une vraie SSRF via `POST /api/products/<id>/image-url` |
 | Un flag obtenu sans l'exploitation attendue | ⛔ Bordé | Chaque flag exige une preuve d'acte (`server/src/award.js`) |
 
 **L'académie n'est pas un corrigé** : ses exemples portent sur une application
@@ -172,7 +170,6 @@ Le mot de passe admin est affiché lors du `setup.sh` et sauvegardé dans `crede
    - Chaque flag trouvé rapporte des points
    - Les indices coûtent -3 pts (configurable)
    - **First Blood** : +5 pts bonus pour la première équipe à capturer un flag
-   - Si `VITE_PROGRESSIVE_UNLOCK=true` : les challenges se déverrouillent progressivement (2 Faciles → Moyens, 2 Moyens → Difficiles)
 6. **Lancer le timer** depuis le panel admin du dashboard
 
 ### Phase 2 - CTF libre (1h30)
@@ -218,15 +215,6 @@ Terminer l'atelier par une démonstration concrète d'attaque CSRF pour marquer 
 ---
 
 ## Nouvelles fonctionnalités pour les participants
-
-### Déverrouillage progressif des challenges
-
-Activé via `VITE_PROGRESSIVE_UNLOCK=true` dans le `.env` (désactivé par défaut). Quand actif, les challenges ne sont pas tous visibles dès le départ :
-- **Facile** : toujours visibles
-- **Moyen** : se débloquent après avoir capturé 2 flags Faciles
-- **Difficile** : se débloquent après avoir capturé 2 flags Moyens
-
-Les challenges verrouillés apparaissent en grisé avec "???".
 
 ### Orientation gratuite puis indice payant
 
