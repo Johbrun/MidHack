@@ -1,5 +1,5 @@
 import { CATEGORIES, DIFF_TONE, flagLabel } from '../../flags';
-import { IconBulb, IconDrop } from '../icons';
+import { IconBulb, IconDrop } from '@shared/ui/icons';
 import { Bar, Card, PageHead, fmtClock } from './ui';
 import { challengeStats } from './stats';
 

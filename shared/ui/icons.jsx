@@ -1,5 +1,7 @@
-// Jeu d'icônes au trait, unique pour tout le QG : même grille 24px, même
-// épaisseur, pour que la navigation, les tuiles et les boutons se répondent.
+// Jeu d'icônes au trait commun au Hacking QG et au dashboard : même grille
+// 24px, même épaisseur, pour que la navigation, les tuiles et les boutons se
+// répondent d'une application à l'autre. (Le BananaShop garde le sien : il doit
+// ressembler à une vraie boutique, pas aux outils de l'atelier.)
 function Icon({ size = 16, children, ...props }) {
   return (
     <svg
@@ -142,4 +144,51 @@ export const IconUpload = (p) => (
 );
 export const IconArrowUp = (p) => (
   <Icon {...p}><path d="M12 19V5" /><path d="m6 11 6-6 6 6" /></Icon>
+);
+
+// ─── Icônes propres au dashboard ───
+export const IconDrop = (p) => (
+  <Icon {...p}><path d="M12 2.5s-6.5 7.1-6.5 12a6.5 6.5 0 0 0 13 0c0-4.9-6.5-12-6.5-12z" /></Icon>
+);
+export const IconSnowflake = (p) => (
+  <Icon {...p}><path d="M12 2v20M4.2 7l15.6 10M4.2 17 19.8 7" /><path d="m9 4 3 3 3-3M9 20l3-3 3 3" /></Icon>
+);
+export const IconClock = (p) => (
+  <Icon {...p}><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></Icon>
+);
+export const IconMegaphone = (p) => (
+  <Icon {...p}><path d="M3 11v2a1 1 0 0 0 1 1h3l6 5V5L7 10H4a1 1 0 0 0-1 1z" /><path d="M17 8.5a5 5 0 0 1 0 7M19.5 6a8.5 8.5 0 0 1 0 12" /></Icon>
+);
+export const IconRefresh = (p) => (
+  <Icon {...p}><path d="M20 11a8 8 0 0 0-14.9-3.9L4 9" /><path d="M4 4v5h5" /><path d="M4 13a8 8 0 0 0 14.9 3.9L20 15" /><path d="M20 20v-5h-5" /></Icon>
+);
+export const IconUnlock = (p) => (
+  <Icon {...p}><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 7.75-1.4" /></Icon>
+);
+export const IconAlert = (p) => (
+  <Icon {...p}><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" /><path d="M12 9v4M12 17h.01" /></Icon>
+);
+export const IconGrid = (p) => (
+  <Icon {...p}><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></Icon>
+);
+export const IconSliders = (p) => (
+  <Icon {...p}><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0" /><circle cx="16" cy="6" r="2" /><circle cx="10" cy="12" r="2" /><circle cx="18" cy="18" r="2" /></Icon>
+);
+export const IconUsers = (p) => (
+  <Icon {...p}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></Icon>
+);
+export const IconPlay = (p) => (
+  <Icon {...p}><path d="M7 4.5v15l12-7.5z" /></Icon>
+);
+export const IconStop = (p) => (
+  <Icon {...p}><rect x="6" y="6" width="12" height="12" rx="1.5" /></Icon>
+);
+export const IconLogout = (p) => (
+  <Icon {...p}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="m16 17 5-5-5-5M21 12H9" /></Icon>
+);
+export const IconServer = (p) => (
+  <Icon {...p}><rect x="3" y="4" width="18" height="7" rx="1.5" /><rect x="3" y="13" width="18" height="7" rx="1.5" /><path d="M7 7.5h.01M7 16.5h.01" /></Icon>
+);
+export const IconTrophy = (p) => (
+  <Icon {...p}><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z" /><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3" /></Icon>
 );

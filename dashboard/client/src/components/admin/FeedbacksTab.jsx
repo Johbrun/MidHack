@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { IconDownload, IconRefresh } from '../icons';
+import { IconDownload, IconRefresh } from '@shared/ui/icons';
 import { Card, Empty, PageHead } from './ui';
 
 export default function FeedbacksTab({ feedbacks, reload, token }) {

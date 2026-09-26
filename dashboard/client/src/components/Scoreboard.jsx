@@ -8,7 +8,7 @@ import {
   MAX_SCORE,
   flagLabel,
 } from '../flags';
-import { IconBulb, IconCheck, IconClock, IconDrop, IconShield, IconSnowflake } from './icons';
+import { IconBulb, IconCheck, IconClock, IconDrop, IconShield, IconSnowflake } from '@shared/ui/icons';
 
 // Colonnes regroupées par difficulté, dans l'ordre du barème.
 const GROUPS = [...DIFFICULTIES, ...new Set(FLAGS.map((f) => f.difficulty))]

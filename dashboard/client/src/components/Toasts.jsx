@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { FLAGS, flagLabel } from '../flags';
-import { IconBulb, IconDrop, IconFlag, IconMegaphone, IconRefresh, IconSnowflake, IconUnlock } from './icons';
+import { IconBulb, IconDrop, IconFlag, IconMegaphone, IconRefresh, IconSnowflake, IconUnlock } from '@shared/ui/icons';
 
 // Receives an incoming events stream from useScoreboard() and renders it for
 // the room, each kind at the size it deserves: first blood full screen,

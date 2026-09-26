@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { IconLock, IconShield, IconUnlock } from './icons';
+import { IconLock, IconShield, IconUnlock } from '@shared/ui/icons';
 import './lock-screen.css';
 
 // Écran de verrouillage, repris du Hacking QG (phases Kill Chain, Threat

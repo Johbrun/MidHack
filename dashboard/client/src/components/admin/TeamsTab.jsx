@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { FLAGS, MAX_SCORE } from '../../flags';
-import { IconBulb, IconCheck, IconClock, IconDrop, IconList, IconServer, IconShield } from '../icons';
+import { IconBulb, IconCheck, IconClock, IconDrop, IconList, IconServer, IconShield } from '@shared/ui/icons';
 import { Bar, Card, Empty, PageHead, fmtClock, timeAgo, useNow } from './ui';
 import { lastCaptureAt, restartList, teamScore } from './stats';
 

@@ -1,21 +1,14 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-
-const UNLOCK_FLAG = 'BANANES';
-const STORAGE_KEY = 'midhack_unlocked';
-// Mode DEV (VITE_DEV_MODE=true dans le .env) : pas de modale d'onboarding
-// bloquante, l'interface est déverrouillée d'office.
-const DEV_MODE = import.meta.env.VITE_DEV_MODE === 'true';
+import { isUnlockFlag, isUnlockedAtStart, rememberUnlocked } from '@shared/ui/onboarding';
 
 const OnboardingContext = createContext(null);
 
 export function OnboardingProvider({ children }) {
-  const [unlocked, setUnlocked] = useState(() =>
-    DEV_MODE || localStorage.getItem(STORAGE_KEY) === 'true'
-  );
+  const [unlocked, setUnlocked] = useState(isUnlockedAtStart);
 
   const unlock = (flag) => {
-    if (flag.trim() === UNLOCK_FLAG) {
-      localStorage.setItem(STORAGE_KEY, 'true');
+    if (isUnlockFlag(flag)) {
+      rememberUnlocked();
       setUnlocked(true);
       return true;
     }

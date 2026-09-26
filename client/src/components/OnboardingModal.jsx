@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useOnboarding } from '../context/OnboardingContext';
-import { NantesHackLogo } from '../lib/branding';
+import { NantesHackLogo } from '@shared/ui/branding';
 
 const steps = [
   {

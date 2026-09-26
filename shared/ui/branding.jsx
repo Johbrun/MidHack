@@ -1,3 +1,4 @@
+// Branding Nantes@Hack, commun aux trois fronts (VITE_NANTES_HACK=1 l'active).
 export const nantesHack = import.meta.env.VITE_NANTES_HACK === '1';
 
 // Lien affiché sur « Pour aller plus loin ». Surchargeable par événement, pour

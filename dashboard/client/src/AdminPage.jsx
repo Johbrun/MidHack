@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { EnvBar } from './components/Header';
 import LockScreen from './components/LockScreen';
 import AdminPanel from './components/AdminPanel';
-import { IconShield, IconTrophy } from './components/icons';
-import { useTheme } from './lib/useTheme';
+import { IconShield, IconTrophy } from '@shared/ui/icons';
+import { useTheme } from '@shared/ui/useTheme';
 import { useScoreboard } from './useScoreboard';
 
 const TOKEN_KEY = 'adminToken';

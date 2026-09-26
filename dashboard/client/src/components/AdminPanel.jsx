@@ -16,8 +16,8 @@ import {
   IconTarget,
   IconTrophy,
   IconUsers,
-} from './icons';
-import { useTheme } from '../lib/useTheme';
+} from '@shared/ui/icons';
+import { useTheme } from '@shared/ui/useTheme';
 import { FLAGS } from '../flags';
 import OverviewTab from './admin/OverviewTab';
 import ControlTab from './admin/ControlTab';

@@ -1,7 +1,7 @@
 import Timer from './Timer';
-import { NantesHackLogo, nantesHack } from '../lib/branding';
+import { NantesHackLogo, nantesHack } from '@shared/ui/branding';
 import { FLAGS } from '../flags';
-import { IconMoon, IconSnowflake, IconSun } from './icons';
+import { IconMoon, IconSnowflake, IconSun } from '@shared/ui/icons';
 
 // Bandeau d'environnement, comme dans le QG. Les commandes (thème, lien vers
 // l'autre écran, passé en `children`) y restent discrètes : elles servent à

@@ -9,7 +9,7 @@ import {
   IconSnowflake,
   IconTarget,
   IconUsers,
-} from '../icons';
+} from '@shared/ui/icons';
 import { Bar, Card, Empty, Kpi, PageHead, fmtClock, fmtCountdown, timeAgo, useNow } from './ui';
 import { FLAG_BY_ID, recentCaptures, restartList, teamScore } from './stats';
 

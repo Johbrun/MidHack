@@ -1,6 +1,6 @@
 // Re-exports the shared flag metadata so components can just import from here.
 // Vite resolves the JSON import natively.
-import data from '../../../shared/flags.json';
+import data from '@shared/flags.json';
 
 export const DIFFICULTY_POINTS = data.DIFFICULTY_POINTS;
 export const CATEGORIES = data.CATEGORIES;

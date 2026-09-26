@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-do
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useOnboarding } from '../context/OnboardingContext';
-import { NantesHackLogo } from '../lib/branding';
+import { NantesHackLogo } from '@shared/ui/branding';
 import { TIER_KEYS, formatCredits } from '../lib/catalog';
 import {
   IconCart, IconChevronDown, IconCrown, IconLogout, IconMenu, IconSearch,

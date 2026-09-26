@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { IconRefresh } from '../icons';
+import { IconRefresh } from '@shared/ui/icons';
 import { Card, Empty, PageHead, fmtClock } from './ui';
 import { FLAG_BY_ID } from './stats';
 import { flagLabel } from '../../flags';

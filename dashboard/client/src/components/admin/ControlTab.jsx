@@ -6,7 +6,7 @@ import {
   IconStop,
   IconTrash,
   IconUnlock,
-} from '../icons';
+} from '@shared/ui/icons';
 import { Bar, Card, PageHead, fmtClock, fmtCountdown, useNow } from './ui';
 
 const PRESETS = [30, 45, 60, 90, 120];

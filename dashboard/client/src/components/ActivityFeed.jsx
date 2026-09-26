@@ -1,5 +1,5 @@
 import { FLAGS, flagLabel } from '../flags';
-import { IconDrop } from './icons';
+import { IconDrop } from '@shared/ui/icons';
 
 const MAX_ITEMS = 12;
 

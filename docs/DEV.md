@@ -31,7 +31,7 @@ midhack/
 │   │   ├── context/          # AuthContext (JWT), CartContext (localStorage)
 │   │   ├── pages/            # Home, Shop, Product, Login, Register, Dashboard,
 │   │   │                     # Cart, SendCredits, TopUp, Admin, Profile
-│   │   └── lib/              # branding.jsx (Nantes@Hack toggle)
+│   │   └── lib/              # catalog, nudge
 │   └── vite.config.js        # proxy /api -> :3001
 │
 ├── server/                   # BananaShop - backend Express
@@ -319,6 +319,8 @@ Base image : `node:22-alpine` (LTS jusqu’en avril 2027 ; Node 24 exige de pass
 Les trois images tournent sous l'utilisateur `node` (non root). Seuls les dossiers écrits à l'exécution lui appartiennent : `/app/server` (base SQLite) pour le site, `data/` pour le QG et le dashboard.
 
 > **Mise à jour d'un déploiement antérieur** : les volumes créés par les anciennes images appartiennent à root et ne sont pas accessibles en écriture par `node`. Faire `./setup.sh reset` avant `./setup.sh deploy` (procédure déjà recommandée après un `git pull`).
+
+Les fronts importent le code commun de `shared/` via l'alias Vite `@shared` : chaque Dockerfile copie donc `shared/` dans l'étape de build.
 
 ### Génération
 

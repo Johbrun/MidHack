@@ -1,9 +1,9 @@
 import Header, { EnvBar } from './components/Header';
-import { useTheme } from './lib/useTheme';
+import { useTheme } from '@shared/ui/useTheme';
 import Scoreboard from './components/Scoreboard';
 import ActivityFeed from './components/ActivityFeed';
 import Toasts from './components/Toasts';
-import { IconShield } from './components/icons';
+import { IconShield } from '@shared/ui/icons';
 import { useScoreboard } from './useScoreboard';
 import { useConfetti } from './lib/useConfetti';
 
