@@ -1,10 +1,10 @@
 # ─── Build stage: build the React client ───
-FROM node:20-alpine AS client-build
+FROM node:22-alpine AS client-build
 
 WORKDIR /build
 COPY shared/ /build/shared/
-COPY dashboard/client/package.json dashboard/client/package-lock.json* ./dashboard/client/
-RUN cd dashboard/client && npm install
+COPY dashboard/client/package.json dashboard/client/package-lock.json ./dashboard/client/
+RUN cd dashboard/client && npm ci
 
 COPY dashboard/client/ ./dashboard/client/
 ARG VITE_NANTES_HACK=0
@@ -12,17 +12,23 @@ ENV VITE_NANTES_HACK=$VITE_NANTES_HACK
 RUN cd dashboard/client && npm run build
 
 # ─── Runtime stage: Express serving the built client + API + WS ───
-FROM node:20-alpine
+FROM node:22-alpine
 
 WORKDIR /app/dashboard
 
-COPY dashboard/package.json dashboard/package-lock.json* ./
-RUN npm install --omit=dev
+COPY dashboard/package.json dashboard/package-lock.json ./
+RUN npm ci --omit=dev
 
 COPY dashboard/src ./src
 COPY shared/ /app/shared/
 COPY --from=client-build /build/dashboard/client/dist ./client/dist
 
+# Classement, feedbacks et gel persistés dans un volume : le dossier doit
+# exister dans l'image avec le bon propriétaire, que Docker recopie sur un
+# volume neuf.
+RUN mkdir -p data && chown node:node data
+USER node
+
 EXPOSE 5000
-ENV PORT=5000
+ENV PORT=5000 NODE_ENV=production
 CMD ["node", "src/index.js"]

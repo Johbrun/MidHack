@@ -1,5 +1,30 @@
+# Dépendances et builds : réinstallés / reconstruits dans les images
 **/node_modules
-**/*.db
-.git
-.env
 **/dist
+
+# Données d'exécution locales (base SQLite, journaux, scoreboard)
+**/*.db
+**/*.db-shm
+**/*.db-wal
+dashboard/data
+exploit-server/data
+log.txt
+
+# Secrets et fichiers générés par setup.sh
+.env
+credentials.json
+credentials.html
+docker-compose.yml
+
+# Outillage et documentation : inutiles à l'exécution
+.git
+.github
+docs
+tests
+**/tests
+test-results
+scripts
+scanner
+.semgrep
+# Captures d'écran à la racine (sans **/, un motif ne vise que la racine)
+*.png

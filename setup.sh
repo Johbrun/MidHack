@@ -252,6 +252,10 @@ generate_files() {
   local FILE="docker-compose.yml"
   ADMIN_PWD=$(head -c 100 /dev/urandom | tr -dc 'a-zA-Z0-9' | head -c 8)
 
+  # Images préfixées par le projet Compose : le smoke test (projet dédié) ne
+  # remplace pas les images de l'événement en cours.
+  local IMAGE_PREFIX="${COMPOSE_PROJECT_NAME:-midhack}"
+
   # Jeton interne par équipe : partagé entre le dashboard et les conteneurs de
   # l'équipe, jamais montré aux participants. Il empêche une équipe de poster
   # des captures ou des pénalités d'indice au nom d'une autre.
@@ -270,6 +274,19 @@ generate_files() {
 x-build-args: &build-args
   VITE_NANTES_HACK: "$NANTES_HACK"
 
+# Durcissement commun à tous les conteneurs : aucun privilège noyau, pas
+# d'élévation possible, et des plafonds de ressources pour qu'une équipe (fork
+# bomb, boucle SQL…) ne puisse pas affamer l'hôte ni les autres équipes.
+# \`init\` relaie les signaux au process Node (arrêt propre au docker stop).
+x-hardening: &hardening
+  init: true
+  restart: unless-stopped
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  mem_limit: 256m
+  cpus: 1.0
+  pids_limit: 256
+
 # Variables partagées pour le dashboard
 x-event-config: &event-config
   ADMIN_PASSWORD: "$ADMIN_PWD"
@@ -280,7 +297,8 @@ x-event-config: &event-config
 services:
   # Central live dashboard (to project on screen)
   dashboard:
-    image: midhack-dashboard:latest
+    <<: *hardening
+    image: ${IMAGE_PREFIX}-dashboard:latest
     build:
       context: .
       dockerfile: Dockerfile.dashboard
@@ -289,14 +307,12 @@ services:
       <<: *event-config
     ports:
       - "${DASHBOARD_PORT}:5000"
-    restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:5000/api/scoreboard"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 10s
-    mem_limit: 256m
     volumes:
       - dashboard-data:/app/dashboard/data
 EOF
@@ -341,7 +357,8 @@ EOF
 
   # ──────────────────────── Team $i ────────────────────────
   site-team${i}:
-    image: midhack-site:latest
+    <<: *hardening
+    image: ${IMAGE_PREFIX}-site:latest
 ${SITE_BUILD}
     environment:
       - TEAM_NAME=$NAME
@@ -352,17 +369,16 @@ ${SITE_BUILD}
     depends_on:
       dashboard:
         condition: service_healthy
-    restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/products"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 15s
-    mem_limit: 256m
 
   exploit-team${i}:
-    image: midhack-exploit:latest
+    <<: *hardening
+    image: ${IMAGE_PREFIX}-exploit:latest
 ${EXPLOIT_BUILD}
     environment:
       - TEAM_NAME=$NAME
@@ -372,14 +388,12 @@ ${EXPLOIT_BUILD}
       - DASHBOARD_URL=http://dashboard:5000
     ports:
       - "${EXPLOIT_PORT}:4000"
-    restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:4000"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 10s
-    mem_limit: 256m
     volumes:
       - exploit-team${i}-data:/app/exploit-server/data
 EOF

@@ -101,10 +101,11 @@ midhack/
 | Bundler | Vite | 5.4 |
 | CSS | Tailwind CSS | 3.4 |
 | Backend | Express | 4.21 |
-| Base de données | better-sqlite3 | 11.3 |
+| Base de données | better-sqlite3 | 12.11 |
 | Auth | jsonwebtoken + bcryptjs | 9.0 / 2.4 |
 | WebSocket | ws | 8.18 |
 | Confetti | canvas-confetti | 1.9 |
+| Runtime | Node.js (images `node:22-alpine`) | 22 LTS |
 | Conteneurs | Docker + Docker Compose | - |
 
 ### Thème Tailwind partagé
@@ -313,7 +314,11 @@ cd dashboard && npm run dev               # server :5000 + Vite :5174
 | `Dockerfile.exploit` | Vite build du client exploit | Express + SSE + client statique | 4000 |
 | `Dockerfile.dashboard` | Vite build du client dashboard | Express + WebSocket + client statique | 5000 |
 
-Base image : `node:20-alpine`. Le site nécessite `python3 make g++` pour compiler `better-sqlite3`.
+Base image : `node:22-alpine` (LTS jusqu’en avril 2027 ; Node 24 exige de passer `better-sqlite3` en 13, qui ne supporte plus Node 20). Le site compile `better-sqlite3` (`python3 make g++`) dans une étape dédiée : l'image finale n'embarque ni les outils de compilation, ni les sources du client, ni les tests. Les dépendances sont installées avec `npm ci` (lockfile obligatoire).
+
+Les trois images tournent sous l'utilisateur `node` (non root). Seuls les dossiers écrits à l'exécution lui appartiennent : `/app/server` (base SQLite) pour le site, `data/` pour le QG et le dashboard.
+
+> **Mise à jour d'un déploiement antérieur** : les volumes créés par les anciennes images appartiennent à root et ne sont pas accessibles en écriture par `node`. Faire `./setup.sh reset` avant `./setup.sh deploy` (procédure déjà recommandée après un `git pull`).
 
 ### Génération
 
@@ -345,9 +350,9 @@ Toute la configuration vit dans le `.env` — `setup.sh` n'a **plus** de flags d
 
 Le `docker-compose.yml` généré inclut :
 - Health checks (`wget` sur les endpoints principaux)
-- Limites mémoire (256MB site/dashboard, 128MB exploit)
+- Un bloc `x-hardening` appliqué à tous les services : `init: true` (signaux relayés, arrêt propre), `restart: unless-stopped`, `cap_drop: [ALL]`, `no-new-privileges`, et des plafonds `mem_limit: 256m`, `cpus: 1.0`, `pids_limit: 256`
 - Volumes persistants (`dashboard-data`, `exploit-teamN-data`)
-- `restart: unless-stopped`
+- Des images préfixées par le projet Compose (`${COMPOSE_PROJECT_NAME:-midhack}-site`…) : le smoke test Docker ne remplace pas les images de l'événement
 - Bloc `x-build-args` (branding) et `x-event-config` (titre, pénalité, mot de passe admin) reflétant le `.env`
 
 > Le `docker-compose.yml` est **auto-généré et gitignoré** : ne l'éditez pas à la main, modifiez le `.env` puis relancez `./setup.sh deploy`.

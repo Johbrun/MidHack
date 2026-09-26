@@ -15,9 +15,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
       - name: Install root deps
-        run: npm install
+        run: npm ci
       - name: Install app deps (server, client, exploit-server, dashboard)
         run: npm run install:all
       - name: Test (serveur + dashboard + QG + invariants + docs:check)
@@ -31,9 +31,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
       - name: Build BananaShop client
-        run: cd client && npm install && npm run build
+        run: cd client && npm ci && npm run build
       - name: Build exploit-server (QG) client
         run: cd exploit-server && npm run build
       - name: Build dashboard client
@@ -47,14 +47,14 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
       - name: Install root deps (Playwright)
-        run: npm install
+        run: npm ci
       - name: Install client deps
         run: |
-          npm --prefix client install
-          npm --prefix dashboard/client install
-          npm --prefix exploit-server/client install
+          npm --prefix client ci
+          npm --prefix dashboard/client ci
+          npm --prefix exploit-server/client ci
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Smoke front (montage des 3 SPA)
@@ -69,6 +69,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
       - name: Smoke Docker (déploiement de bout en bout)
         run: bash scripts/smoke-docker.sh
