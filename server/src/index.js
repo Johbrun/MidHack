@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const WebSocket = require('ws');
 const { registerTeam } = require('../../shared/register-team');
+const { createSseHub, relayDashboardEvents } = require('../../shared/live-events');
 const { awardFlag } = require('./award');
 const progress = require('./progress');
 const { detectIntent } = require('./detect');
@@ -64,24 +65,10 @@ app.all('/api/internal/*', (req, res) => {
   res.status(404).json({ error: 'Not found' });
 });
 
-// SSE endpoint for admin announcements
-const sseClients = [];
-// Mirrors the dashboard scoreboard freeze state (received over the dashboard WS).
-// When frozen, the BananaShop front locks access.
-let frozen = false;
-app.get('/events', (req, res) => {
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
-  // Push the current freeze state immediately so a fresh page load locks
-  // right away if the scoreboard is already frozen.
-  res.write(`data: ${JSON.stringify({ type: 'freeze', frozen })}\n\n`);
-  sseClients.push(res);
-  req.on('close', () => {
-    const idx = sseClients.indexOf(res);
-    if (idx !== -1) sseClients.splice(idx, 1);
-  });
-});
+// SSE : annonces de l'animateur et gel du CTF, relayés depuis le dashboard.
+// Quand le CTF est gelé, le front du BananaShop se verrouille.
+const events = createSseHub();
+app.get('/events', events.handler);
 
 // Serve static client build in production only
 const clientBuild = path.join(__dirname, '..', '..', 'client', 'dist');
@@ -97,35 +84,10 @@ setTimeout(() => {
   registerTeam({ dashboardUrl: DASHBOARD_URL, teamName: TEAM_NAME, service: 'site' }).catch(() => { });
 }, 2000);
 
-// Connect to dashboard WebSocket to relay announcements via SSE
-function connectDashboardWs() {
-  try {
-    const wsUrl = DASHBOARD_URL.replace(/^http/, 'ws') + '/ws';
-    const ws = new WebSocket(wsUrl);
-    ws.on('message', (raw) => {
-      try {
-        const data = JSON.parse(raw);
-        if (data.type === 'announcement') {
-          const payload = `data: ${JSON.stringify({ type: 'announcement', message: data.message })}\n\n`;
-          for (const client of sseClients) client.write(payload);
-        } else if (data.type === 'freeze') {
-          frozen = data.frozen;
-          const payload = `data: ${JSON.stringify({ type: 'freeze', frozen })}\n\n`;
-          for (const client of sseClients) client.write(payload);
-        }
-      } catch { /* ignore parse errors */ }
-    });
-    ws.on('close', () => setTimeout(connectDashboardWs, 5000));
-    ws.on('error', () => {});
-  } catch {
-    setTimeout(connectDashboardWs, 5000);
-  }
-}
-
 app.listen(PORT, () => {
   console.log(`BananaShop server running on port ${PORT}`);
   console.log(`Team: ${TEAM_NAME}`);
-  connectDashboardWs();
+  relayDashboardEvents({ WebSocket, dashboardUrl: DASHBOARD_URL, hub: events });
   // Instantané des captures de l'équipe : alimente les prérequis des challenges.
   progress.start();
 });

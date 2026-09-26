@@ -1,20 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useAnnouncements } from '@shared/ui/serverEvents';
 
 export default function AnnouncementBanner() {
-  const [announcements, setAnnouncements] = useState([]);
-
-  useEffect(() => {
-    const es = new EventSource('/events');
-    es.onmessage = (e) => {
-      try {
-        const data = JSON.parse(e.data);
-        if (data.type === 'announcement') {
-          setAnnouncements((prev) => [...prev, { id: Date.now(), message: data.message }]);
-        }
-      } catch { /* ignore */ }
-    };
-    return () => es.close();
-  }, []);
+  const [announcements, dismiss] = useAnnouncements();
 
   if (announcements.length === 0) return null;
   const latest = announcements[announcements.length - 1];
@@ -30,7 +17,7 @@ export default function AnnouncementBanner() {
       <span style={{ fontSize: '1.2rem' }}>📢</span>
       <span>{latest.message}</span>
       <button
-        onClick={() => setAnnouncements((prev) => prev.filter((a) => a.id !== latest.id))}
+        onClick={() => dismiss(latest.id)}
         style={{
           background: 'rgba(0,0,0,0.15)', border: 'none', borderRadius: 4,
           color: '#1a1a2e', cursor: 'pointer', padding: '2px 8px', fontWeight: 'bold',

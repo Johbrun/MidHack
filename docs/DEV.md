@@ -80,7 +80,12 @@ midhack/
 │
 ├── shared/                   # Code partagé
 │   ├── flags.json            # Catalogue des challenges (points, hints, catégories)
-│   └── register-team.js      # Helper POST /api/teams/register
+│   ├── register-team.js      # Helper POST /api/teams/register
+│   ├── json-store.js         # Persistance JSON atomique (dashboard, QG)
+│   ├── live-events.js        # Hub SSE /events + relais annonces/gel du dashboard
+│   └── ui/                   # Code front commun, importé via l'alias @shared :
+│                             # icônes (QG + dashboard), branding, thème,
+│                             # flux SSE unique par onglet, onboarding
 │
 ├── .env                      # Configuration de l'événement (source unique)
 ├── .env.example              # Modèle de .env à copier
@@ -435,7 +440,7 @@ Classement : score DESC, puis nombre de captures DESC, puis date de première ca
 | GET | /api/explanation/:flagId | oui | Explication Fix-It (danger, fix, OWASP, code) |
 | GET | /api/requests | oui | Liste des requêtes webhook |
 | POST | /api/requests/clear | oui | Vider les requêtes |
-| GET | /events | oui | SSE (webhooks + annonces du dashboard) |
+| GET | /events | oui | SSE typé : `request` / `request-update` (webhook), `announcement`, `freeze` |
 | ALL | /log, /log/* | - | Endpoint webhook (log + détection cookie theft) |
 
 ---

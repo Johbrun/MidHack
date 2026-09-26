@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useFrozen } from '@shared/ui/serverEvents';
 
 // Builds the Hacking QG feedback URL. In the docker deployment each team's
 // site (BananaShop) and exploit-server (QG) sit on adjacent host ports
@@ -19,18 +19,7 @@ function qgBaseUrl() {
 // real time, so the lock lifts on its own). Invites participants to leave
 // feedback on the Hacking QG while they wait.
 export default function FreezeOverlay() {
-  const [frozen, setFrozen] = useState(false);
-
-  useEffect(() => {
-    const es = new EventSource('/events');
-    es.onmessage = (e) => {
-      try {
-        const data = JSON.parse(e.data);
-        if (data.type === 'freeze') setFrozen(data.frozen);
-      } catch { /* ignore */ }
-    };
-    return () => es.close();
-  }, []);
+  const frozen = useFrozen();
 
   if (!frozen) return null;
 
