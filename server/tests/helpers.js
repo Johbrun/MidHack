@@ -39,6 +39,7 @@ function startStubDashboard(capturedFlagIds = []) {
 async function startServer({ captured = [] } = {}) {
   const dashboard = await startStubDashboard(captured);
   const port = takePort();
+  const internalPort = takePort();
   const dbPath = path.join(os.tmpdir(), `banana-test-${port}-${Date.now()}.db`);
 
   const child = spawn(process.execPath, ['src/index.js'], {
@@ -46,6 +47,7 @@ async function startServer({ captured = [] } = {}) {
     env: {
       ...process.env,
       PORT: String(port),
+      INTERNAL_PORT: String(internalPort),
       DB_PATH: dbPath,
       DASHBOARD_URL: dashboard.url,
       TEAM_NAME: 'TestTeam',
@@ -61,6 +63,9 @@ async function startServer({ captured = [] } = {}) {
 
   return {
     base,
+    // Base du listener interne (loopback only) : c'est la cible de la SSRF.
+    internalBase: `http://127.0.0.1:${internalPort}`,
+    internalPort,
     async stop() {
       child.kill();
       dashboard.server.close();

@@ -52,22 +52,16 @@ app.use('/api/config', require('./routes/config'));
 app.use('/api/flags', require('./routes/flags'));
 app.use('/api/xss-flag', require('./routes/xss-flag'));
 
-// VULNERABLE: Internal-only endpoint - not linked from the UI, but accessible via SSRF.
-// Restreint au loopback : la requête doit provenir du serveur lui-même (donc
-// d'une SSRF via POST /api/products/:id/image-url). Sans ce garde-fou, le flag
-// est servi directement au navigateur du participant, sans aucune SSRF.
-const LOOPBACK = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
-app.get('/api/internal/flag', (req, res) => {
-  const from = req.socket.remoteAddress || '';
-  if (!LOOPBACK.has(from)) {
-    return res.status(403).json({ error: 'Internal endpoint - localhost only' });
-  }
-  const response = {};
-  awardFlag(req, response, 'SSRF', {
-    proof: 'internal_endpoint_via_loopback',
-    message: 'Endpoint interne atteint depuis le serveur lui-même : SSRF réussie !',
-  });
-  res.json(response);
+// L'endpoint interne n'est PLUS servi sur le port applicatif : il vit sur un
+// listener loopback dédié (voir plus bas). Toute tentative directe sur le port
+// exposé — donc via le navigateur d'un participant — reçoit un 404.
+//
+// Pourquoi : l'ancien garde-fou basé sur `req.socket.remoteAddress === 127.0.0.1`
+// était contournable. Derrière un reverse-proxy local (Vite en dev, nginx en
+// prod), l'IP source vue par le backend est TOUJOURS 127.0.0.1, y compris pour
+// une requête navigateur relayée par le proxy. Le flag tombait donc sans SSRF.
+app.all('/api/internal/*', (req, res) => {
+  res.status(404).json({ error: 'Not found' });
 });
 
 // SSE endpoint for admin announcements
@@ -134,4 +128,24 @@ app.listen(PORT, () => {
   connectDashboardWs();
   // Instantané des captures de l'équipe : alimente les prérequis des challenges.
   progress.start();
+});
+
+// VULNERABLE (SSRF): endpoint interne servi sur un listener HTTP séparé, bindé
+// sur la boucle locale et JAMAIS proxifié par Vite ni exposé par Docker.
+// Conséquence : le navigateur d'un participant ne peut pas l'atteindre (il ne
+// parle qu'au port applicatif proxifié) ; seule une requête émise PAR le serveur
+// lui-même peut le joindre, c.-à-d. la SSRF via POST /api/products/:id/image-url
+// ciblant http://127.0.0.1:<INTERNAL_PORT>/api/internal/flag.
+const INTERNAL_PORT = process.env.INTERNAL_PORT || 9000;
+const internalApp = express();
+internalApp.get('/api/internal/flag', (req, res) => {
+  const response = {};
+  awardFlag(req, response, 'SSRF', {
+    proof: 'internal_endpoint_via_loopback',
+    message: 'Endpoint interne atteint depuis le serveur lui-même : SSRF réussie !',
+  });
+  res.json(response);
+});
+internalApp.listen(INTERNAL_PORT, '127.0.0.1', () => {
+  console.log(`Internal endpoint on 127.0.0.1:${INTERNAL_PORT} (loopback only)`);
 });

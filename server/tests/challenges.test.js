@@ -188,17 +188,26 @@ test('JWT Forging : le secret faible permet aussi de signer un super_admin', asy
 test('SSRF : l\'endpoint interne n\'est atteignable que par le serveur lui-même', async () => {
   await withServer({ captured: ALL_CAPTURED }, async (api, server) => {
     await login(api);
+    // La SSRF vise le listener interne (loopback), joignable seulement parce que
+    // c'est le serveur qui émet la requête.
     const ssrf = await api.post('/api/products/1/image-url', {
-      url: `${server.base}/api/internal/flag`,
+      url: `${server.internalBase}/api/internal/flag`,
     });
     assert.equal(ssrf.data.data.flag, FLAGS.SSRF);
 
-    // Depuis une adresse non-loopback — ce qu'est le navigateur d'un participant.
+    // Sur le port applicatif — celui que le navigateur/le proxy atteignent —
+    // l'endpoint n'existe pas : 404, aucun flag.
+    const direct = await api.get('/api/internal/flag');
+    assert.equal(direct.status, 404, 'l\'endpoint interne ne doit pas exister sur le port applicatif');
+
+    // Le listener interne est bindé sur 127.0.0.1 : une adresse non-loopback ne
+    // peut pas s'y connecter du tout (ce qu'est le navigateur d'un participant).
     const external = externalAddress();
     if (external) {
-      const port = new URL(server.base).port;
-      const direct = await fetch(`http://${external}:${port}/api/internal/flag`);
-      assert.equal(direct.status, 403, 'un accès direct ne doit pas délivrer le flag');
+      await assert.rejects(
+        fetch(`http://${external}:${server.internalPort}/api/internal/flag`),
+        'le listener interne ne doit pas être joignable depuis une adresse externe'
+      );
     }
   });
 });
