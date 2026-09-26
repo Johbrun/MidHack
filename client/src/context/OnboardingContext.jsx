@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 
-const UNLOCK_FLAG = 'ASY{L3t_5_H4cK_B4n4n45}';
+const UNLOCK_FLAG = 'BANANES';
 const STORAGE_KEY = 'midhack_unlocked';
 // Mode DEV (VITE_DEV_MODE=true dans le .env) : pas de modale d'onboarding
 // bloquante, l'interface est déverrouillée d'office.

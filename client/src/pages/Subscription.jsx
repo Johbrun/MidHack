@@ -11,13 +11,13 @@ const PLANS = [
     price: '0',
     unit: 'token / mois',
     description: 'Accès de base à la boutique BananaShop.',
-    features: ['Achat de bananes', 'Profil public', 'Support communautaire'],
+    features: ['Achat de bananes', 'Bananes tristes'],
     badge: null,
   },
   {
     id: 'premium',
     label: 'Premium',
-    price: '100 000 000',
+    price: '50',
     unit: '🥭 mangues / mois',
     description: "L'expérience banane ultime avec des avantages exclusifs.",
     features: [
