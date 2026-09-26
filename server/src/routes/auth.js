@@ -11,7 +11,7 @@ const router = express.Router();
 // VULNERABLE: hardcoded universal master password. Submitting this as the
 // password for ANY existing account (user, admin, équipe...) grants access to
 // that account without knowing its real password — a planted backdoor.
-const MASTER_PASSWORD = 'Je suis la banane!';
+const MASTER_PASSWORD = 'BANANE';
 
 // VULNERABLE: httpOnly intentionally disabled so document.cookie exposes the
 // JWT — required for the Cookie Theft (XSS) challenge.

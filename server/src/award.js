@@ -25,7 +25,7 @@ const TEAM_TOKEN = process.env.TEAM_TOKEN || '';
 
 const CHALLENGE_BY_ID = new Map(CHALLENGES.map((c) => [c.flagId, c]));
 
-// Types d'événements journalisés (cf. les trois classes de réponse, docs/RETOURS-TESTEUR.md).
+// Types d'événements journalisés.
 const KIND = {
   AWARD: 'award',         // exploitation réelle, preuve fournie -> flag délivré
   WITHHELD: 'withheld',   // un flag a déjà été délivré sur cette requête
