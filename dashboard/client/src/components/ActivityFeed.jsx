@@ -1,11 +1,11 @@
-import { FLAGS, shortName } from '../flags';
+import { FLAGS, flagLabel } from '../flags';
 import { IconDrop } from './icons';
 
 const MAX_ITEMS = 12;
 
 const byId = new Map(FLAGS.map((f) => [f.flagId, f]));
 const byName = new Map(FLAGS.map((f) => [f.name, f]));
-const label = (flag, fallback) => (flag ? shortName(flag) : fallback);
+const label = (flag, fallback) => (flag ? flagLabel(flag) : fallback);
 const hhmm = (iso) =>
   new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 

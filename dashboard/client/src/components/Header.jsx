@@ -1,11 +1,12 @@
 import Timer from './Timer';
 import { NantesHackLogo, nantesHack } from '../lib/branding';
 import { FLAGS } from '../flags';
-import { IconMoon, IconShield, IconSnowflake, IconSun } from './icons';
+import { IconMoon, IconSnowflake, IconSun } from './icons';
 
-// Bandeau d'environnement, comme dans le QG. Les commandes (thème, admin)
-// y restent discrètes : elles servent à l'animateur, pas à la salle.
-export function EnvBar({ online, status, frozen, onAdmin, isDark, onToggleTheme }) {
+// Bandeau d'environnement, comme dans le QG. Les commandes (thème, lien vers
+// l'autre écran, passé en `children`) y restent discrètes : elles servent à
+// l'animateur, pas à la salle.
+export function EnvBar({ title = 'Hacking QG · Scoreboard', online, status, frozen, isDark, onToggleTheme, children }) {
   const ThemeIcon = isDark ? IconSun : IconMoon;
   return (
     <div className={`envbar${frozen ? ' is-frozen' : ''}`}>
@@ -20,7 +21,7 @@ export function EnvBar({ online, status, frozen, onAdmin, isDark, onToggleTheme 
             CTF gelé — scores figés
           </>
         ) : (
-          'Hacking QG · Scoreboard'
+          title
         )}
       </span>
       <span className="envbar-tools">
@@ -32,9 +33,7 @@ export function EnvBar({ online, status, frozen, onAdmin, isDark, onToggleTheme 
         >
           <ThemeIcon size={15} />
         </button>
-        <button className="icon-btn" onClick={onAdmin} title="Administration" aria-label="Administration">
-          <IconShield size={15} />
-        </button>
+        {children}
       </span>
     </div>
   );

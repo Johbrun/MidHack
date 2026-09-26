@@ -6,7 +6,7 @@ import {
   DIFF_TONE,
   FLAGS,
   MAX_SCORE,
-  shortName,
+  flagLabel,
 } from '../flags';
 import { IconBulb, IconCheck, IconClock, IconDrop, IconShield, IconSnowflake } from './icons';
 
@@ -120,9 +120,9 @@ export default function Scoreboard({ teams, hintPenalty = 3, frozen = false }) {
                   <th
                     key={f.flagId}
                     className={`th-flag${f.groupStart ? ' group-start' : ''}`}
-                    title={f.name}
+                    title={flagLabel(f)}
                   >
-                    <span className="th-flag-label">{shortName(f)}</span>
+                    <span className="th-flag-label">{flagLabel(f)}</span>
                     <span
                       className="th-flag-cat"
                       style={{ background: (CATEGORIES[f.category] || CATEGORIES.other).color }}

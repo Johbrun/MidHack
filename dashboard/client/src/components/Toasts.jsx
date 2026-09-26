@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FLAGS } from '../flags';
+import { FLAGS, flagLabel } from '../flags';
 import { IconBulb, IconDrop, IconFlag, IconMegaphone, IconRefresh, IconSnowflake, IconUnlock } from './icons';
 
 // Receives an incoming events stream from useScoreboard() and renders it for
@@ -91,9 +91,9 @@ export default function Toasts({ events, consumeEvent, hintPenalty = 3 }) {
   );
 }
 
-function flagLabel(flagId) {
+function labelOf(flagId) {
   const flagDef = FLAGS.find((f) => f.flagId === flagId);
-  return flagDef ? flagDef.name : flagId;
+  return flagDef ? flagLabel(flagDef) : flagId;
 }
 
 function buildToast(evt, hintPenalty) {
@@ -101,7 +101,7 @@ function buildToast(evt, hintPenalty) {
     return {
       kind: 'first_blood',
       team: evt.payload.teamName,
-      flag: flagLabel(evt.payload.flagId),
+      flag: labelOf(evt.payload.flagId),
       points: evt.payload.points,
       bonus: evt.payload.bonus,
     };

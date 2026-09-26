@@ -1,10 +1,9 @@
-import { useState } from 'react';
 import Header, { EnvBar } from './components/Header';
 import { useTheme } from './lib/useTheme';
 import Scoreboard from './components/Scoreboard';
 import ActivityFeed from './components/ActivityFeed';
 import Toasts from './components/Toasts';
-import AdminPanel from './components/AdminPanel';
+import { IconShield } from './components/icons';
 import { useScoreboard } from './useScoreboard';
 import { useConfetti } from './lib/useConfetti';
 
@@ -13,7 +12,6 @@ import { useConfetti } from './lib/useConfetti';
 export default function App() {
   const { teams, status, online, frozen, timerEndTime, events, consumeEvent, config } =
     useScoreboard();
-  const [showAdmin, setShowAdmin] = useState(false);
   useConfetti(events);
   const { isDark, toggle: toggleTheme } = useTheme();
 
@@ -23,17 +21,20 @@ export default function App() {
         online={online}
         status={status}
         frozen={frozen}
-        onAdmin={() => setShowAdmin(true)}
         isDark={isDark}
         onToggleTheme={toggleTheme}
-      />
+      >
+        {/* Nouvel onglet : la projection continue pendant qu'on administre. */}
+        <a className="icon-btn" href="/admin" target="_blank" rel="noopener" title="Administration" aria-label="Administration">
+          <IconShield size={15} />
+        </a>
+      </EnvBar>
       <main className="app-main">
         <Header teams={teams} timerEndTime={timerEndTime} eventTitle={config.eventTitle} />
         <Scoreboard teams={teams} hintPenalty={config.hintPenalty} frozen={frozen} />
         <ActivityFeed teams={teams} hintPenalty={config.hintPenalty} />
       </main>
       <Toasts events={events} consumeEvent={consumeEvent} hintPenalty={config.hintPenalty} />
-      {showAdmin && <AdminPanel onClose={() => setShowAdmin(false)} />}
     </div>
   );
 }

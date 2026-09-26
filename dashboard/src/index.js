@@ -56,7 +56,10 @@ function requireAdmin(req, res, next) {
 }
 
 // Persistent state
-const DATA_FILE = path.join(__dirname, '..', 'data', 'scoreboard.json');
+// Dossier de persistance (scoreboard + feedbacks). Surchargée par
+// DASHBOARD_DATA_DIR pour isoler les tests d'un vrai classement en cours.
+const DATA_DIR = process.env.DASHBOARD_DATA_DIR || path.join(__dirname, '..', 'data');
+const DATA_FILE = path.join(DATA_DIR, 'scoreboard.json');
 const teams = new Map(); // teamName -> { name, captures: [...], hints: [...] }
 
 function loadState() {
@@ -82,7 +85,7 @@ function saveState() {
 loadState();
 
 // ─── Feedbacks (participant retros on the event) ───
-const FEEDBACK_FILE = path.join(__dirname, '..', 'data', 'feedbacks.json');
+const FEEDBACK_FILE = path.join(DATA_DIR, 'feedbacks.json');
 let feedbacks = [];
 let nextFeedbackId = 1;
 
@@ -367,7 +370,7 @@ let frozen = false;
 // Captures reçues pendant le gel, rejouées telles quelles au dégel. Persistées
 // sur disque : un redémarrage du dashboard pendant le gel ne doit pas faire
 // perdre les flags déjà soumis par les équipes.
-const PENDING_FILE = path.join(__dirname, '..', 'data', 'pending-captures.json');
+const PENDING_FILE = path.join(DATA_DIR, 'pending-captures.json');
 let pendingCaptures = [];
 
 function loadPending() {
