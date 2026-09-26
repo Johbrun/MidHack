@@ -579,6 +579,7 @@ cmd_deploy() {
 cmd_reset_team() {
   local name="${1:-}"
   [ -n "$name" ] || fail "Usage: ./setup.sh reset-team <nom d'équipe>"
+  load_config
   [ -f "docker-compose.yml" ] || fail "docker-compose.yml absent — lancez d'abord ./setup.sh deploy"
 
   # Retrouve l'index de l'équipe à partir de son nom tel que déployé.
