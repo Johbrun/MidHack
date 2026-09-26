@@ -1,6 +1,5 @@
 node_modules/
 dist/
-*.db
 .env
 credentials.json
 credentials.html
@@ -8,10 +7,21 @@ credentials.html
 # généré par setup.sh
 docker-compose.yml
 
-dashboard/data/scoreboard.json
-dashboard/data/pending-captures.json
-dashboard/data/feedbacks.json
+# Données d'exécution : base SQLite, scoreboard, journal webhook (peuvent
+# contenir des flags et des jetons volés pendant un atelier)
+*.db
+*.db-shm
+*.db-wal
+dashboard/data/
+exploit-server/data/
+*.corrupt-*
+
+# Sorties de tests et journaux locaux
+test-results/
+playwright-report/
+log.txt
+
+# Captures d'écran de travail à la racine
+/*.png
 
 TODO.md
-
-banana_shop.db*
