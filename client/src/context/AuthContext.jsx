@@ -28,7 +28,7 @@ export function AuthProvider({ children }) {
       if (decoded?.id) {
         setUser(decoded);
         api.get(`/users/${decoded.id}`)
-          .then(r => setUser(u => u ? { ...u, balance: r.data.balance, mangoes: r.data.mangoes } : u))
+          .then(r => setUser(u => u ? { ...u, balance: r.data.balance } : u))
           .catch(() => {});
       }
     }
@@ -43,7 +43,7 @@ export function AuthProvider({ children }) {
     setUser(userData);
     if (userData?.id) {
       api.get(`/users/${userData.id}`)
-        .then(r => setUser(u => u ? { ...u, balance: r.data.balance, mangoes: r.data.mangoes } : u))
+        .then(r => setUser(u => u ? { ...u, balance: r.data.balance } : u))
         .catch(() => {});
     }
     return data;

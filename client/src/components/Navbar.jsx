@@ -119,11 +119,6 @@ function AccountMenu({ user, unlocked, onLogout }) {
                 {user.balance != null ? `${formatCredits(Math.floor(user.balance))} cr` : '—'}
               </span>
             </div>
-            <div className="mt-1 flex items-center gap-2 text-sm">
-              <span className="w-4 text-center leading-none">🥭</span>
-              <span className="text-muted">Mangues :</span>
-              <span className="font-semibold text-ink">{user.mangoes ?? 0}</span>
-            </div>
           </div>
           {accountLinks(user).map(({ to, label, icon: Icon }) =>
             unlocked ? (

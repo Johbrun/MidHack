@@ -76,11 +76,6 @@ const cols = db.prepare("PRAGMA table_info(users)").all();
 if (!cols.find(c => c.name === 'subscription')) {
   db.exec("ALTER TABLE users ADD COLUMN subscription TEXT DEFAULT 'free'");
 }
-// Mangues : monnaie exclusive du Club Premium, jamais créditée par l'appli
-// (le « service client » n'existe pas) — seul le prix falsifié y mène.
-if (!cols.find(c => c.name === 'mangoes')) {
-  db.exec('ALTER TABLE users ADD COLUMN mangoes INTEGER DEFAULT 0');
-}
 
 const productCols = db.prepare("PRAGMA table_info(products)").all();
 if (!productCols.find(c => c.name === 'tier')) {

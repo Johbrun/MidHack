@@ -41,8 +41,7 @@
 ## 🟠 Moyen
 
 ### Parameter Tampering — « Free Premium »
-- `PUT /api/users/:id/subscription` : le serveur compare le solde de **mangues** 🥭 (toujours 0) au prix envoyé par le client, puis débite ce prix.
-- Le bouton « Confirmer l'achat » envoie `{"plan":"premium","price":50}` (visible dans le JS / Burp) → 402 « Mangues insuffisantes ».
+- `PUT /api/users/:id/subscription` : le serveur facture le prix envoyé par le client.
 - Envoyer `{"plan":"premium","price":0}` → premium sans payer.
 - **Flag :** `ASY{pr3m1um_s4ns_p4y3r}`
 

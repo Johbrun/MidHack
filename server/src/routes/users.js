@@ -12,7 +12,7 @@ const VALID_ROLES = ['user', 'admin'];
 // VULNERABLE: IDOR - no check that req.user.id === params.id
 router.get('/:id', authenticate, (req, res) => {
   const user = db.prepare(
-    'SELECT id, username, email, bio, role, balance, mangoes, subscription, created_at FROM users WHERE id = ?'
+    'SELECT id, username, email, bio, role, balance, subscription, created_at FROM users WHERE id = ?'
   ).get(req.params.id);
 
   if (!user) {
@@ -62,7 +62,7 @@ router.put('/:id', authenticate, (req, res) => {
     .run(email || null, nextBio, username || null, role || null, userId);
 
   const updated = db.prepare(
-    'SELECT id, username, email, bio, role, balance, mangoes, subscription, created_at FROM users WHERE id = ?'
+    'SELECT id, username, email, bio, role, balance, subscription, created_at FROM users WHERE id = ?'
   ).get(userId);
 
   // Le flag ne tombe que sur une vraie élévation de privilège via mass

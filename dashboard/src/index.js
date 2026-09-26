@@ -3,6 +3,7 @@ const http = require('http');
 const { WebSocketServer } = require('ws');
 const path = require('path');
 const fs = require('fs');
+const { writeJsonAtomic, readJson } = require('../../shared/json-store');
 
 const app = express();
 const server = http.createServer(app);
@@ -63,22 +64,16 @@ const DATA_FILE = path.join(DATA_DIR, 'scoreboard.json');
 const teams = new Map(); // teamName -> { name, captures: [...], hints: [...] }
 
 function loadState() {
-  try {
-    if (fs.existsSync(DATA_FILE)) {
-      const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8'));
-      for (const team of data) {
-        teams.set(team.name, team);
-      }
-      console.log(`Loaded ${teams.size} teams from disk`);
-    }
-  } catch { /* start fresh */ }
+  const data = readJson(DATA_FILE, { fallback: [], validate: Array.isArray });
+  for (const team of data) {
+    teams.set(team.name, team);
+  }
+  if (teams.size) console.log(`Loaded ${teams.size} teams from disk`);
 }
 
 function saveState() {
   try {
-    const dir = path.dirname(DATA_FILE);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(DATA_FILE, JSON.stringify(Array.from(teams.values()), null, 2));
+    writeJsonAtomic(DATA_FILE, Array.from(teams.values()));
   } catch (err) { console.error('Failed to save state:', err.message); }
 }
 
@@ -90,20 +85,14 @@ let feedbacks = [];
 let nextFeedbackId = 1;
 
 function loadFeedbacks() {
-  try {
-    if (fs.existsSync(FEEDBACK_FILE)) {
-      feedbacks = JSON.parse(fs.readFileSync(FEEDBACK_FILE, 'utf-8'));
-      nextFeedbackId = feedbacks.reduce((m, f) => Math.max(m, f.id || 0), 0) + 1;
-      console.log(`Loaded ${feedbacks.length} feedbacks from disk`);
-    }
-  } catch { feedbacks = []; }
+  feedbacks = readJson(FEEDBACK_FILE, { fallback: [], validate: Array.isArray });
+  nextFeedbackId = feedbacks.reduce((m, f) => Math.max(m, f.id || 0), 0) + 1;
+  if (feedbacks.length) console.log(`Loaded ${feedbacks.length} feedbacks from disk`);
 }
 
 function saveFeedbacks() {
   try {
-    const dir = path.dirname(FEEDBACK_FILE);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(FEEDBACK_FILE, JSON.stringify(feedbacks, null, 2));
+    writeJsonAtomic(FEEDBACK_FILE, feedbacks);
   } catch (err) { console.error('Failed to save feedbacks:', err.message); }
 }
 
@@ -374,23 +363,20 @@ const PENDING_FILE = path.join(DATA_DIR, 'pending-captures.json');
 let pendingCaptures = [];
 
 function loadPending() {
-  try {
-    if (fs.existsSync(PENDING_FILE)) {
-      const data = JSON.parse(fs.readFileSync(PENDING_FILE, 'utf-8'));
-      frozen = !!data.frozen;
-      pendingCaptures = data.captures || [];
-      if (frozen || pendingCaptures.length) {
-        console.log(`Restored freeze state (frozen=${frozen}, ${pendingCaptures.length} pending capture(s))`);
-      }
-    }
-  } catch { pendingCaptures = []; }
+  const data = readJson(PENDING_FILE, {
+    fallback: { frozen: false, captures: [] },
+    validate: (d) => d && typeof d === 'object' && !Array.isArray(d),
+  });
+  frozen = !!data.frozen;
+  pendingCaptures = Array.isArray(data.captures) ? data.captures : [];
+  if (frozen || pendingCaptures.length) {
+    console.log(`Restored freeze state (frozen=${frozen}, ${pendingCaptures.length} pending capture(s))`);
+  }
 }
 
 function savePending() {
   try {
-    const dir = path.dirname(PENDING_FILE);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(PENDING_FILE, JSON.stringify({ frozen, captures: pendingCaptures }, null, 2));
+    writeJsonAtomic(PENDING_FILE, { frozen, captures: pendingCaptures });
   } catch (err) { console.error('Failed to save pending captures:', err.message); }
 }
 
@@ -407,9 +393,11 @@ app.post('/api/scoreboard/freeze', requireAdmin, (req, res) => {
 app.post('/api/scoreboard/unfreeze', requireAdmin, (req, res) => {
   frozen = false;
   const queued = pendingCaptures;
+  // Rejouer AVANT de vider la file sur disque : si le process tombe en cours de
+  // boucle, le redémarrage rejoue tout, et recordCapture ignore les doublons.
+  for (const entry of queued) recordCapture(entry);
   pendingCaptures = [];
   savePending();
-  for (const entry of queued) recordCapture(entry);
   console.log(`UNFREEZE: CTF unfrozen (${queued.length} capture(s) en attente rejouée(s))`);
   broadcast({ type: 'freeze', frozen: false });
   broadcastScoreboard();

@@ -73,11 +73,6 @@ export default function Dashboard() {
               {profile?.balance != null ? formatCredits(profile.balance) : '—'}
               <span className="ml-2 text-lg font-body font-medium text-white/60">crédits</span>
             </p>
-            <p className="mt-2 font-heading font-bold text-2xl text-white">
-              {profile?.mangoes ?? 0} 🥭
-              <span className="ml-2 text-sm font-body font-medium text-white/60">mangues</span>
-            </p>
-            <p className="mt-1 text-xs text-white/50">Les mangues s'obtiennent auprès du service client au 08 36 65 65 65</p>
             <div className="mt-6 flex flex-wrap gap-2">
               <Link to="/send" className="btn-sm btn bg-white/10 text-white hover:bg-white/20"><IconSend size={16} /> Envoyer</Link>
               <Link to="/topup" className="btn-sm btn bg-white/10 text-white hover:bg-white/20"><IconCard size={16} /> Recharger</Link>

@@ -8,8 +8,7 @@ const VALID_PLANS = ['free', 'premium'];
 // Prix officiels imposés côté serveur — mais le tunnel fait l'erreur de
 // laisser le client fournir son propre prix (parameter tampering) : c'est là
 // que se gagne le challenge « Free Premium ».
-// Prix en mangues 🥭 (monnaie distincte des crédits).
-const PLAN_PRICES = { free: 0, premium: 50 };
+const PLAN_PRICES = { free: 0, premium: 100000000 };
 
 // GET /api/users/:id/subscription
 router.get('/:id/subscription', authenticate, (req, res) => {
@@ -25,7 +24,7 @@ router.put('/:id/subscription', authenticate, (req, res) => {
     return res.status(400).json({ error: 'Plan invalide. Valeurs acceptées : free, premium' });
   }
   const user = db
-    .prepare('SELECT id, subscription, mangoes FROM users WHERE id = ?')
+    .prepare('SELECT id, subscription, balance FROM users WHERE id = ?')
     .get(req.params.id);
   if (!user) return res.status(404).json({ error: 'User not found' });
 
@@ -38,27 +37,27 @@ router.put('/:id/subscription', authenticate, (req, res) => {
     return res.status(400).json({ error: 'Prix invalide' });
   }
 
-  if (price > user.mangoes) {
+  if (price > user.balance) {
     return res.status(402).json({
-      error: `Mangues insuffisantes : l'abonnement ${plan} coûte ${officialPrice} 🥭, vous en avez ${user.mangoes}. Obtenez des mangues auprès du service client.`,
+      error: `Solde insuffisant : l'abonnement ${plan} coûte ${officialPrice} crédits, vous en avez ${user.balance}.`,
       nudge:
         "Le montant débité est-il vraiment décidé par le serveur ? Regardez ce que la requête envoie…",
     });
   }
 
-  db.prepare('UPDATE users SET subscription = ?, mangoes = mangoes - ? WHERE id = ?').run(
+  db.prepare('UPDATE users SET subscription = ?, balance = balance - ? WHERE id = ?').run(
     plan,
     price,
     req.params.id
   );
 
   const updated = db
-    .prepare('SELECT id, subscription, mangoes FROM users WHERE id = ?')
+    .prepare('SELECT id, subscription, balance FROM users WHERE id = ?')
     .get(req.params.id);
 
   const response = {
     subscription: updated.subscription,
-    mangoes: updated.mangoes,
+    balance: updated.balance,
     message: 'Abonnement mis à jour avec succès',
   };
 

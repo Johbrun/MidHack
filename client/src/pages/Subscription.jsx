@@ -4,8 +4,6 @@ import AccountLayout from '../components/AccountLayout';
 import { IconCheck } from '../components/Icons';
 import api from '../api';
 
-const PREMIUM_PRICE = 50;
-
 const PLANS = [
   {
     id: 'free',
@@ -33,8 +31,7 @@ const PLANS = [
   },
 ];
 
-function ConfirmModal({ mangoes, processing, onCancel, onConfirm }) {
-  const enough = mangoes >= PREMIUM_PRICE;
+function ConfirmModal({ onCancel }) {
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-ink/50 backdrop-blur-sm" onClick={onCancel} />
@@ -58,25 +55,23 @@ function ConfirmModal({ mangoes, processing, onCancel, onConfirm }) {
           </div>
           <div className="flex items-center justify-between">
             <dt className="text-muted">Coût</dt>
-            <dd className="font-semibold text-ink">{PREMIUM_PRICE} 🥭</dd>
+            <dd className="font-semibold text-ink">50 🥭 mangues</dd>
           </div>
           <div className="border-t border-line pt-3 flex items-center justify-between">
             <dt className="text-muted">Vos mangues</dt>
-            <dd className={`font-semibold ${enough ? 'text-ink' : 'text-red-700'}`}>{mangoes} 🥭</dd>
+            <dd className="font-semibold text-red-700">0 🥭</dd>
           </div>
         </dl>
 
-        {!enough && (
-          <div className="mb-6 flex items-start gap-3 alert-error">
-            <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3m0 3h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-            </svg>
-            <div>
-              <p className="font-semibold">Mangues insuffisantes</p>
-              <p className="mt-0.5 opacity-80">Vous devez obtenir des mangues auprès de notre service client (situé aux îles Bananas)</p>
-            </div>
+        <div className="mb-6 flex items-start gap-3 alert-error">
+          <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3m0 3h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+          </svg>
+          <div>
+            <p className="font-semibold">Mangues insuffisantes</p>
+            <p className="mt-0.5 opacity-80">Vous devez obtenir des mangues auprès de notre service client (situé aux îles Bananas)</p>
           </div>
-        )}
+        </div>
 
         {/* Actions */}
         <div className="flex gap-3">
@@ -87,11 +82,10 @@ function ConfirmModal({ mangoes, processing, onCancel, onConfirm }) {
             Annuler
           </button>
           <button
-            onClick={onConfirm}
-            disabled={!enough || processing}
+            disabled
             className="flex-1 btn-primary"
           >
-            {processing ? '…' : "Confirmer l'achat"}
+            Confirmer l'achat
           </button>
         </div>
       </div>
@@ -107,7 +101,7 @@ export default function Subscription() {
   const [processing, setProcessing] = useState(false);
   const [message, setMessage] = useState('');
   const [pendingPlan, setPendingPlan] = useState(null);
-  const mangoes = user?.mangoes ?? 0;
+  const balance = user?.balance ?? 0;
 
   useEffect(() => {
     if (!id) return;
@@ -131,12 +125,9 @@ export default function Subscription() {
     setMessage('');
     setPendingPlan(null);
     try {
-      const body = planId === 'premium'
-        ? { plan: 'premium', price: PREMIUM_PRICE }
-        : { plan: planId };
-      const { data } = await api.put(`/users/${id}/subscription`, body);
+      const { data } = await api.put(`/users/${id}/subscription`, { plan: planId });
       setCurrentPlan(data.subscription);
-      if (data.mangoes != null) updateUser({ mangoes: data.mangoes });
+      if (data.balance != null) updateUser({ balance: data.balance });
       setMessage(planId === 'free' ? 'Abonnement résilié.' : 'Bienvenue dans le Premium !');
       setTimeout(() => setMessage(''), 4000);
     } catch (err) {
@@ -155,10 +146,7 @@ export default function Subscription() {
     >
       {pendingPlan && (
         <ConfirmModal
-          mangoes={mangoes}
-          processing={processing}
           onCancel={() => setPendingPlan(null)}
-          onConfirm={() => confirmSelect('premium')}
         />
       )}
 
