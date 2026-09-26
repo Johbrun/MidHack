@@ -20,9 +20,16 @@ function startStubDashboard(capturedFlagIds = []) {
     capturedAt: new Date().toISOString(),
   }));
 
+  // Tant que le site n'a pas lu le scoreboard une première fois, ses prérequis
+  // sont ouverts (fail-open, cf. progress.js) : un test lancé dans cette fenêtre
+  // voyait un challenge « hors fil rouge » validé. On expose donc ce moment.
+  let markServed;
+  const scoreboardServed = new Promise((resolve) => (markServed = resolve));
+
   const server = http.createServer((req, res) => {
     res.setHeader('content-type', 'application/json');
     if (req.url.startsWith('/api/scoreboard')) {
+      res.on('finish', markServed);
       return res.end(JSON.stringify({ teams: [{ name: 'TestTeam', captures, hints: [] }] }));
     }
     let body = '';
@@ -31,7 +38,7 @@ function startStubDashboard(capturedFlagIds = []) {
   });
 
   return new Promise((resolve) => {
-    server.listen(port, () => resolve({ url: `http://127.0.0.1:${port}`, server }));
+    server.listen(port, () => resolve({ url: `http://127.0.0.1:${port}`, server, scoreboardServed }));
   });
 }
 
@@ -60,6 +67,9 @@ async function startServer({ captured = [] } = {}) {
 
   const base = `http://127.0.0.1:${port}`;
   await waitForReady(base);
+  // Réponse envoyée ; on laisse au site le temps de la lire et de l'appliquer.
+  await dashboard.scoreboardServed;
+  await new Promise((r) => setTimeout(r, 100));
 
   return {
     base,
