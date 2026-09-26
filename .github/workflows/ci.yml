@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  # Tests + garde-fou docs : `npm test` enchaîne serveur, dashboard,
+  # exploit-server (QG), invariants de catalogue, puis `docs:check` (une doc
+  # générée périmée fait échouer le CI).
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install root deps
+        run: npm install
+      - name: Install app deps (server, client, exploit-server, dashboard)
+        run: npm run install:all
+      - name: Test (serveur + dashboard + QG + invariants + docs:check)
+        run: npm test
+
+  # Smoke de build : les trois bundles front doivent compiler. Si un import
+  # (ex. shared/flags.json depuis les slides) casse, le CI le voit avant le jour J.
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Build BananaShop client
+        run: cd client && npm install && npm run build
+      - name: Build exploit-server (QG) client
+        run: cd exploit-server && npm run build
+      - name: Build dashboard client
+        run: cd dashboard && npm run build
+
+  # Smoke front : les 3 SPA se montent dans un vrai navigateur (attrape un crash
+  # au rendu, invisible au simple build — cf. bug ScrollToTop sous Chromium/Burp).
+  smoke-front:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install root deps (Playwright)
+        run: npm install
+      - name: Install client deps
+        run: |
+          npm --prefix client install
+          npm --prefix dashboard/client install
+          npm --prefix exploit-server/client install
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Smoke front (montage des 3 SPA)
+        run: npm run test:smoke-front
+
+  # Smoke de déploiement : setup.sh build les images et démarre la stack, puis
+  # un flag capturé sur le site remonte au scoreboard via le QG. C'est le test
+  # le plus proche de « ça marche le jour J ».
+  smoke-docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Smoke Docker (déploiement de bout en bout)
+        run: bash scripts/smoke-docker.sh
