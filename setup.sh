@@ -23,6 +23,10 @@ info() { printf "  ${CYAN}ℹ${NC} %s\n" "$1"; }
 
 ENV_FILE=".env"
 
+# Redéploiement : quand vaut "1", les mots de passe distribués (credentials.json)
+# sont réutilisés au lieu d'être régénérés. Défaut : déploiement normal.
+PRESERVE_CREDS=0
+
 # ─────────────────────────── Chargement de la config (.env) ───────────────────────────
 
 # Source le .env et expose les variables de configuration. Toutes les valeurs
@@ -82,11 +86,18 @@ ${Y}USAGE${N}
 ${Y}COMMANDES${N}
   deploy            Génère docker-compose.yml + credentials, puis build &
                     démarre les conteneurs (docker compose up --build -d).
+                    ⚠ Régénère des mots de passe aléatoires à chaque appel.
+  redeploy          Comme deploy mais CONSERVE credentials.json : les mots de
+                    passe déjà distribués restent valides. Cible du déploiement
+                    continu, sûr même pendant un événement.
   passwords         Réaffiche les mots de passe (équipes + admin) lus depuis
                     credentials.json, sans rien régénérer.
   reset             Arrête et supprime conteneurs, volumes et fichiers générés.
   reset-team <nom>  Remet à zéro une seule équipe : base du site recréée et
                     webhook vidé, sans toucher aux autres équipes ni au score.
+  reset-scores      Remet le classement à zéro (supprime scoreboard.json et
+                    redémarre le dashboard) sans toucher aux conteneurs, aux
+                    mots de passe ni aux instances. Sûr pendant un événement.
   -h, --help, help  Affiche cette aide.
 
 ${Y}CONFIGURATION${N}
@@ -254,13 +265,34 @@ PASSWORD_WORDS=(
 )
 declare -a TEAM_TOKENS
 
+# Redéploiement : relit les identifiants déjà distribués depuis credentials.json
+# (mot de passe admin + mots de passe d'équipe) pour que generate_files les
+# réinjecte tels quels dans docker-compose.yml, au lieu d'en tirer de nouveaux.
+# Les jetons internes équipe↔dashboard, eux, sont régénérés (jamais distribués,
+# et cohérents entre services à chaque run).
+load_preserved_credentials() {
+  local CREDS_JSON="credentials.json"
+  [ -f "$CREDS_JSON" ] || fail "redeploy : credentials.json introuvable — lancez d'abord ./setup.sh deploy"
+  PRESERVED_ADMIN_PWD=$(grep -m1 '"admin_password"' "$CREDS_JSON" | sed -E 's/.*"admin_password"[[:space:]]*:[[:space:]]*"([^"]*)".*/\1/')
+  mapfile -t PRESERVED_PASSWORDS < <(grep '"password"' "$CREDS_JSON" | sed -E 's/.*"password"[[:space:]]*:[[:space:]]*"([^"]*)".*/\1/')
+  [ -n "$PRESERVED_ADMIN_PWD" ] || fail "redeploy : mot de passe admin illisible dans credentials.json"
+  if [ "${#PRESERVED_PASSWORDS[@]}" -ne "$TEAMS" ]; then
+    fail "redeploy : credentials.json contient ${#PRESERVED_PASSWORDS[@]} équipe(s) mais TEAMS=$TEAMS — le nombre d'équipes a changé, lancez ./setup.sh deploy (régénère tout)."
+  fi
+  ok "Identifiants existants réutilisés (credentials.json préservé)"
+}
+
 generate_files() {
   echo ""
   echo "⚙️  Génération de docker-compose.yml pour $TEAMS équipe(s)..."
   echo ""
 
   local FILE="docker-compose.yml"
-  ADMIN_PWD=$(head -c 100 /dev/urandom | tr -dc 'a-zA-Z0-9' | head -c 8)
+  if [ "$PRESERVE_CREDS" = "1" ]; then
+    ADMIN_PWD="$PRESERVED_ADMIN_PWD"
+  else
+    ADMIN_PWD=$(head -c 100 /dev/urandom | tr -dc 'a-zA-Z0-9' | head -c 8)
+  fi
 
   # Images préfixées par le projet Compose : le smoke test (projet dédié) ne
   # remplace pas les images de l'événement en cours.
@@ -327,13 +359,18 @@ services:
       - dashboard-data:/app/dashboard/data
 EOF
 
-  # Pre-generate passwords (un mot anglais courant, distinct par équipe)
+  # Pre-generate passwords (un mot anglais courant, distinct par équipe), ou
+  # réutilise ceux déjà distribués en mode redeploy (PRESERVE_CREDS=1).
   PASSWORDS=()
   local i
   local -a PICKED_WORDS
   mapfile -t PICKED_WORDS < <(printf '%s\n' "${PASSWORD_WORDS[@]}" | shuf -n "$TEAMS" --random-source=/dev/urandom)
   for i in $(seq 1 "$TEAMS"); do
-    PASSWORDS[$i]="${PICKED_WORDS[$((i - 1))]}"
+    if [ "$PRESERVE_CREDS" = "1" ]; then
+      PASSWORDS[$i]="${PRESERVED_PASSWORDS[$((i - 1))]}"
+    else
+      PASSWORDS[$i]="${PICKED_WORDS[$((i - 1))]}"
+    fi
   done
 
   for i in $(seq 1 "$TEAMS"); do
@@ -425,7 +462,11 @@ EOF
 
   ok "docker-compose.yml généré"
 
-  generate_credentials
+  if [ "$PRESERVE_CREDS" = "1" ]; then
+    info "credentials.json conservé (redeploy) — mots de passe inchangés"
+  else
+    generate_credentials
+  fi
 }
 
 # ─────────────────────────── Fichiers d'identifiants ───────────────────────────
@@ -585,6 +626,17 @@ cmd_deploy() {
   echo ""
 }
 
+# Redéploie le code (rebuild + up) SANS régénérer les identifiants : les mots de
+# passe déjà distribués aux équipes et à l'admin restent valides. C'est la cible
+# du déploiement continu — sûr à lancer même pendant un événement. Les volumes
+# (scoreboard, QG) persistent ; seules les bases jetables du site sont recréées.
+cmd_redeploy() {
+  load_config
+  load_preserved_credentials
+  PRESERVE_CREDS=1
+  cmd_deploy
+}
+
 # Remet une équipe à l'état initial sans interrompre l'atelier des autres.
 # Utile quand un participant a saccagé l'économie de son instance : jusqu'ici
 # il fallait réinitialiser tout l'événement.
@@ -619,13 +671,46 @@ cmd_reset_team() {
   echo ""
 }
 
+# ─────────────────────────── Reset des scores ───────────────────────────
+
+# Remet le classement à zéro sans toucher aux conteneurs, aux mots de passe
+# ni aux instances des équipes. On passe par l'endpoint admin POST /api/reset
+# (et non par un rm dans le conteneur : le durcissement cap_drop:ALL + USER node
+# interdit d'y supprimer un fichier). L'app vide scores et indices, ré-écrit
+# scoreboard.json elle-même et diffuse le reset en direct au tableau projeté.
+# Les feedbacks (feedbacks.json) sont conservés.
+cmd_reset_scores() {
+  load_config
+  [ -f "docker-compose.yml" ] || fail "docker-compose.yml absent — lancez d'abord ./setup.sh deploy"
+  [ -f "credentials.json" ] || fail "credentials.json introuvable — impossible de lire le mot de passe admin"
+  command -v curl &>/dev/null || fail "curl introuvable — installez-le pour appeler l'API du dashboard"
+
+  local admin
+  admin=$(grep -m1 '"admin_password"' credentials.json | sed -E 's/.*"admin_password"[[:space:]]*:[[:space:]]*"([^"]*)".*/\1/')
+  [ -n "$admin" ] || fail "mot de passe admin illisible dans credentials.json"
+
+  echo ""
+  echo "🧹 Reset du classement (dashboard)..."
+
+  curl -fsS -X POST -H "x-admin-token: $admin" \
+    "http://localhost:${DASHBOARD_PORT}/api/reset" >/dev/null 2>&1 \
+    && ok "Classement vidé et diffusé au tableau" \
+    || fail "Appel à /api/reset échoué — le dashboard répond-il sur le port ${DASHBOARD_PORT} ?"
+
+  echo ""
+  ok "Classement remis à zéro. Instances, mots de passe et feedbacks conservés."
+  echo ""
+}
+
 # ─────────────────────────── Dispatch ───────────────────────────
 
 case "${1:-}" in
   deploy)          cmd_deploy ;;
+  redeploy)        cmd_redeploy ;;
   passwords)       show_passwords ;;
   reset)           cmd_reset ;;
   reset-team)      cmd_reset_team "${2:-}" ;;
+  reset-scores)    cmd_reset_scores ;;
   -h|--help|help)  usage ;;
   "")              usage; exit 1 ;;
   *)               fail "Commande inconnue: '$1' (voir ./setup.sh --help)" ;;
