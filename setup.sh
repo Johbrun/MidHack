@@ -138,7 +138,7 @@ show_passwords() {
   echo "╠══════════════════════════════════════════╣"
   local i
   for i in "${!pw_names[@]}"; do
-    printf "║  %-10s  mdp: %-5s               ║\n" "${pw_names[$i]}" "${pw_pwds[$i]}"
+    printf "║  %-10s  mdp: %-12s           ║\n" "${pw_names[$i]}" "${pw_pwds[$i]}"
   done
   echo "╠══════════════════════════════════════════╣"
   printf "║  Admin dashboard:  %-20s ║\n" "$admin"
@@ -242,6 +242,16 @@ check_port() {
 # Variables partagées entre la génération et le résumé.
 ADMIN_PWD=""
 declare -a PASSWORDS
+
+# Mots anglais courants servant de mots de passe d'équipe (faciles à dicter et
+# à taper). Tous distincts, en minuscules, sans accent ni caractère spécial.
+PASSWORD_WORDS=(
+  apple bread chair cloud dream earth field flower forest garden
+  glass green happy horse house island jacket kitchen lemon light
+  market money monkey morning mountain music orange paper pencil pepper
+  pillow planet pocket rabbit river rocket sugar summer table tiger
+  window winter yellow bottle butter candle carpet castle cookie dragon
+)
 declare -a TEAM_TOKENS
 
 generate_files() {
@@ -317,11 +327,13 @@ services:
       - dashboard-data:/app/dashboard/data
 EOF
 
-  # Pre-generate random passwords (5 alphanumeric chars)
+  # Pre-generate passwords (un mot anglais courant, distinct par équipe)
   PASSWORDS=()
   local i
+  local -a PICKED_WORDS
+  mapfile -t PICKED_WORDS < <(printf '%s\n' "${PASSWORD_WORDS[@]}" | shuf -n "$TEAMS" --random-source=/dev/urandom)
   for i in $(seq 1 "$TEAMS"); do
-    PASSWORDS[$i]=$(head -c 100 /dev/urandom | tr -dc 'a-zA-Z0-9' | head -c 5)
+    PASSWORDS[$i]="${PICKED_WORDS[$((i - 1))]}"
   done
 
   for i in $(seq 1 "$TEAMS"); do
@@ -520,7 +532,7 @@ print_summary() {
   echo "║        MOTS DE PASSE DES EQUIPES        ║"
   echo "╠══════════════════════════════════════════╣"
   for i in $(seq 1 "$TEAMS"); do
-    printf "║  %-10s  mdp: %-5s               ║\n" "${NAMES[$((i - 1))]}" "${PASSWORDS[$i]}"
+    printf "║  %-10s  mdp: %-12s           ║\n" "${NAMES[$((i - 1))]}" "${PASSWORDS[$i]}"
   done
   echo "╠══════════════════════════════════════════╣"
   printf "║  Admin dashboard:  %-20s ║\n" "$ADMIN_PWD"
