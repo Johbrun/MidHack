@@ -1,6 +1,9 @@
 {
   "name": "midhack",
   "private": true,
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev:server": "cd server && PORT=3001 npm run dev",
     "dev:client": "cd client && npm run dev",
@@ -8,11 +11,11 @@
     "dev:dashboard": "cd dashboard && npm run dev",
     "dev": "concurrently --kill-others --names server,client,exploit,dash -c yellow,cyan,magenta,green \"npm run dev:server\" \"npm run dev:client\" \"npm run dev:exploit\" \"npm run dev:dashboard\"",
     "install:all": "cd server && npm install && cd ../client && npm install && cd ../exploit-server && npm install && cd ../dashboard && npm install",
-    "test": "npm --prefix server test && npm --prefix dashboard test && npm --prefix exploit-server test && node --test tests/ && npm run docs:check",
+    "test": "npm --prefix server test && npm --prefix dashboard test && npm --prefix exploit-server test && node --test tests/*.test.js && npm run docs:check",
     "test:server": "npm --prefix server test",
     "test:dashboard": "npm --prefix dashboard test",
     "test:exploit": "npm --prefix exploit-server test",
-    "test:invariants": "node --test tests/",
+    "test:invariants": "node --test tests/*.test.js",
     "test:smoke-docker": "bash scripts/smoke-docker.sh",
     "test:smoke-front": "playwright test -c tests/smoke-front/playwright.config.js",
     "docs": "node scripts/gen-docs.js",
